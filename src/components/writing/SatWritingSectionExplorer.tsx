@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { saveSatPracticeProgress } from '../../lib/userStorage';
 import { BookOpen, CheckCircle2, XCircle, ChevronRight, HelpCircle, Sparkles, Layers, ShieldCheck, Target, ArrowRight, ArrowLeft, RefreshCw, Award, Lightbulb, AlertTriangle, Zap, FileText, Check } from 'lucide-react';
 import { SAT_WRITING_CHAPTER_1_FULL } from '../../data/writing/satWritingChapter1Full';
 import { SAT_WRITING_CHAPTER_2_FULL } from '../../data/writing/satWritingChapter2Full';
@@ -920,6 +921,7 @@ export const SatWritingSectionExplorer: React.FC = () => {
   useEffect(() => {
     try {
       localStorage.setItem('sat_writing_answers', JSON.stringify(userSelectedAnswers));
+      saveSatPracticeProgress('writing', userSelectedAnswers).catch(() => {});
     } catch (e) {
       console.error(e);
     }

@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { UniversityTrackItem } from '../data/scholarshipTracksData';
 import { getUniversityLogo } from '../utils/universityUtils';
+import { getLocalBookmarkedIds, toggleUniversityBookmark } from '../lib/userStorage';
 
 export interface UniversityProfileProps {
   university: UniversityTrackItem;
@@ -28,6 +29,17 @@ export const UniversityProfile: React.FC<UniversityProfileProps> = ({ university
   const [isVerifying, setIsVerifying] = useState(false);
   const [verifiedStatus, setVerifiedStatus] = useState<string | null>(null);
   const [activeCycle, setActiveCycle] = useState<'fall' | 'spring'>('fall');
+  const [isBookmarked, setIsBookmarked] = useState<boolean>(() => getLocalBookmarkedIds().has(university.id));
+
+  useEffect(() => {
+    setIsBookmarked(getLocalBookmarkedIds().has(university.id));
+  }, [university.id]);
+
+  const handleToggleBookmark = async () => {
+    const nextState = !isBookmarked;
+    setIsBookmarked(nextState);
+    await toggleUniversityBookmark(university.id, university.universityName, university.country);
+  };
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
@@ -171,6 +183,18 @@ export const UniversityProfile: React.FC<UniversityProfileProps> = ({ university
 
                 {/* Actions */}
                 <div className="flex flex-wrap items-center gap-3 mt-5">
+                  <button
+                    onClick={handleToggleBookmark}
+                    className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border text-xs font-bold transition-all shadow-sm cursor-pointer ${
+                      isBookmarked
+                        ? 'bg-amber-50 border-amber-300 text-amber-700 hover:bg-amber-100'
+                        : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-slate-950'
+                    }`}
+                  >
+                    <Bookmark className={`w-3.5 h-3.5 ${isBookmarked ? 'fill-amber-500 text-amber-500' : 'text-slate-500'}`} />
+                    <span>{isBookmarked ? 'Saved in Shortlist' : 'Save University'}</span>
+                  </button>
+
                   <a
                     href={`https://google.com/search?q=${encodeURIComponent(university.universityName + ' official website admissions')}`}
                     target="_blank"

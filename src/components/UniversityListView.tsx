@@ -30,6 +30,12 @@ import {
   isSupabaseConfigured,
   SUPABASE_SQL_SCHEMA
 } from '../lib/supabase';
+import {
+  getLocalBookmarkedIds,
+  fetchSavedUniversityIds,
+  toggleUniversityBookmark
+} from '../lib/userStorage';
+import { SavedUniversitiesModal } from './SavedUniversitiesModal';
 
 interface UniversityListViewProps {
   onBackToTracks: () => void;
@@ -60,9 +66,37 @@ export const UniversityListView: React.FC<UniversityListViewProps> = ({
   const [selectedTuition, setSelectedTuition] = useState<string>('all');
   const [selectedDegree, setSelectedDegree] = useState<string>('all');
   const [visibleCount, setVisibleCount] = useState<number>(12);
+  const [showSavedModal, setShowSavedModal] = useState<boolean>(false);
   
-  // Bookmarking state
-  const [bookmarkedIds, setBookmarkedIds] = useState<Set<string>>(new Set());
+  // Bookmarking state initialized from local cache
+  const [bookmarkedIds, setBookmarkedIds] = useState<Set<string>>(() => getLocalBookmarkedIds());
+
+  useEffect(() => {
+    // Load persisted bookmarks from Supabase when available
+    fetchSavedUniversityIds().then((ids) => {
+      setBookmarkedIds(new Set(ids));
+    });
+
+    const handleBookmarksUpdate = (e: any) => {
+      if (e.detail?.bookmarkedIds) {
+        setBookmarkedIds(new Set(e.detail.bookmarkedIds));
+      }
+    };
+
+    const handleAuthChange = () => {
+      fetchSavedUniversityIds().then((ids) => {
+        setBookmarkedIds(new Set(ids));
+      });
+    };
+
+    window.addEventListener('uniroute-bookmarks-updated', handleBookmarksUpdate);
+    window.addEventListener('uniroute-auth-change', handleAuthChange);
+
+    return () => {
+      window.removeEventListener('uniroute-bookmarks-updated', handleBookmarksUpdate);
+      window.removeEventListener('uniroute-auth-change', handleAuthChange);
+    };
+  }, []);
 
   // Active University Profile State
   const [activeModalUni, setActiveModalUni] = useState<UniversityTrackItem | null>(null);
@@ -154,18 +188,25 @@ export const UniversityListView: React.FC<UniversityListViewProps> = ({
     setTimeout(() => setCopiedSql(false), 2000);
   };
 
-  // Toggle bookmark
-  const toggleBookmark = (id: string, e: React.MouseEvent) => {
+  // Toggle bookmark with Supabase and local persistence
+  const toggleBookmark = (uni: UniversityTrackItem, e: React.MouseEvent) => {
     e.stopPropagation();
+    // Optimistic local state update
     setBookmarkedIds((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
+      if (next.has(uni.id)) {
+        next.delete(uni.id);
       } else {
-        next.add(id);
+        next.add(uni.id);
       }
       return next;
     });
+
+    toggleUniversityBookmark(uni.id, uni.universityName, uni.country)
+      .then(({ allIds }) => {
+        setBookmarkedIds(new Set(allIds));
+      })
+      .catch(() => {});
   };
 
   // Reset filters
@@ -264,6 +305,19 @@ export const UniversityListView: React.FC<UniversityListViewProps> = ({
     return filteredUniversities.slice(0, visibleCount);
   }, [filteredUniversities, visibleCount]);
 
+  const savedUniversitiesList = useMemo(() => {
+    return universities.filter((u) => bookmarkedIds.has(u.id));
+  }, [universities, bookmarkedIds]);
+
+  const handleRemoveSavedUniversity = (uniId: string) => {
+    setBookmarkedIds((prev) => {
+      const next = new Set(prev);
+      next.delete(uniId);
+      return next;
+    });
+    toggleUniversityBookmark(uniId).catch(() => {});
+  };
+
   return (
     <div className="relative overflow-x-hidden w-full">
       <AnimatePresence mode="wait">
@@ -297,15 +351,29 @@ export const UniversityListView: React.FC<UniversityListViewProps> = ({
           </p>
         </div>
 
-        {isAnyFilterActive && (
+        <div className="flex items-center gap-2.5 shrink-0 self-start sm:self-center flex-wrap">
           <button
-            onClick={resetAllFilters}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-rose-50 text-rose-700 border border-rose-200/80 hover:bg-rose-100 text-xs font-bold transition-all cursor-pointer shrink-0 self-start sm:self-center"
+            onClick={() => setShowSavedModal(true)}
+            className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl border text-xs font-bold transition-all cursor-pointer shadow-xs ${
+              bookmarkedIds.size > 0
+                ? 'bg-amber-50 text-amber-900 border-amber-300 hover:bg-amber-100 hover:border-amber-400'
+                : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+            }`}
           >
-            <RotateCcw className="w-3.5 h-3.5" />
-            <span>Reset All Filters</span>
+            <Bookmark className={`w-3.5 h-3.5 ${bookmarkedIds.size > 0 ? 'fill-amber-500 text-amber-500' : 'text-slate-400'}`} />
+            <span>Saved Shortlist ({bookmarkedIds.size})</span>
           </button>
-        )}
+
+          {isAnyFilterActive && (
+            <button
+              onClick={resetAllFilters}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-rose-50 text-rose-700 border border-rose-200/80 hover:bg-rose-100 text-xs font-bold transition-all cursor-pointer shrink-0"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span>Reset All Filters</span>
+            </button>
+          )}
+        </div>
       </div>
 
       {/* SEARCH AND FILTERS BAR */}
@@ -486,7 +554,7 @@ export const UniversityListView: React.FC<UniversityListViewProps> = ({
 
                       {/* Bookmark Button */}
                       <button
-                        onClick={(e) => toggleBookmark(uni.id, e)}
+                        onClick={(e) => toggleBookmark(uni, e)}
                         className={`p-2 rounded-xl border transition-all cursor-pointer ${
                           isBookmarked
                             ? 'bg-amber-50 border-amber-300 text-amber-600'
@@ -623,6 +691,17 @@ export const UniversityListView: React.FC<UniversityListViewProps> = ({
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Saved Universities Shortlist Modal */}
+      <SavedUniversitiesModal
+        isOpen={showSavedModal}
+        onClose={() => setShowSavedModal(false)}
+        savedUniversities={savedUniversitiesList}
+        onRemoveBookmark={handleRemoveSavedUniversity}
+        onSelectUniversity={(uni) => {
+          handleSelectUniversity(uni);
+        }}
+      />
     </div>
   );
 };

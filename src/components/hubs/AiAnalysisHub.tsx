@@ -40,6 +40,7 @@ import {
 } from 'lucide-react';
 import { ProfileAnalysisInput, ProfileAnalysisResult, UniversityMatchEvaluation, ChatMessage, ActivityItem, HonorItem } from '../../types';
 import { ChatMarkdownRenderer } from '../ChatMarkdownRenderer';
+import { saveProfileAnalysis, getLatestProfileAnalysis } from '../../lib/userStorage';
 
 interface AiAnalysisHubProps {
   onBackToHome?: () => void;
@@ -145,6 +146,33 @@ export const AiAnalysisHub: React.FC<AiAnalysisHubProps> = ({ onBackToHome, onSe
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<ProfileAnalysisResult | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    getLatestProfileAnalysis().then((saved) => {
+      if (saved && saved.analysisResult) {
+        setAnalysisResult(saved.analysisResult);
+        if (saved.profileInput) {
+          setFormData((prev) => ({ ...prev, ...saved.profileInput }));
+        }
+      }
+    });
+
+    const handleAuthChange = () => {
+      getLatestProfileAnalysis().then((saved) => {
+        if (saved && saved.analysisResult) {
+          setAnalysisResult(saved.analysisResult);
+          if (saved.profileInput) {
+            setFormData((prev) => ({ ...prev, ...saved.profileInput }));
+          }
+        }
+      });
+    };
+
+    window.addEventListener('uniroute-auth-change', handleAuthChange);
+    return () => {
+      window.removeEventListener('uniroute-auth-change', handleAuthChange);
+    };
+  }, []);
 
   // Activity management handlers
   const handleAddActivity = () => {
@@ -466,6 +494,7 @@ export const AiAnalysisHub: React.FC<AiAnalysisHubProps> = ({ onBackToHome, onSe
 
       const data: ProfileAnalysisResult = await response.json();
       setAnalysisResult(data);
+      saveProfileAnalysis(payload, data).catch((e) => console.warn('Supabase profile analysis save warning:', e));
       // Auto-scroll to results
       setTimeout(() => {
         const resultsEl = document.getElementById('ai-profile-results');

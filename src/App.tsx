@@ -3,6 +3,9 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Navbar } from './components/Navbar';
 import { AuthModal } from './components/AuthModal';
 import { supabase, isSupabaseConfigured } from './lib/supabase';
+import { syncEssaysFromSupabase } from './lib/essayStorage';
+import { syncDrillDataFromSupabase } from './data/satDrills/progressStorage';
+import { fetchSavedUniversityIds, loadSatPracticeProgress } from './lib/userStorage';
 import { FloatingIconsGateway } from './components/FloatingIconsGateway';
 import { ScholarshipPage } from './components/ScholarshipPage';
 import { UniversityListView } from './components/UniversityListView';
@@ -36,6 +39,11 @@ export default function App() {
       supabase.auth.getSession().then(({ data: { session } }) => {
         if (session && session.user) {
           setUser({ email: session.user.email || '', id: session.user.id });
+          // Background sync user personal data
+          syncEssaysFromSupabase(session.user.id).catch(() => {});
+          syncDrillDataFromSupabase(session.user.id).catch(() => {});
+          fetchSavedUniversityIds(session.user.id).catch(() => {});
+          loadSatPracticeProgress(session.user.id).catch(() => {});
         }
       });
 
@@ -43,8 +51,18 @@ export default function App() {
       const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
         if (session && session.user) {
           setUser({ email: session.user.email || '', id: session.user.id });
+          syncEssaysFromSupabase(session.user.id).catch(() => {});
+          syncDrillDataFromSupabase(session.user.id).catch(() => {});
+          fetchSavedUniversityIds(session.user.id).catch(() => {});
+          loadSatPracticeProgress(session.user.id).catch(() => {});
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('uniroute-auth-change', { detail: { user: session.user } }));
+          }
         } else {
           setUser(null);
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('uniroute-auth-change', { detail: { user: null } }));
+          }
         }
       });
 
@@ -72,10 +90,13 @@ export default function App() {
     } else {
       try {
         localStorage.removeItem('mock_user_session');
-        setUser(null);
       } catch (e) {
         console.error(e);
       }
+    }
+    setUser(null);
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('uniroute-auth-change', { detail: { user: null } }));
     }
   };
 

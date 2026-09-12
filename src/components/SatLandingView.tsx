@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ArrowLeft, X, ChevronRight, Target, RotateCcw, Award, BarChart3 } from 'lucide-react';
+import { loadSatPracticeProgress, resetAllSatProgress } from '../lib/userStorage';
 import { 
   SAT_READING_CHAPTER_1, 
   SAT_READING_CHAPTER_2, 
@@ -114,6 +115,24 @@ export const SatLandingView: React.FC<SatLandingViewProps> = ({
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [resetCounter, setResetCounter] = useState(0);
 
+  useEffect(() => {
+    // Sync with Supabase on mount
+    loadSatPracticeProgress().then(() => {
+      setResetCounter((c) => c + 1);
+    });
+
+    const handleAuthChange = () => {
+      loadSatPracticeProgress().then(() => {
+        setResetCounter((c) => c + 1);
+      });
+    };
+
+    window.addEventListener('uniroute-auth-change', handleAuthChange);
+    return () => {
+      window.removeEventListener('uniroute-auth-change', handleAuthChange);
+    };
+  }, []);
+
   const handleSelectOption = (category: 'reading' | 'writing' | 'math' | 'drills' | 'stats') => {
     setIsPopupOpen(false);
     onSelectLearning(category);
@@ -197,16 +216,10 @@ export const SatLandingView: React.FC<SatLandingViewProps> = ({
     };
   }, [resetCounter]);
 
-  const handleResetProgress = () => {
+  const handleResetProgress = async () => {
     if (window.confirm("Are you sure you want to reset all your SAT practice history and start fresh?")) {
-      try {
-        localStorage.removeItem('sat_reading_answers');
-        localStorage.removeItem('sat_writing_answers');
-        localStorage.removeItem('sat_math_answers');
-        setResetCounter(prev => prev + 1);
-      } catch (e) {
-        console.error(e);
-      }
+      await resetAllSatProgress();
+      setResetCounter(prev => prev + 1);
     }
   };
 

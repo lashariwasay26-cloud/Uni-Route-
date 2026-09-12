@@ -1,5 +1,6 @@
 import { EssayDraft, EssayType, BuilderStage } from '../types';
 import { supabase, isSupabaseConfigured } from './supabase';
+import { getCurrentUser } from './userStorage';
 
 const DRAFTS_KEY = 'uniroute_essay_drafts_v1';
 
@@ -117,24 +118,89 @@ export function saveDraftToStorage(
     console.error('Error writing drafts to localStorage:', err);
   }
 
-  // Optional background Supabase sync if configured
+  // Background Supabase sync if user is authenticated
   if (isSupabaseConfigured() && supabase) {
-    Promise.resolve(supabase.from('essays').upsert({
-      id: updated.id,
-      title: updated.title,
-      essay_type: updated.essayType,
-      prompt: updated.prompt,
-      word_limit: updated.wordLimit,
-      brainstorm_data: updated.brainstormAnswers,
-      draft_text: updated.draftText,
-      current_stage: updated.currentStage,
-      updated_at: updated.updatedAt
-    })).then(({ error }) => {
-      if (error) console.warn('Supabase background draft sync error:', error.message);
-    }).catch(() => {});
+    getCurrentUser().then((user) => {
+      if (!user) return;
+      supabase
+        .from('essays')
+        .upsert({
+          id: updated.id,
+          user_id: user.id,
+          title: updated.title,
+          essay_type: updated.essayType,
+          prompt: updated.prompt,
+          word_limit: updated.wordLimit,
+          brainstorm_data: updated.brainstormAnswers,
+          draft_text: updated.draftText,
+          current_stage: updated.currentStage,
+          progress_percent: updated.progressPercent,
+          last_analysis: updated.lastAnalysis || null,
+          updated_at: updated.updatedAt,
+        })
+        .then(
+          ({ error }) => {
+            if (error) console.warn('Supabase background draft sync error:', error.message);
+          },
+          () => {}
+        );
+      });
+    }
+
+    return updated;
   }
 
-  return updated;
+export async function syncEssaysFromSupabase(userId?: string): Promise<EssayDraft[]> {
+  const user = userId ? { id: userId } : await getCurrentUser();
+  if (!user || !isSupabaseConfigured() || !supabase) {
+    return getSavedDrafts();
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('essays')
+      .select('*')
+      .eq('user_id', user.id);
+
+    if (error || !data) {
+      if (error) console.warn('Supabase fetch essays error:', error.message);
+      return getSavedDrafts();
+    }
+
+    const localDrafts = getSavedDrafts();
+    const localMap = new Map(localDrafts.map((d) => [d.id, d]));
+
+    data.forEach((row: any) => {
+      const remoteDraft: EssayDraft = {
+        id: String(row.id),
+        title: row.title || 'Untitled Essay',
+        essayType: (row.essay_type as EssayType) || 'Common App Essay',
+        prompt: row.prompt || '',
+        wordLimit: Number(row.word_limit) || 650,
+        brainstormAnswers: Array.isArray(row.brainstorm_data) ? row.brainstorm_data : [],
+        draftText: row.draft_text || '',
+        currentStage: (row.current_stage as BuilderStage) || 'prompt',
+        progressPercent: Number(row.progress_percent) || 25,
+        lastAnalysis: row.last_analysis || undefined,
+        createdAt: row.created_at || new Date().toISOString(),
+        updatedAt: row.updated_at || new Date().toISOString(),
+      };
+
+      const existingLocal = localMap.get(remoteDraft.id);
+      if (!existingLocal || new Date(remoteDraft.updatedAt) > new Date(existingLocal.updatedAt)) {
+        localMap.set(remoteDraft.id, remoteDraft);
+      }
+    });
+
+    const merged = Array.from(localMap.values());
+    try {
+      localStorage.setItem(DRAFTS_KEY, JSON.stringify(merged));
+    } catch {}
+    return merged;
+  } catch (err) {
+    console.error('Exception syncing essays from Supabase:', err);
+    return getSavedDrafts();
+  }
 }
 
 export function deleteDraftFromStorage(id: string): boolean {
@@ -144,7 +210,18 @@ export function deleteDraftFromStorage(id: string): boolean {
     localStorage.setItem(DRAFTS_KEY, JSON.stringify(filtered));
 
     if (isSupabaseConfigured() && supabase) {
-      Promise.resolve(supabase.from('essays').delete().eq('id', id)).then(() => {}).catch(() => {});
+      getCurrentUser().then((user) => {
+        if (!user) return;
+        supabase
+          .from('essays')
+          .delete()
+          .eq('id', id)
+          .eq('user_id', user.id)
+          .then(
+            () => {},
+            () => {}
+          );
+      });
     }
     return true;
   } catch (err) {

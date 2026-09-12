@@ -52,19 +52,45 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuc
           const { data, error: signUpError } = await supabase.auth.signUp({
             email,
             password,
+            options: {
+              data: {
+                full_name: email.split('@')[0],
+                role: 'Student',
+              },
+            },
           });
           if (signUpError) throw signUpError;
-          
+
           if (data.user) {
-            // Some configurations require email confirmation
+            // Ensure profile row exists in public.profiles table
+            try {
+              await supabase.from('profiles').upsert({
+                id: data.user.id,
+                email: data.user.email || email,
+                full_name: email.split('@')[0],
+                role: 'Student',
+                updated_at: new Date().toISOString(),
+              });
+            } catch (pErr) {
+              // Trigger may have already created it
+            }
+
+            // If email confirmation is disabled or session is immediately returned
             if (data.session) {
               onAuthSuccess({ email: data.user.email || email, id: data.user.id });
               setSuccess('Account created successfully! Session started.');
+              if (typeof window !== 'undefined') {
+                window.dispatchEvent(new CustomEvent('uniroute-auth-change', { detail: { user: data.user } }));
+              }
               setTimeout(() => {
                 onClose();
-              }, 1500);
+              }, 1200);
             } else {
-              setSuccess('Check your inbox for a confirmation email to complete registration.');
+              setSuccess('Account registered! If confirmation is required, please check your inbox.');
+              // Even without immediate session, notify success
+              setTimeout(() => {
+                setIsSignUp(false);
+              }, 2000);
             }
           }
         } else {
@@ -75,8 +101,20 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuc
           if (signInError) throw signInError;
 
           if (data.user) {
+            // Ensure profile is tracked
+            try {
+              await supabase.from('profiles').upsert({
+                id: data.user.id,
+                email: data.user.email || email,
+                updated_at: new Date().toISOString(),
+              });
+            } catch {}
+
             onAuthSuccess({ email: data.user.email || email, id: data.user.id });
             setSuccess('Welcome back! Logging in...');
+            if (typeof window !== 'undefined') {
+              window.dispatchEvent(new CustomEvent('uniroute-auth-change', { detail: { user: data.user } }));
+            }
             setTimeout(() => {
               onClose();
             }, 1000);

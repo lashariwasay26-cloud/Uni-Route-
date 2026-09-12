@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { saveSatPracticeProgress } from '../../lib/userStorage';
 import {
   BookOpen,
   CheckCircle2,
@@ -1053,6 +1054,7 @@ export const SatReadingSectionExplorer: React.FC = () => {
   useEffect(() => {
     try {
       localStorage.setItem('sat_reading_answers', JSON.stringify(userSelectedAnswers));
+      saveSatPracticeProgress('reading', userSelectedAnswers).catch(() => {});
     } catch (e) {
       console.error(e);
     }
