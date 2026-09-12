@@ -1,0 +1,6 @@
+{
+  "name": "Uni Route",
+  "description": "Educational platform with 5 floating interactive hubs: Scholarship, SAT Preparation with interactive Graph Studio, visual data tables and practice matrix, Essay Hub, Pakistani Scholarships, AI Analysis, Google Search Grounding, Gemini Chatbot, and Audio Transcription.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

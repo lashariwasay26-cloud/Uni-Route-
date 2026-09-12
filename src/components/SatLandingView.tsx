@@ -1,0 +1,599 @@
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+import { ArrowLeft, X, ChevronRight, Target, RotateCcw, Award, BarChart3 } from 'lucide-react';
+import { 
+  SAT_READING_CHAPTER_1, 
+  SAT_READING_CHAPTER_2, 
+  SAT_READING_CHAPTER_3, 
+  SAT_READING_CHAPTER_4, 
+  SAT_READING_CHAPTER_5, 
+  SAT_READING_CHAPTER_6 
+} from '../data/reading/satReadingData';
+import { SAT_WRITING_CHAPTER_1_FULL } from '../data/writing/satWritingChapter1Full';
+import { SAT_WRITING_CHAPTER_2_FULL } from '../data/writing/satWritingChapter2Full';
+import { SAT_WRITING_CHAPTER_3_FULL } from '../data/writing/satWritingChapter3Full';
+import { SAT_WRITING_CHAPTER_4_FULL } from '../data/writing/satWritingChapter4Full';
+import { SAT_WRITING_CHAPTER_5_FULL } from '../data/writing/satWritingChapter5Full';
+import { SAT_WRITING_CHAPTER_6_FULL } from '../data/writing/satWritingChapter6Full';
+import { SAT_WRITING_CHAPTER_7_FULL } from '../data/writing/satWritingChapter7Full';
+import { FULL_SAT_MATH_BOOK } from '../data/satMathBook';
+
+const getReadingQuestions = () => {
+  const allReading: any[] = [];
+  const chapters = [
+    SAT_READING_CHAPTER_1,
+    SAT_READING_CHAPTER_2,
+    SAT_READING_CHAPTER_3,
+    SAT_READING_CHAPTER_4,
+    SAT_READING_CHAPTER_5,
+    SAT_READING_CHAPTER_6
+  ];
+  chapters.forEach((ch) => {
+    if (ch && ch.modules) {
+      ch.modules.forEach(mod => {
+        if (mod && mod.practiceQuestions) {
+          mod.practiceQuestions.forEach(q => {
+            if (q && q.id) {
+              allReading.push({
+                id: q.id,
+                correct: q.correctAnswerIndex ?? 0
+              });
+            }
+          });
+        }
+      });
+    }
+  });
+  return allReading;
+};
+
+const getWritingQuestions = () => {
+  const allWriting: any[] = [];
+  const chapters = [
+    SAT_WRITING_CHAPTER_1_FULL,
+    SAT_WRITING_CHAPTER_2_FULL,
+    SAT_WRITING_CHAPTER_3_FULL,
+    SAT_WRITING_CHAPTER_4_FULL,
+    SAT_WRITING_CHAPTER_5_FULL,
+    SAT_WRITING_CHAPTER_6_FULL,
+    SAT_WRITING_CHAPTER_7_FULL
+  ];
+  chapters.forEach(ch => {
+    if (ch && ch.exerciseBlocks) {
+      ch.exerciseBlocks.forEach(b => {
+        if (b && b.questions) {
+          b.questions.forEach(q => {
+            if (q && q.id) {
+              allWriting.push({
+                id: q.id,
+                correct: q.correctAnswer ?? 0
+              });
+            }
+          });
+        }
+      });
+    }
+  });
+  return allWriting;
+};
+
+const getMathQuestions = () => {
+  const allMath: any[] = [];
+  if (FULL_SAT_MATH_BOOK) {
+    FULL_SAT_MATH_BOOK.forEach(ch => {
+      if (ch && ch.exerciseGroups) {
+        ch.exerciseGroups.forEach(eg => {
+          if (eg && eg.questions) {
+            eg.questions.forEach(q => {
+              if (q && q.id) {
+                allMath.push({
+                  id: q.id,
+                  correct: q.correctIndex ?? 0
+                });
+              }
+            });
+          }
+        });
+      }
+    });
+  }
+  return allMath;
+};
+
+interface SatLandingViewProps {
+  onBackToHome: () => void;
+  onSelectIntro: () => void;
+  onSelectLearning: (category?: 'reading' | 'writing' | 'math' | 'drills' | 'stats') => void;
+}
+
+export const SatLandingView: React.FC<SatLandingViewProps> = ({
+  onBackToHome,
+  onSelectIntro,
+  onSelectLearning,
+}) => {
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [resetCounter, setResetCounter] = useState(0);
+
+  const handleSelectOption = (category: 'reading' | 'writing' | 'math' | 'drills' | 'stats') => {
+    setIsPopupOpen(false);
+    onSelectLearning(category);
+  };
+
+  const progressStats = React.useMemo(() => {
+    let readingQs: any[] = [];
+    try {
+      readingQs = getReadingQuestions();
+    } catch (e) { console.error(e); }
+
+    let writingQs: any[] = [];
+    try {
+      writingQs = getWritingQuestions();
+    } catch (e) { console.error(e); }
+
+    let mathQs: any[] = [];
+    try {
+      mathQs = getMathQuestions();
+    } catch (e) { console.error(e); }
+
+    let readingAnswers: Record<string, number> = {};
+    let writingAnswers: Record<string, number> = {};
+    let mathAnswers: Record<string, number> = {};
+
+    try {
+      const rSaved = localStorage.getItem('sat_reading_answers');
+      if (rSaved) readingAnswers = JSON.parse(rSaved);
+    } catch {}
+    try {
+      const wSaved = localStorage.getItem('sat_writing_answers');
+      if (wSaved) writingAnswers = JSON.parse(wSaved);
+    } catch {}
+    try {
+      const mSaved = localStorage.getItem('sat_math_answers');
+      if (mSaved) mathAnswers = JSON.parse(mSaved);
+    } catch {}
+
+    const readingAnswered = readingQs.filter(q => readingAnswers[q.id] !== undefined);
+    const readingCorrect = readingAnswered.filter(q => readingAnswers[q.id] === q.correct);
+
+    const writingAnswered = writingQs.filter(q => writingAnswers[q.id] !== undefined);
+    const writingCorrect = writingAnswered.filter(q => writingAnswers[q.id] === q.correct);
+
+    const mathAnswered = mathQs.filter(q => mathAnswers[q.id] !== undefined);
+    const mathCorrect = mathAnswered.filter(q => mathAnswers[q.id] === q.correct);
+
+    const totalQsCount = readingQs.length + writingQs.length + mathQs.length;
+    const totalAnsweredCount = readingAnswered.length + writingAnswered.length + mathAnswered.length;
+    const totalCorrectCount = readingCorrect.length + writingCorrect.length + mathCorrect.length;
+
+    const overallPct = totalQsCount > 0 ? Math.round((totalAnsweredCount / totalQsCount) * 100) : 0;
+    const overallAccuracy = totalAnsweredCount > 0 ? Math.round((totalCorrectCount / totalAnsweredCount) * 100) : 0;
+
+    return {
+      reading: {
+        total: readingQs.length,
+        answered: readingAnswered.length,
+        correct: readingCorrect.length,
+        pct: readingQs.length > 0 ? Math.round((readingAnswered.length / readingQs.length) * 100) : 0,
+      },
+      writing: {
+        total: writingQs.length,
+        answered: writingAnswered.length,
+        correct: writingCorrect.length,
+        pct: writingQs.length > 0 ? Math.round((writingAnswered.length / writingQs.length) * 100) : 0,
+      },
+      math: {
+        total: mathQs.length,
+        answered: mathAnswered.length,
+        correct: mathCorrect.length,
+        pct: mathQs.length > 0 ? Math.round((mathAnswered.length / mathQs.length) * 100) : 0,
+      },
+      overall: {
+        total: totalQsCount,
+        answered: totalAnsweredCount,
+        correct: totalCorrectCount,
+        pct: overallPct,
+        accuracy: overallAccuracy,
+      }
+    };
+  }, [resetCounter]);
+
+  const handleResetProgress = () => {
+    if (window.confirm("Are you sure you want to reset all your SAT practice history and start fresh?")) {
+      try {
+        localStorage.removeItem('sat_reading_answers');
+        localStorage.removeItem('sat_writing_answers');
+        localStorage.removeItem('sat_math_answers');
+        setResetCounter(prev => prev + 1);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  };
+
+  return (
+    <div className="min-h-[75vh] flex flex-col justify-between py-6 sm:py-10 relative">
+      {/* Back Button & Top Navigation */}
+      <div className="flex items-center justify-between mb-2">
+        <button
+          onClick={onBackToHome}
+          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white border border-slate-200/90 shadow-xs text-xs font-bold text-slate-700 hover:text-indigo-600 hover:bg-slate-50 transition-all cursor-pointer"
+        >
+          <ArrowLeft className="w-4 h-4 text-indigo-600" />
+          <span>Back to Homepage</span>
+        </button>
+
+        <span className="text-xs font-extrabold uppercase tracking-widest text-slate-400 ml-auto">
+          DIGITAL SAT PREPARATION
+        </span>
+      </div>
+
+      {/* Main Centered Content */}
+      <div className="my-auto max-w-3xl mx-auto w-full text-center py-8">
+        {/* Soft Ambient Background Glow */}
+        <div 
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 pointer-events-none -z-10"
+          style={{
+            background: 'radial-gradient(circle, rgba(165, 180, 252, 0.2) 0%, rgba(216, 180, 254, 0.1) 40%, rgba(255, 255, 255, 0) 100%)'
+          }}
+        />
+
+        {/* Eyebrow Tag */}
+        <div className="inline-flex items-center justify-center gap-2 px-5 py-2 rounded-full bg-white border border-slate-200/80 shadow-[0_2px_12px_rgba(0,0,0,0.04)] text-[11px] font-extrabold tracking-[0.2em] text-slate-600 uppercase mb-6">
+          <span className="w-2 h-2 rounded-full bg-indigo-600 animate-pulse" />
+          DIGITAL SAT PREPARATION
+        </div>
+
+        {/* Headline */}
+        <h1 className="text-3xl sm:text-5xl font-black text-slate-950 tracking-tight leading-tight mb-3">
+          Select Your SAT Route
+        </h1>
+        <p className="text-slate-600 text-sm sm:text-base max-w-md mx-auto mb-10">
+          Learn the official College Board Digital SAT format or jump right into practice drills.
+        </p>
+
+        {/* Progress Tracker Card */}
+        <div className="max-w-2xl mx-auto mb-10 text-left bg-white border border-slate-200/90 rounded-[24px] p-5 sm:p-6 shadow-[0_4px_20px_rgba(0,0,0,0.02)] space-y-5">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="p-2 bg-indigo-50 text-indigo-600 rounded-xl">
+                <BarChart3 className="w-5 h-5 text-indigo-600" />
+              </div>
+              <div>
+                <h3 className="text-sm font-black text-slate-950 tracking-tight">Your SAT Prep Progress</h3>
+                <p className="text-[10px] text-slate-400 font-medium">Calculated in real-time from your active practice drills</p>
+              </div>
+            </div>
+
+            {progressStats.overall.answered > 0 && (
+              <button
+                onClick={handleResetProgress}
+                className="inline-flex items-center gap-1 text-[10px] font-bold text-slate-400 hover:text-rose-600 transition-colors bg-slate-50 hover:bg-rose-50 px-2.5 py-1.5 rounded-lg cursor-pointer"
+              >
+                <RotateCcw className="w-3 h-3" />
+                <span>Reset History</span>
+              </button>
+            )}
+          </div>
+
+          {/* Highlight Stats Dashboard */}
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-center bg-slate-50/50 p-4 sm:p-5 rounded-2xl border border-slate-100">
+            {/* Left: Combined Circle/Ring */}
+            <div className="md:col-span-5 flex items-center gap-4 md:border-r md:border-slate-200/60 md:pr-4">
+              {/* Dynamic Ring */}
+              <div className="relative w-16 h-16 shrink-0 flex items-center justify-center">
+                <svg className="w-full h-full -rotate-90" viewBox="0 0 80 80">
+                  {/* Background Ring */}
+                  <circle
+                    cx="40"
+                    cy="40"
+                    r="32"
+                    className="stroke-slate-200 fill-none"
+                    strokeWidth="6"
+                  />
+                  {/* Active Ring */}
+                  <circle
+                    cx="40"
+                    cy="40"
+                    r="32"
+                    className="stroke-indigo-600 fill-none transition-all duration-500 ease-out"
+                    strokeWidth="6"
+                    strokeDasharray={`${2 * Math.PI * 32}`}
+                    strokeDashoffset={`${2 * Math.PI * 32 * (1 - progressStats.overall.pct / 100)}`}
+                    strokeLinecap="round"
+                  />
+                </svg>
+                <div className="absolute flex flex-col items-center justify-center">
+                  <span className="text-sm sm:text-base font-black text-slate-950 tracking-tight leading-none">
+                    {progressStats.overall.pct}%
+                  </span>
+                  <span className="text-[7px] text-slate-400 font-bold uppercase tracking-wider mt-0.5 leading-none">Done</span>
+                </div>
+              </div>
+
+              <div className="space-y-0.5 text-left">
+                <div className="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none">Overall Progress</div>
+                <div className="text-lg font-black text-slate-950 tracking-tight leading-none">
+                  {progressStats.overall.answered} <span className="text-xs text-slate-400 font-bold">/ {progressStats.overall.total} Qs</span>
+                </div>
+                <div className="flex items-center gap-1 mt-1 text-[10px] font-extrabold text-slate-500 leading-none">
+                  {progressStats.overall.answered > 0 ? (
+                    <>
+                      <Award className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                      <span>Accuracy: <span className="text-indigo-600 font-black">{progressStats.overall.accuracy}%</span></span>
+                    </>
+                  ) : (
+                    <span className="text-slate-400 font-medium">No drills started</span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Right: Individual Subject Bars */}
+            <div className="md:col-span-7 space-y-3">
+              {/* Subject 1: Reading */}
+              <div className="space-y-1">
+                <div className="flex items-center justify-between text-[11px] font-bold text-slate-700 leading-none">
+                  <span className="flex items-center gap-1">
+                    <span className="text-xs">📖</span>
+                    <span>1. Reading</span>
+                  </span>
+                  <span className="text-slate-500 text-[10px]">
+                    {progressStats.reading.answered}/{progressStats.reading.total} Qs ({progressStats.reading.pct}%)
+                  </span>
+                </div>
+                <div className="w-full h-1.5 bg-slate-200/60 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-indigo-500 rounded-full transition-all duration-500 ease-out"
+                    style={{ width: `${progressStats.reading.pct}%` }}
+                  />
+                </div>
+              </div>
+
+              {/* Subject 2: Writing */}
+              <div className="space-y-1">
+                <div className="flex items-center justify-between text-[11px] font-bold text-slate-700 leading-none">
+                  <span className="flex items-center gap-1">
+                    <span className="text-xs">✍️</span>
+                    <span>2. Writing</span>
+                  </span>
+                  <span className="text-slate-500 text-[10px]">
+                    {progressStats.writing.answered}/{progressStats.writing.total} Qs ({progressStats.writing.pct}%)
+                  </span>
+                </div>
+                <div className="w-full h-1.5 bg-slate-200/60 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-sky-500 rounded-full transition-all duration-500 ease-out"
+                    style={{ width: `${progressStats.writing.pct}%` }}
+                  />
+                </div>
+              </div>
+
+              {/* Subject 3: Math */}
+              <div className="space-y-1">
+                <div className="flex items-center justify-between text-[11px] font-bold text-slate-700 leading-none">
+                  <span className="flex items-center gap-1">
+                    <span className="text-xs">📐</span>
+                    <span>3. Math</span>
+                  </span>
+                  <span className="text-slate-500 text-[10px]">
+                    {progressStats.math.answered}/{progressStats.math.total} Qs ({progressStats.math.pct}%)
+                  </span>
+                </div>
+                <div className="w-full h-1.5 bg-slate-200/60 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-emerald-500 rounded-full transition-all duration-500 ease-out"
+                    style={{ width: `${progressStats.math.pct}%` }}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Motivation / Status Banner */}
+          <div className="flex items-start gap-2 p-3 rounded-xl bg-indigo-50/40 border border-indigo-100/60 text-xs text-slate-600">
+            <span className="text-base leading-none select-none">💡</span>
+            <p className="leading-relaxed text-[11px] font-medium">
+              {progressStats.overall.pct === 0 ? (
+                <span>Your metrics are ready! Click <strong>"Start Learning"</strong> below and complete any chapter exercise to record your progress.</span>
+              ) : progressStats.overall.pct < 100 ? (
+                <span>Keep it up! You've solved <strong>{progressStats.overall.answered} questions</strong>. Focus on high-accuracy retention to maximize your predicted SAT score.</span>
+              ) : (
+                <span>Incredible! You have completed 100% of the entire SAT training curriculum! Keep practicing to secure your perfect 1600.</span>
+              )}
+            </p>
+          </div>
+        </div>
+
+        {/* Two Options */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6 max-w-2xl mx-auto">
+          {/* Option 1: Introduction to SAT */}
+          <div
+            onClick={onSelectIntro}
+            className="bg-white text-slate-900 border border-slate-200/80 rounded-[28px] p-6 sm:p-8 shadow-xs hover:shadow-lg hover:border-indigo-600 hover:bg-[#4338ca] hover:text-white cursor-pointer transition-all duration-150 flex flex-col items-center justify-center text-center min-h-[200px] sm:min-h-[220px] group relative overflow-hidden"
+          >
+            <div className="w-14 h-14 rounded-2xl bg-indigo-50 group-hover:bg-white/20 flex items-center justify-center mb-4 text-3xl transition-all shadow-sm">
+              📖
+            </div>
+            <span className="text-base sm:text-lg font-extrabold text-slate-950 group-hover:text-white tracking-tight transition-colors">
+              Introduction to SAT
+            </span>
+            <span className="text-xs text-slate-500 group-hover:text-indigo-200 transition-colors mt-1.5 font-medium">
+              Format, Modules & Scoring Guide
+            </span>
+          </div>
+
+          {/* Option 2: Start Learning - Opens Popup Modal */}
+          <div
+            onClick={() => setIsPopupOpen(true)}
+            className="bg-white text-slate-900 border border-slate-200/80 rounded-[28px] p-6 sm:p-8 shadow-xs hover:shadow-lg hover:border-indigo-600 hover:bg-[#4338ca] hover:text-white cursor-pointer transition-all duration-150 flex flex-col items-center justify-center text-center min-h-[200px] sm:min-h-[220px] group relative overflow-hidden"
+          >
+            <div className="w-14 h-14 rounded-2xl bg-amber-50 group-hover:bg-white/20 flex items-center justify-center mb-4 text-3xl transition-all shadow-sm">
+              🚀
+            </div>
+            <span className="text-base sm:text-lg font-extrabold text-slate-950 group-hover:text-white tracking-tight transition-colors">
+              Start Learning
+            </span>
+            <span className="text-xs text-slate-500 group-hover:text-indigo-200 transition-colors mt-1.5 font-medium">
+              Practice Drills, Flashcards & Tools
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Footer note */}
+      <div className="text-center text-xs text-slate-400">
+        College Board Digital SAT Aligned • Free Practice
+      </div>
+
+      {/* POPUP MODAL WITH ONLY 4 OPTIONS */}
+      <AnimatePresence>
+        {isPopupOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-slate-900/60">
+            {/* Backdrop click to close */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsPopupOpen(false)}
+              className="absolute inset-0"
+            />
+
+            {/* Modal Dialog */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+              className="bg-white border border-slate-200 rounded-[32px] max-w-2xl w-full p-6 sm:p-8 shadow-2xl relative z-10 space-y-6 overflow-hidden max-h-[90vh] overflow-y-auto"
+            >
+              {/* Close Icon */}
+              <button
+                onClick={() => setIsPopupOpen(false)}
+                className="absolute top-6 right-6 p-2 rounded-full bg-slate-100 text-slate-500 hover:text-slate-900 hover:bg-slate-200 transition-all cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              {/* Modal Header */}
+              <div className="space-y-2 pr-8 text-left">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-[11px] font-black uppercase tracking-wider">
+                  <Target className="w-3.5 h-3.5 text-indigo-600" />
+                  Digital SAT Core Modules
+                </div>
+                <h2 className="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight">
+                  Select Learning Option
+                </h2>
+                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                  Choose one of the official Digital SAT modules below to launch your practice session.
+                </p>
+              </div>
+
+              {/* OPTIONS IN A GRID */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 pt-2">
+                {/* OPTION 1: READING */}
+                <button
+                  onClick={() => handleSelectOption('reading')}
+                  className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/90 hover:border-indigo-600 hover:bg-indigo-50/40 hover:shadow-lg transition-all cursor-pointer text-left flex flex-col justify-between min-h-[160px] group relative overflow-hidden"
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-2.5">
+                      <span className="text-2xl">📖</span>
+                      <span className="px-2.5 py-0.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-[10px] font-black uppercase tracking-wider">
+                        6 Chapters
+                      </span>
+                    </div>
+                    <h3 className="text-base font-extrabold text-slate-950 group-hover:text-indigo-900 tracking-tight">
+                      1. Reading
+                    </h3>
+                    <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                      Main idea, claims, structure, inference, evidence & vocabulary in context.
+                    </p>
+                  </div>
+                  <div className="mt-3 flex items-center justify-between text-xs font-bold text-indigo-600 group-hover:text-indigo-700">
+                    <span>Start Reading</span>
+                    <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                  </div>
+                </button>
+
+                {/* OPTION 2: WRITING */}
+                <button
+                  onClick={() => handleSelectOption('writing')}
+                  className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/90 hover:border-indigo-600 hover:bg-indigo-50/40 hover:shadow-lg transition-all cursor-pointer text-left flex flex-col justify-between min-h-[160px] group relative overflow-hidden"
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-2.5">
+                      <span className="text-2xl">✍️</span>
+                      <span className="px-2.5 py-0.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-[10px] font-black uppercase tracking-wider">
+                        7 Chapters
+                      </span>
+                    </div>
+                    <h3 className="text-base font-extrabold text-slate-950 group-hover:text-indigo-900 tracking-tight">
+                      2. Writing
+                    </h3>
+                    <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                      Standard English conventions, punctuation, sentence clauses & transitions.
+                    </p>
+                  </div>
+                  <div className="mt-3 flex items-center justify-between text-xs font-bold text-indigo-600 group-hover:text-indigo-700">
+                    <span>Start Writing</span>
+                    <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                  </div>
+                </button>
+
+                {/* OPTION 3: MATH */}
+                <button
+                  onClick={() => handleSelectOption('math')}
+                  className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/90 hover:border-indigo-600 hover:bg-indigo-50/40 hover:shadow-lg transition-all cursor-pointer text-left flex flex-col justify-between min-h-[160px] group relative overflow-hidden"
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-2.5">
+                      <span className="text-2xl">📐</span>
+                      <span className="px-2.5 py-0.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-[10px] font-black uppercase tracking-wider">
+                        11 Chapters
+                      </span>
+                    </div>
+                    <h3 className="text-base font-extrabold text-slate-950 group-hover:text-indigo-900 tracking-tight">
+                      3. Math
+                    </h3>
+                    <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                      Algebra, Advanced Math, Problem Solving & Geometry with step-by-step solutions.
+                    </p>
+                  </div>
+                  <div className="mt-3 flex items-center justify-between text-xs font-bold text-indigo-600 group-hover:text-indigo-700">
+                    <span>Start Math</span>
+                    <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                  </div>
+                </button>
+
+                {/* OPTION 4: DRILLS */}
+                <button
+                  onClick={() => handleSelectOption('drills')}
+                  className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/90 hover:border-indigo-600 hover:bg-indigo-50/40 hover:shadow-lg transition-all cursor-pointer text-left flex flex-col justify-between min-h-[160px] group relative overflow-hidden"
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-2.5">
+                      <span className="text-2xl">⚡</span>
+                      <span className="px-2.5 py-0.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-[10px] font-black uppercase">
+                        Full Practice
+                      </span>
+                    </div>
+                    <h3 className="text-base font-extrabold text-slate-950 group-hover:text-indigo-900 tracking-tight">
+                      4. Drills
+                    </h3>
+                    <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                      Timed mixed speed drills, 400-1600 Score Predictor & Vocab Flashcards.
+                    </p>
+                  </div>
+                  <div className="mt-3 flex items-center justify-between text-xs font-bold text-indigo-600 group-hover:text-indigo-700">
+                    <span>Start Speed Drills</span>
+                    <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                  </div>
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
