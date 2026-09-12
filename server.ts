@@ -28,7 +28,7 @@ const getGeminiClient = () => {
 };
 
 // Resilient model fallback list
-const FALLBACK_MODELS = ["gemini-3.6-flash", "gemini-3.5-flash", "gemini-3.7-flash", "gemini-flash-lite-latest"];
+const FALLBACK_MODELS = ["gemini-3.8-flash", "gemini-3.1-pro-preview", "gemini-flash-latest"];
 
 async function callWithTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
   let timeoutId: NodeJS.Timeout;
@@ -632,7 +632,7 @@ app.post("/api/search-grounding", async (req, res) => {
     const { query } = req.body;
     const ai = getGeminiClient();
     const response = await ai.models.generateContent({
-      model: "gemini-3.6-flash",
+      model: "gemini-3.8-flash",
       contents: query || "Latest global university admissions deadlines and scholarship requirements 2026",
       config: {
         tools: [{ googleSearch: {} }]
@@ -666,7 +666,7 @@ app.post("/api/transcribe", async (req, res) => {
       },
     };
     const response = await ai.models.generateContent({
-      model: "gemini-3.6-flash",
+      model: "gemini-3.5-transcribe",
       contents: { parts: [audioPart, { text: "Transcribe this audio accurately into text." }] },
     });
     res.json({ transcription: response.text || "" });

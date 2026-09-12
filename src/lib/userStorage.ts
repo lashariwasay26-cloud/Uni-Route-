@@ -135,12 +135,9 @@ export function saveLocalBookmarkedIds(ids: Set<string>): void {
 }
 
 export async function fetchSavedUniversityIds(userId?: string): Promise<Set<string>> {
-  // Always start with local cache for instant UI rendering
-  const currentSet = getLocalBookmarkedIds();
-
   const user = userId ? { id: userId } : await getCurrentUser();
   if (!user || !isSupabaseConfigured() || !supabase) {
-    return currentSet;
+    return getLocalBookmarkedIds();
   }
 
   try {
@@ -151,21 +148,19 @@ export async function fetchSavedUniversityIds(userId?: string): Promise<Set<stri
 
     if (error) {
       console.warn('Error fetching saved universities from Supabase:', error.message);
-      return currentSet;
+      return getLocalBookmarkedIds();
     }
 
     if (data) {
       const remoteIds = new Set<string>(data.map((r: any) => String(r.university_id)));
-      // Merge with any offline additions
-      const merged = new Set<string>([...currentSet, ...remoteIds]);
-      saveLocalBookmarkedIds(merged);
-      return merged;
+      saveLocalBookmarkedIds(remoteIds);
+      return remoteIds;
     }
   } catch (e) {
     console.error('Exception in fetchSavedUniversityIds:', e);
   }
 
-  return currentSet;
+  return getLocalBookmarkedIds();
 }
 
 export async function toggleUniversityBookmark(
@@ -190,18 +185,20 @@ export async function toggleUniversityBookmark(
   if (user && isSupabaseConfigured() && supabase) {
     try {
       if (exists) {
-        await supabase
+        const { error } = await supabase
           .from('saved_universities')
           .delete()
           .eq('user_id', user.id)
           .eq('university_id', uniId);
+        if (error) console.warn('Supabase bookmark delete error:', error.message);
       } else {
-        await supabase.from('saved_universities').upsert({
+        const { error } = await supabase.from('saved_universities').upsert({
           user_id: user.id,
           university_id: uniId,
           university_name: uniName || null,
           country: country || null,
-        });
+        }, { onConflict: 'user_id,university_id' });
+        if (error) console.warn('Supabase bookmark upsert error:', error.message);
       }
     } catch (err) {
       console.warn('Supabase bookmark toggle error:', err);
@@ -302,20 +299,19 @@ export async function saveSatSectionAnswer(
   // Sync to Supabase in background
   const user = await getCurrentUser();
   if (user && isSupabaseConfigured() && supabase) {
-    const column =
-      section === 'reading'
-        ? 'reading_answers'
-        : section === 'writing'
-        ? 'writing_answers'
-        : 'math_answers';
+    const reading = JSON.parse(localStorage.getItem(LOCAL_READING_KEY) || '{}');
+    const writing = JSON.parse(localStorage.getItem(LOCAL_WRITING_KEY) || '{}');
+    const math = JSON.parse(localStorage.getItem(LOCAL_MATH_KEY) || '{}');
 
     supabase
       .from('sat_practice_progress')
       .upsert({
         user_id: user.id,
-        [column]: currentMap,
+        reading_answers: reading,
+        writing_answers: writing,
+        math_answers: math,
         updated_at: new Date().toISOString(),
-      })
+      }, { onConflict: 'user_id' })
       .then(
         ({ error }) => {
           if (error) console.warn('Supabase sat practice update failed:', error.message);
@@ -420,22 +416,32 @@ export async function saveSatPracticeProgress(
   section: 'reading' | 'writing' | 'math',
   answers: Record<string, number>
 ): Promise<void> {
+  const key =
+    section === 'reading'
+      ? LOCAL_READING_KEY
+      : section === 'writing'
+      ? LOCAL_WRITING_KEY
+      : LOCAL_MATH_KEY;
+
+  try {
+    localStorage.setItem(key, JSON.stringify(answers));
+  } catch {}
+
   const user = await getCurrentUser();
   if (user && isSupabaseConfigured() && supabase) {
-    const column =
-      section === 'reading'
-        ? 'reading_answers'
-        : section === 'writing'
-        ? 'writing_answers'
-        : 'math_answers';
+    const reading = JSON.parse(localStorage.getItem(LOCAL_READING_KEY) || '{}');
+    const writing = JSON.parse(localStorage.getItem(LOCAL_WRITING_KEY) || '{}');
+    const math = JSON.parse(localStorage.getItem(LOCAL_MATH_KEY) || '{}');
 
     supabase
       .from('sat_practice_progress')
       .upsert({
         user_id: user.id,
-        [column]: answers,
+        reading_answers: reading,
+        writing_answers: writing,
+        math_answers: math,
         updated_at: new Date().toISOString(),
-      })
+      }, { onConflict: 'user_id' })
       .then(
         ({ error }) => {
           if (error) console.warn('Supabase sat practice update failed:', error.message);

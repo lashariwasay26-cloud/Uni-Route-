@@ -87,16 +87,23 @@ export default function App() {
       } catch (e) {
         console.error(e);
       }
-    } else {
-      try {
-        localStorage.removeItem('mock_user_session');
-      } catch (e) {
-        console.error(e);
-      }
+    }
+    try {
+      localStorage.removeItem('mock_user_session');
+      localStorage.removeItem('uniroute_saved_universities_v1');
+      localStorage.removeItem('sat_reading_answers');
+      localStorage.removeItem('sat_writing_answers');
+      localStorage.removeItem('sat_math_answers');
+      localStorage.removeItem('uniroute_essay_drafts_v1');
+      localStorage.removeItem('sat_drills_active_sessions_v1');
+      localStorage.removeItem('sat_drills_history_v1');
+    } catch (e) {
+      console.error(e);
     }
     setUser(null);
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('uniroute-auth-change', { detail: { user: null } }));
+      window.dispatchEvent(new CustomEvent('uniroute-bookmarks-updated', { detail: { bookmarkedIds: [] } }));
     }
   };
 
