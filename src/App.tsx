@@ -231,7 +231,7 @@ export default function App() {
         }}
         onLogout={() => setIsSignOutModalOpen(true)}
         onNavigateHome={() => setCurrentView('home')}
-        onNavigateScholarships={() => setCurrentView('scholarship')}
+        onNavigateScholarships={() => handleProtectedNavigate({ view: 'scholarship' }, 'Please sign in to unlock access to our extensive database of global merit scholarships and matching university profiles.')}
         onNavigateSat={() => setCurrentView('sat-landing')}
         onNavigateAiAnalysis={() => setCurrentView('ai-analysis')}
         onNavigateEssayHub={() => setCurrentView('essay-hub')}
@@ -251,9 +251,9 @@ export default function App() {
             {currentView === 'home' && (
               <>
                 <FloatingIconsGateway
-                  onOpenScholarships={() => setCurrentView('scholarship')}
+                  onOpenScholarships={() => handleProtectedNavigate({ view: 'scholarship' }, 'Please sign in to unlock access to our extensive database of global merit scholarships and matching university profiles.')}
                   onOpenSatPrep={() => setCurrentView('sat-landing')}
-                  onOpenPakistaniScholarships={() => setCurrentView('pakistani-scholarships')}
+                  onOpenPakistaniScholarships={() => handleProtectedNavigate({ view: 'pakistani-scholarships' }, 'Please sign in to unlock access to the Pakistani Scholarship Directory and explore fully-funded need-based local grants.')}
                   onOpenAiAnalysis={() => setCurrentView('ai-analysis')}
                   onOpenEssayHub={() => setCurrentView('essay-hub')}
                 />
@@ -346,7 +346,7 @@ export default function App() {
       {currentView === 'home' && <Footer />}
 
       {/* Floating AI Counselor Chatbot */}
-      <FloatingAssistantBubble onOpenScholarships={() => setCurrentView('scholarship')} />
+      <FloatingAssistantBubble onOpenScholarships={() => handleProtectedNavigate({ view: 'scholarship' }, 'Please sign in to unlock access to our extensive database of global merit scholarships and matching university profiles.')} />
 
       {/* Secure User Authenticator Modal Overlay */}
       <AnimatePresence>

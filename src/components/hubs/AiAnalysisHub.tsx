@@ -36,7 +36,8 @@ import {
   Plus,
   Trash2,
   Briefcase,
-  Medal
+  Medal,
+  Lock
 } from 'lucide-react';
 import { ProfileAnalysisInput, ProfileAnalysisResult, UniversityMatchEvaluation, ChatMessage, ActivityItem, HonorItem } from '../../types';
 import { ChatMarkdownRenderer } from '../ChatMarkdownRenderer';
@@ -601,6 +602,81 @@ export const AiAnalysisHub: React.FC<AiAnalysisHubProps> = ({
     'Singapore / Asia',
     'Pakistan',
   ];
+
+  const isFreeAnalysisUsed = !user && localStorage.getItem('uniroute_free_analysis_count') === '1';
+
+  if (isFreeAnalysisUsed && !analysisResult) {
+    return (
+      <div id="ai-analysis-hub-locked" className="py-4 sm:py-6 space-y-8 animate-fade-in">
+        {/* Top Navigation Row */}
+        <div className="flex items-center justify-between">
+          <button
+            id="btn-back-from-ai-locked"
+            onClick={onBackToHome}
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white border border-slate-200/90 shadow-sm text-xs font-bold text-slate-700 hover:text-indigo-600 hover:bg-slate-50 transition-all cursor-pointer"
+          >
+            <ArrowLeft className="w-4 h-4 text-indigo-600" />
+            <span>Back to Homepage</span>
+          </button>
+
+          <span className="text-xs font-extrabold uppercase tracking-widest text-slate-400">
+            AI PROFILE ANALYZER
+          </span>
+        </div>
+
+        {/* Locked Hero View */}
+        <div className="bg-white rounded-[32px] border border-slate-200/90 shadow-[0_4px_24px_rgba(0,0,0,0.03)] p-6 sm:p-10 text-center max-w-xl mx-auto space-y-6 mt-8">
+          <div className="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center mx-auto shadow-sm">
+            <Lock className="w-8 h-8" />
+          </div>
+          
+          <div className="space-y-2">
+            <h2 className="text-2xl font-black text-slate-950 tracking-tight">
+              Profile Evaluation Completed
+            </h2>
+            <p className="text-slate-600 text-sm leading-relaxed">
+              You have already completed your 1 free profile analysis! Create a free Uni Route account to unlock unlimited Ivy League matching, financial aid safety forecasts, and real-time counselor chat support.
+            </p>
+          </div>
+
+          <div className="p-5 rounded-2xl bg-indigo-50/50 border border-indigo-100 text-left space-y-3">
+            <span className="text-xs font-extrabold uppercase tracking-wider text-indigo-700 block">
+              Premium Features Unlocked with Sign-in:
+            </span>
+            <ul className="space-y-2 text-xs text-slate-600 font-bold">
+              <li className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-indigo-600 animate-pulse" />
+                Unlimited Diagnostic Profile Analysis
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-indigo-600" />
+                200+ Global Need-Blind vs Need-Aware Universities Match
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-indigo-600" />
+                24/7 AI Admissions Counselor Chat Grounding
+              </li>
+            </ul>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-3 pt-2">
+            <button
+              onClick={() => onOpenAuth?.('Create a free account to unlock unlimited admissions diagnostics, Ivy League matching, and real-time counselor support.')}
+              className="flex-1 px-6 py-3.5 rounded-xl bg-indigo-600 text-white hover:bg-indigo-700 text-sm font-extrabold shadow-sm transition-all cursor-pointer"
+            >
+              Sign In to Unlock Everything
+            </button>
+            <button
+              onClick={onBackToHome}
+              className="flex-1 px-6 py-3.5 rounded-xl bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 text-sm font-extrabold transition-all cursor-pointer"
+            >
+              Back to Homepage
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div id="ai-analysis-hub" className="py-4 sm:py-6 space-y-8">
