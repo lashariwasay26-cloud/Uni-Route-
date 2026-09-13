@@ -120,7 +120,7 @@ export const EssayBuilder: React.FC<EssayBuilderProps> = ({
     });
   };
 
-  // Continuous auto-save in background when content changes (debounced)
+  // Mark status as 'Unsaved' when draft content changes (Manual save mode)
   const isInitialMount = useRef(true);
   useEffect(() => {
     if (isInitialMount.current) {
@@ -129,13 +129,7 @@ export const EssayBuilder: React.FC<EssayBuilderProps> = ({
     }
     if (!activeDraft) return;
 
-    const timer = setTimeout(() => {
-      handleSaveDraft(currentStage, {
-        notifyToast: false, // Silent auto-save in background without interrupting typing
-      });
-    }, 1200);
-
-    return () => clearTimeout(timer);
+    setSaveStatus('Unsaved');
   }, [title, prompt, wordLimit, brainstormAnswers, draftText, essayType]);
 
   // Execute AI Essay Analysis
@@ -311,20 +305,29 @@ export const EssayBuilder: React.FC<EssayBuilderProps> = ({
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
                   <span>Saved</span>
                 </>
-              ) : (
+              ) : saveStatus === 'Saving...' ? (
                 <>
                   <RefreshCw className="w-3.5 h-3.5 animate-spin text-indigo-500" />
                   <span>Saving...</span>
+                </>
+              ) : (
+                <>
+                  <AlertCircle className="w-3.5 h-3.5 text-amber-500" />
+                  <span className="text-amber-600 font-bold">Unsaved changes</span>
                 </>
               )}
             </span>
 
             <button
               onClick={() => handleSaveDraft()}
-              className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs transition-colors flex items-center gap-1.5 cursor-pointer"
+              className={`px-4 py-2 rounded-xl font-bold text-xs transition-all flex items-center gap-1.5 cursor-pointer ${
+                saveStatus === 'Unsaved'
+                  ? 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm'
+                  : 'bg-slate-100 hover:bg-slate-200 text-slate-800'
+              }`}
             >
-              <Save className="w-3.5 h-3.5 text-slate-600" />
-              <span>Save</span>
+              <Save className="w-3.5 h-3.5" />
+              <span>Save Draft</span>
             </button>
           </div>
         </div>

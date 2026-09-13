@@ -133,8 +133,9 @@ export const DraftStage: React.FC<DraftStageProps> = ({
                 <span>Clear Draft</span>
               </button>
 
-              <p className="text-slate-400 text-[11px] font-medium">
-                Autosaving to local storage as you type
+              <p className="text-slate-500 text-[11px] font-semibold flex items-center gap-1.5">
+                <Save className="w-3.5 h-3.5 text-indigo-600" />
+                <span>Manual save required • Click 'Save Draft' to persist changes</span>
               </p>
             </div>
           </div>
