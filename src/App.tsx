@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { Analytics } from '@vercel/analytics/react';
 import { Navbar } from './components/Navbar';
 import { AuthModal } from './components/AuthModal';
 import { SignOutConfirmModal } from './components/SignOutConfirmModal';
@@ -383,6 +384,9 @@ export default function App() {
         onConfirm={handleLogout}
         userEmail={user?.email}
       />
+
+      {/* Vercel Web Analytics */}
+      <Analytics />
     </div>
   );
 }
