@@ -45,6 +45,8 @@ import { saveProfileAnalysis, getLatestProfileAnalysis } from '../../lib/userSto
 interface AiAnalysisHubProps {
   onBackToHome?: () => void;
   onSelectUniversity?: (uniName: string) => void;
+  user?: { email: string; id: string } | null;
+  onOpenAuth?: (message?: string) => void;
 }
 
 const DEFAULT_ACTIVITIES: ActivityItem[] = [
@@ -110,7 +112,12 @@ const DEFAULT_HONORS: HonorItem[] = [
   },
 ];
 
-export const AiAnalysisHub: React.FC<AiAnalysisHubProps> = ({ onBackToHome, onSelectUniversity }) => {
+export const AiAnalysisHub: React.FC<AiAnalysisHubProps> = ({
+  onBackToHome,
+  onSelectUniversity,
+  user,
+  onOpenAuth,
+}) => {
   const [activeTab, setActiveTab] = useState<'evaluator' | 'counselor'>('evaluator');
 
   // Multi-step form tabs inside evaluator
@@ -450,6 +457,16 @@ export const AiAnalysisHub: React.FC<AiAnalysisHubProps> = ({ onBackToHome, onSe
 
   const handleRunAnalysis = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
+    // Freemium Limit Check: Non-logged-in users get exactly 1 free profile evaluation
+    if (!user) {
+      const freeCount = localStorage.getItem('uniroute_free_analysis_count') || '0';
+      if (freeCount !== '0') {
+        onOpenAuth?.(
+          'You have already utilized your 1 free profile evaluation! Sign up for a free account to unlock unlimited Ivy League matching, scholarship probability ratings, and real-time guidance.'
+        );
+        return;
+      }
+    }
     setIsAnalyzing(true);
     setErrorMessage(null);
 
@@ -494,6 +511,9 @@ export const AiAnalysisHub: React.FC<AiAnalysisHubProps> = ({ onBackToHome, onSe
 
       const data: ProfileAnalysisResult = await response.json();
       setAnalysisResult(data);
+      if (!user) {
+        localStorage.setItem('uniroute_free_analysis_count', '1');
+      }
       saveProfileAnalysis(payload, data).catch((e) => console.warn('Supabase profile analysis save warning:', e));
       // Auto-scroll to results
       setTimeout(() => {
@@ -515,6 +535,17 @@ export const AiAnalysisHub: React.FC<AiAnalysisHubProps> = ({ onBackToHome, onSe
   const handleSendMessage = async (queryText?: string) => {
     const textToSend = queryText || inputMessage;
     if (!textToSend.trim() || isSendingMessage) return;
+
+    if (!user) {
+      // Freemium Limit Check: Non-logged-in users get exactly 1 free counselor query
+      const freeChatCount = localStorage.getItem('uniroute_free_chat_count') || '0';
+      if (freeChatCount !== '0') {
+        onOpenAuth?.(
+          'You have already sent your 1 free counselor query! Create a free Uni Route account to unlock unlimited real-time chat guidance, personalized probability diagnostics, and SAT preparation.'
+        );
+        return;
+      }
+    }
 
     const userMsg: ChatMessage = {
       id: `u-${Date.now()}`,
@@ -545,6 +576,9 @@ export const AiAnalysisHub: React.FC<AiAnalysisHubProps> = ({ onBackToHome, onSe
         timestamp: 'Just now',
       };
       setChatMessages((prev) => [...prev, aiReply]);
+      if (!user) {
+        localStorage.setItem('uniroute_free_chat_count', '1');
+      }
     } catch (err) {
       const aiReply: ChatMessage = {
         id: `ai-${Date.now()}`,

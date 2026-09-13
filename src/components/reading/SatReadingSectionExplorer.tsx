@@ -1021,7 +1021,12 @@ function extractQuestionsForChapter(modules: ReadingModule[], chapterNumber: num
   return list;
 }
 
-export const SatReadingSectionExplorer: React.FC = () => {
+interface SatReadingSectionExplorerProps {
+  user?: { email: string; id: string } | null;
+  onOpenAuth?: (message?: string) => void;
+}
+
+export const SatReadingSectionExplorer: React.FC<SatReadingSectionExplorerProps> = ({ user, onOpenAuth }) => {
   const [selectedChapterId, setSelectedChapterId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'theory' | 'practice'>('theory');
 
@@ -1192,6 +1197,21 @@ export const SatReadingSectionExplorer: React.FC = () => {
   }, [exercisesList, selectedExerciseTab, allChapterQuestions, totalQuestionsCount]);
 
   const handleSelectAnswer = (questionId: string, optionIdx: number) => {
+    // Freemium Limit Check: Non-logged-in users get a maximum of 5 free practice questions
+    if (!user) {
+      const isNew = userSelectedAnswers[questionId] === undefined;
+      if (isNew) {
+        const freeQuestionsCount = parseInt(localStorage.getItem('uniroute_free_questions_count') || '0', 10);
+        if (freeQuestionsCount >= 5) {
+          onOpenAuth?.(
+            'You have completed your 5 free SAT practice questions! Sign up for a free account to unlock thousands of expert practice drills, real-time detailed explanations, and full mock tests.'
+          );
+          return;
+        }
+        localStorage.setItem('uniroute_free_questions_count', (freeQuestionsCount + 1).toString());
+      }
+    }
+
     setUserSelectedAnswers((prev) => ({
       ...prev,
       [questionId]: optionIdx,

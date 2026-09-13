@@ -44,7 +44,12 @@ import {
   cleanMathSymbols
 } from './SatMathConceptRenderer';
 
-export const SatMathSectionExplorer: React.FC = () => {
+interface SatMathSectionExplorerProps {
+  user?: { email: string; id: string } | null;
+  onOpenAuth?: (message?: string) => void;
+}
+
+export const SatMathSectionExplorer: React.FC<SatMathSectionExplorerProps> = ({ user, onOpenAuth }) => {
   const [selectedChapterId, setSelectedChapterId] = useState<string | null>(null);
   const [activeMainTab, setActiveMainTab] = useState<'theory' | 'exercises' | 'visual-studio'>('theory');
   const [visualSubTab, setVisualSubTab] = useState<'gallery' | 'interactive'>('gallery');
@@ -96,6 +101,21 @@ export const SatMathSectionExplorer: React.FC = () => {
   }, [currentExerciseGroupRaw]);
 
   const handleSelectAnswer = (qId: string, choiceIdx: number) => {
+    // Freemium Limit Check: Non-logged-in users get a maximum of 5 free practice questions
+    if (!user) {
+      const isNew = userSelectedAnswers[qId] === undefined;
+      if (isNew) {
+        const freeQuestionsCount = parseInt(localStorage.getItem('uniroute_free_questions_count') || '0', 10);
+        if (freeQuestionsCount >= 5) {
+          onOpenAuth?.(
+            'You have completed your 5 free SAT practice questions! Sign up for a free account to unlock thousands of expert practice drills, real-time detailed explanations, and full mock tests.'
+          );
+          return;
+        }
+        localStorage.setItem('uniroute_free_questions_count', (freeQuestionsCount + 1).toString());
+      }
+    }
+
     setUserSelectedAnswers((prev) => ({ ...prev, [qId]: choiceIdx }));
   };
 

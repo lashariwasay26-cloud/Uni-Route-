@@ -9,9 +9,15 @@ import { EssayToast } from './essay/EssayToast';
 
 interface EssayHubProps {
   onBackToHome?: () => void;
+  user?: { email: string; id: string } | null;
+  onOpenAuth?: (message?: string) => void;
 }
 
-export const EssayHub: React.FC<EssayHubProps> = ({ onBackToHome }) => {
+export const EssayHub: React.FC<EssayHubProps> = ({
+  onBackToHome,
+  user,
+  onOpenAuth,
+}) => {
   const [essaySubRoute, setEssaySubRoute] = useState<
     'home' | 'builder' | 'prompt-analyzer' | 'resources'
   >('home');
@@ -85,6 +91,8 @@ export const EssayHub: React.FC<EssayHubProps> = ({ onBackToHome }) => {
               draftId={activeDraftId}
               initialEssayType={selectedEssayType}
               onBackToHub={() => setEssaySubRoute('home')}
+              user={user}
+              onOpenAuth={onOpenAuth}
             />
           </motion.div>
         )}

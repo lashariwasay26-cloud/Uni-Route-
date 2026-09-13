@@ -13,6 +13,8 @@ import { SatCalculatorView } from '../math/SatCalculatorView';
 interface SatPreparationHubProps {
   initialCategory?: 'reading' | 'writing' | 'math' | 'drills' | 'stats' | 'calculator';
   onBackToHome?: () => void;
+  user?: { email: string; id: string } | null;
+  onOpenAuth?: (message?: string) => void;
 }
 
 export type MainCategory = 'reading' | 'writing' | 'math' | 'drills' | 'stats' | 'calculator';
@@ -20,6 +22,8 @@ export type MainCategory = 'reading' | 'writing' | 'math' | 'drills' | 'stats' |
 export const SatPreparationHub: React.FC<SatPreparationHubProps> = ({
   initialCategory = 'reading',
   onBackToHome,
+  user,
+  onOpenAuth,
 }) => {
   const [activeCategory, setActiveCategory] = useState<MainCategory>(initialCategory);
   const [isOptionPopupOpen, setIsOptionPopupOpen] = useState(false);
@@ -81,6 +85,19 @@ export const SatPreparationHub: React.FC<SatPreparationHubProps> = ({
 
   const handleSubmitAnswer = () => {
     if (selectedOption === null || isAnswerSubmitted || !currentQuestion) return;
+
+    // Freemium Limit Check: Non-logged-in users get a maximum of 5 free practice questions
+    if (!user) {
+      const freeQuestionsCount = parseInt(localStorage.getItem('uniroute_free_questions_count') || '0', 10);
+      if (freeQuestionsCount >= 5) {
+        onOpenAuth?.(
+          'You have completed your 5 free SAT practice questions! Sign up for a free account to unlock thousands of expert practice drills, real-time detailed explanations, and full mock tests.'
+        );
+        return;
+      }
+      localStorage.setItem('uniroute_free_questions_count', (freeQuestionsCount + 1).toString());
+    }
+
     setIsAnswerSubmitted(true);
     setAnsweredCount((prev) => prev + 1);
     if (selectedOption === currentQuestion.correctIndex) {
@@ -152,17 +169,17 @@ export const SatPreparationHub: React.FC<SatPreparationHubProps> = ({
           >
             {/* READING SECTION EXPLORER */}
             {activeCategory === 'reading' && (
-              <SatReadingSectionExplorer />
+              <SatReadingSectionExplorer user={user} onOpenAuth={onOpenAuth} />
             )}
 
             {/* WRITING SECTION EXPLORER */}
             {activeCategory === 'writing' && (
-              <SatWritingSectionExplorer />
+              <SatWritingSectionExplorer user={user} onOpenAuth={onOpenAuth} />
             )}
 
             {/* MATH SECTION EXPLORER */}
             {activeCategory === 'math' && (
-              <SatMathSectionExplorer />
+              <SatMathSectionExplorer user={user} onOpenAuth={onOpenAuth} />
             )}
 
             {/* ADVANCED STATISTICS HANDBOOK & LAB */}

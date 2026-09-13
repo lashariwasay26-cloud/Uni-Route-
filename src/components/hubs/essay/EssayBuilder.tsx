@@ -16,12 +16,16 @@ interface EssayBuilderProps {
   draftId?: string | null;
   initialEssayType?: EssayType;
   onBackToHub: () => void;
+  user?: { email: string; id: string } | null;
+  onOpenAuth?: (message?: string) => void;
 }
 
 export const EssayBuilder: React.FC<EssayBuilderProps> = ({
   draftId,
   initialEssayType = 'Common App Essay',
   onBackToHub,
+  user,
+  onOpenAuth,
 }) => {
   const [activeDraft, setActiveDraft] = useState<EssayDraft | null>(null);
   const [currentStage, setCurrentStage] = useState<BuilderStage>('prompt');
@@ -141,6 +145,17 @@ export const EssayBuilder: React.FC<EssayBuilderProps> = ({
 
   // Execute AI Essay Analysis
   const handleRunEssayAnalysis = async () => {
+    if (!user) {
+      // Freemium Limit Check: Non-logged-in users get exactly 1 free AI Essay Review
+      const freeCount = localStorage.getItem('uniroute_free_essay_review_count') || '0';
+      if (freeCount !== '0') {
+        onOpenAuth?.(
+          'You have already utilized your 1 free AI Essay Review! Create a free Uni Route account to unlock unlimited structured reviews, brainstormers, and admissions counselor messaging.'
+        );
+        return;
+      }
+    }
+
     if (!draftText || draftText.trim().split(/\s+/).length < 20) {
       setAnalysisError('Please write at least 20 words in your draft before requesting AI review.');
       return;
@@ -260,6 +275,9 @@ export const EssayBuilder: React.FC<EssayBuilderProps> = ({
       };
 
       setAnalysis(structured);
+      if (!user) {
+        localStorage.setItem('uniroute_free_essay_review_count', '1');
+      }
       handleSaveDraft('review');
     } catch (err: any) {
       console.error('Error analyzing essay:', err);

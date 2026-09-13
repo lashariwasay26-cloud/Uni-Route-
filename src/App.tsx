@@ -232,24 +232,9 @@ export default function App() {
         onLogout={() => setIsSignOutModalOpen(true)}
         onNavigateHome={() => setCurrentView('home')}
         onNavigateScholarships={() => setCurrentView('scholarship')}
-        onNavigateSat={() =>
-          handleProtectedNavigate(
-            { view: 'sat-landing' },
-            'SAT Preparation Hub requires a free account to access practice drills, full mock tests, and score analytics.'
-          )
-        }
-        onNavigateAiAnalysis={() =>
-          handleProtectedNavigate(
-            { view: 'ai-analysis' },
-            'AI Profile Counselor requires a free account for personalized university match estimations.'
-          )
-        }
-        onNavigateEssayHub={() =>
-          handleProtectedNavigate(
-            { view: 'essay-hub' },
-            'Essay Hub requires a free account to draft personal statements and generate AI reviews.'
-          )
-        }
+        onNavigateSat={() => setCurrentView('sat-landing')}
+        onNavigateAiAnalysis={() => setCurrentView('ai-analysis')}
+        onNavigateEssayHub={() => setCurrentView('essay-hub')}
       />
 
       {/* Main Content Area */}
@@ -267,30 +252,10 @@ export default function App() {
               <>
                 <FloatingIconsGateway
                   onOpenScholarships={() => setCurrentView('scholarship')}
-                  onOpenSatPrep={() =>
-                    handleProtectedNavigate(
-                      { view: 'sat-landing' },
-                      'SAT Preparation Hub requires a free account to access practice drills, full mock tests, and score analytics.'
-                    )
-                  }
-                  onOpenPakistaniScholarships={() =>
-                    handleProtectedNavigate(
-                      { view: 'pakistani-scholarships' },
-                      'Pakistani University & Scholarship Directory requires a free account for full access.'
-                    )
-                  }
-                  onOpenAiAnalysis={() =>
-                    handleProtectedNavigate(
-                      { view: 'ai-analysis' },
-                      'AI Profile Counselor requires a free account for personalized university match estimations.'
-                    )
-                  }
-                  onOpenEssayHub={() =>
-                    handleProtectedNavigate(
-                      { view: 'essay-hub' },
-                      'Essay Hub requires a free account to draft personal statements and generate AI reviews.'
-                    )
-                  }
+                  onOpenSatPrep={() => setCurrentView('sat-landing')}
+                  onOpenPakistaniScholarships={() => setCurrentView('pakistani-scholarships')}
+                  onOpenAiAnalysis={() => setCurrentView('ai-analysis')}
+                  onOpenEssayHub={() => setCurrentView('essay-hub')}
                 />
                 <FaqSection />
               </>
@@ -343,6 +308,11 @@ export default function App() {
               <SatPreparationHub
                 initialCategory={satCategory}
                 onBackToHome={() => setCurrentView('sat-landing')}
+                user={user}
+                onOpenAuth={(msg) => {
+                  setAuthModalMessage(msg || 'Create a free Uni Route account to unlock unlimited practice questions, full mock exams, and persistent score stats.');
+                  setIsAuthModalOpen(true);
+                }}
               />
             )}
 
@@ -350,11 +320,23 @@ export default function App() {
               <AiAnalysisHub
                 onBackToHome={() => setCurrentView('home')}
                 onSelectUniversity={(uniName) => setCurrentView('scholarship')}
+                user={user}
+                onOpenAuth={(msg) => {
+                  setAuthModalMessage(msg || 'Unlock unlimited profile diagnostics, Ivy League admissions odds modeling, and interactive chats with the counselor by creating your free account.');
+                  setIsAuthModalOpen(true);
+                }}
               />
             )}
 
             {currentView === 'essay-hub' && (
-              <EssayHub onBackToHome={() => setCurrentView('home')} />
+              <EssayHub
+                onBackToHome={() => setCurrentView('home')}
+                user={user}
+                onOpenAuth={(msg) => {
+                  setAuthModalMessage(msg || 'Draft college admission personal statements and receive unlimited AI-powered structured reviews with a free Uni Route account.');
+                  setIsAuthModalOpen(true);
+                }}
+              />
             )}
           </motion.div>
         </AnimatePresence>
