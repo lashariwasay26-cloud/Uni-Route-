@@ -37,24 +37,24 @@ export const SatIntroductionView: React.FC<SatIntroductionViewProps> = ({
   const [activeTab, setActiveTab] = useState<'overview' | 'adaptive' | 'procedure' | 'learning-tips' | 'desmos' | 'application' | 'percentiles' | 'checklist'>('overview');
 
   return (
-    <div className="space-y-8 pb-16">
+    <div className="space-y-5 sm:space-y-8 pb-16">
       {/* 1. TOP NAVIGATION ROW (Matching Essay Hub & Scholarship Pages) */}
-      <div className="flex items-center justify-between mb-2">
+      <div className="flex items-center justify-between mb-1 sm:mb-2">
         <button
           onClick={onBackToHome}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white border border-slate-200/90 shadow-xs text-xs font-bold text-slate-700 hover:text-indigo-600 hover:bg-slate-50 transition-all cursor-pointer"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2.5 rounded-xl sm:rounded-2xl bg-white border border-slate-200/90 shadow-xs text-xs font-bold text-slate-700 hover:text-indigo-600 hover:bg-slate-50 transition-all cursor-pointer"
         >
-          <ArrowLeft className="w-4 h-4 text-indigo-600" />
+          <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-indigo-600" />
           <span>Back to SAT Route</span>
         </button>
 
-        <span className="text-xs font-extrabold uppercase tracking-widest text-slate-400 ml-auto">
+        <span className="text-[10px] sm:text-xs font-extrabold uppercase tracking-widest text-slate-400 ml-auto hidden sm:inline">
           DIGITAL SAT MASTER GUIDE
         </span>
       </div>
 
       {/* 2. CENTERED HERO SECTION (Matching Uni Route Design System) */}
-      <div className="text-center max-w-3xl mx-auto py-4 relative">
+      <div className="text-center max-w-3xl mx-auto py-2 sm:py-4 relative">
         {/* Soft Ambient Background Glow */}
         <div 
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 sm:w-96 h-72 sm:h-96 pointer-events-none -z-10 max-w-full"
@@ -64,13 +64,13 @@ export const SatIntroductionView: React.FC<SatIntroductionViewProps> = ({
         />
 
         {/* Eyebrow Tag */}
-        <div className="inline-flex items-center justify-center gap-2 px-4 sm:px-5 py-1.5 sm:py-2 rounded-full bg-white border border-slate-200/80 shadow-[0_2px_12px_rgba(0,0,0,0.04)] text-[10px] sm:text-[11px] font-extrabold tracking-[0.2em] text-slate-600 uppercase mb-3 sm:mb-4">
-          <span className="w-2 h-2 rounded-full bg-indigo-600 animate-pulse" />
+        <div className="inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-1 sm:py-2 rounded-full bg-white border border-slate-200/80 shadow-[0_2px_12px_rgba(0,0,0,0.04)] text-[9px] sm:text-[11px] font-extrabold tracking-[0.15em] sm:tracking-[0.2em] text-slate-600 uppercase mb-2.5 sm:mb-4">
+          <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-indigo-600 animate-pulse" />
           OFFICIAL DIGITAL SAT MASTER GUIDE
         </div>
 
         {/* Headline */}
-        <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black text-slate-950 tracking-tight leading-tight mb-3">
+        <h1 className="text-xl sm:text-4xl lg:text-5xl font-black text-slate-950 tracking-tight leading-tight mb-2 sm:mb-3">
           Everything About the{' '}
           <span className="bg-gradient-to-r from-indigo-600 via-indigo-700 to-purple-600 bg-clip-text text-transparent">
             Digital SAT
@@ -78,23 +78,23 @@ export const SatIntroductionView: React.FC<SatIntroductionViewProps> = ({
         </h1>
 
         {/* Description */}
-        <p className="text-slate-600 text-xs sm:text-base md:text-lg max-w-2xl mx-auto leading-relaxed mb-5 font-medium">
+        <p className="text-slate-600 text-xs sm:text-base md:text-lg max-w-2xl mx-auto leading-relaxed mb-4 sm:mb-5 font-medium">
           The complete handbook for university admissions: test structure, registration steps, scoring algorithm, percentiles, test frequency, and scholarship benchmarks.
         </p>
 
         {/* Stats Badges */}
-        <div className="flex flex-wrap items-center justify-center gap-2.5 text-xs font-bold text-slate-700 mb-8">
-          <span className="flex items-center gap-2 bg-white px-3.5 py-2 rounded-xl border border-slate-200/90 shadow-2xs">
-            <Clock className="w-4 h-4 text-indigo-600" /> 2h 14m Duration
+        <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2.5 text-[11px] sm:text-xs font-bold text-slate-700 mb-5 sm:mb-8">
+          <span className="flex items-center gap-1.5 bg-white px-2.5 py-1 sm:px-3.5 sm:py-2 rounded-lg sm:rounded-xl border border-slate-200/90 shadow-2xs">
+            <Clock className="w-3.5 h-3.5 text-indigo-600" /> 2h 14m Duration
           </span>
-          <span className="flex items-center gap-2 bg-white px-3.5 py-2 rounded-xl border border-slate-200/90 shadow-2xs">
-            <Calendar className="w-4 h-4 text-purple-600" /> 7 Times / Year
+          <span className="flex items-center gap-1.5 bg-white px-2.5 py-1 sm:px-3.5 sm:py-2 rounded-lg sm:rounded-xl border border-slate-200/90 shadow-2xs">
+            <Calendar className="w-3.5 h-3.5 text-purple-600" /> 7 Times / Year
           </span>
-          <span className="flex items-center gap-2 bg-white px-3.5 py-2 rounded-xl border border-slate-200/90 shadow-2xs">
-            <Target className="w-4 h-4 text-emerald-600" /> 400 – 1600 Score
+          <span className="flex items-center gap-1.5 bg-white px-2.5 py-1 sm:px-3.5 sm:py-2 rounded-lg sm:rounded-xl border border-slate-200/90 shadow-2xs">
+            <Target className="w-3.5 h-3.5 text-emerald-600" /> 400 – 1600 Score
           </span>
-          <span className="flex items-center gap-2 bg-white px-3.5 py-2 rounded-xl border border-slate-200/90 shadow-2xs">
-            <Zap className="w-4 h-4 text-amber-500" /> Multistage Adaptive
+          <span className="flex items-center gap-1.5 bg-white px-2.5 py-1 sm:px-3.5 sm:py-2 rounded-lg sm:rounded-xl border border-slate-200/90 shadow-2xs">
+            <Zap className="w-3.5 h-3.5 text-amber-500" /> Multistage Adaptive
           </span>
         </div>
 
@@ -102,17 +102,17 @@ export const SatIntroductionView: React.FC<SatIntroductionViewProps> = ({
         <div className="flex items-center justify-center">
           <button
             onClick={onStartLearning}
-            className="px-6 py-3.5 rounded-2xl bg-slate-950 hover:bg-slate-900 text-white font-bold text-sm transition-all shadow-md hover:shadow-lg flex items-center gap-2 cursor-pointer active:scale-[0.98]"
+            className="px-5 py-2.5 sm:px-6 sm:py-3.5 rounded-xl sm:rounded-2xl bg-slate-950 hover:bg-slate-900 text-white font-bold text-xs sm:text-sm transition-all shadow-md hover:shadow-lg flex items-center gap-2 cursor-pointer active:scale-[0.98]"
           >
-            <BookOpen className="w-4 h-4" />
+            <BookOpen className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             <span>Start Practice & Drills</span>
-            <ArrowRight className="w-4 h-4" />
+            <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           </button>
         </div>
       </div>
 
       {/* 3. NAVIGATION SUB-TABS */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none border-b border-slate-200/80">
+      <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-2 scrollbar-none border-b border-slate-200/80">
         {[
           { id: 'overview', label: '📌 Overview & Types' },
           { id: 'adaptive', label: '⚡ Adaptive System & Marking' },
@@ -126,7 +126,7 @@ export const SatIntroductionView: React.FC<SatIntroductionViewProps> = ({
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id as any)}
-            className={`px-4 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-2 ${
+            className={`px-3 py-1.5 sm:px-4 sm:py-2.5 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
               activeTab === tab.id
                 ? 'bg-slate-950 text-white shadow-xs'
                 : 'bg-white text-slate-600 hover:text-slate-900 hover:bg-slate-50 border border-slate-200/80'

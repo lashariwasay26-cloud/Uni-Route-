@@ -28,19 +28,19 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   return (
     <header id="app-navbar" className="sticky top-0 z-50 bg-[#f6f8fc] border-b border-slate-200/80 text-slate-900 shadow-xs">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 h-20 flex items-center justify-between">
+      <div className="max-w-5xl mx-auto px-3.5 sm:px-6 h-14 sm:h-20 flex items-center justify-between">
         
         {/* Brand Logo matching image: Dark 'U' box + Uni Route text */}
         <div
           id="nav-brand-logo"
           onClick={onNavigateHome}
-          className="flex items-center gap-3 cursor-pointer group"
+          className="flex items-center gap-2.5 cursor-pointer group"
         >
-          <div className="w-11 h-11 rounded-2xl bg-slate-950 text-white font-extrabold text-xl flex items-center justify-center shadow-md group-hover:bg-indigo-600 transition-colors">
+          <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-slate-950 text-white font-extrabold text-lg sm:text-xl flex items-center justify-center shadow-md group-hover:bg-indigo-600 transition-colors">
             U
           </div>
           <div className="flex flex-col">
-            <span className="font-extrabold text-xl sm:text-2xl tracking-tight text-slate-950">
+            <span className="font-extrabold text-lg sm:text-2xl tracking-tight text-slate-950">
               Uni Route
             </span>
             <span className="text-[10px] text-slate-400 font-semibold hidden sm:inline">

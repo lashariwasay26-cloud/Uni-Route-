@@ -444,7 +444,7 @@ function renderFormattedContent(content: string) {
 
         // Standard text paragraph
         return (
-          <p key={idx} className="text-sm sm:text-base font-normal text-slate-900 leading-relaxed my-1.5">
+          <p key={idx} className="text-xs sm:text-sm font-normal text-slate-900 leading-relaxed my-1 sm:my-1.5">
             {cleanInlineMarkdown(trimmed)}
           </p>
         );

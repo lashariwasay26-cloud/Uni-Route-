@@ -418,19 +418,19 @@ export const SatLandingView: React.FC<SatLandingViewProps> = ({
         </div>
 
         {/* Two Options */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-6 max-w-2xl mx-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-6 max-w-2xl mx-auto">
           {/* Option 1: Introduction to SAT */}
           <div
             onClick={onSelectIntro}
-            className="bg-white text-slate-900 border border-slate-200/80 rounded-2xl sm:rounded-[28px] p-4 sm:p-6 shadow-xs hover:shadow-lg hover:border-indigo-600 hover:bg-[#4338ca] hover:text-white cursor-pointer transition-all duration-150 flex flex-col items-center justify-center text-center min-h-[150px] sm:min-h-[200px] group relative overflow-hidden"
+            className="bg-white text-slate-900 border border-slate-200/80 rounded-xl sm:rounded-[28px] p-3.5 sm:p-6 shadow-xs hover:shadow-lg hover:border-indigo-600 hover:bg-[#4338ca] hover:text-white cursor-pointer transition-all duration-150 flex flex-col items-center justify-center text-center min-h-0 sm:min-h-[200px] group relative overflow-hidden"
           >
-            <div className="w-12 h-12 rounded-xl bg-indigo-50 group-hover:bg-white/20 flex items-center justify-center mb-2.5 text-2xl transition-all shadow-xs">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-indigo-50 group-hover:bg-white/20 flex items-center justify-center mb-2 sm:mb-2.5 text-xl sm:text-2xl transition-all shadow-xs">
               📖
             </div>
-            <span className="text-sm sm:text-lg font-extrabold text-slate-950 group-hover:text-white tracking-tight transition-colors">
+            <span className="text-xs sm:text-lg font-extrabold text-slate-950 group-hover:text-white tracking-tight transition-colors">
               Introduction to SAT
             </span>
-            <span className="text-[11px] sm:text-xs text-slate-500 group-hover:text-indigo-200 transition-colors mt-1 font-medium">
+            <span className="text-[10px] sm:text-xs text-slate-500 group-hover:text-indigo-200 transition-colors mt-0.5 sm:mt-1 font-medium">
               Format, Modules & Scoring Guide
             </span>
           </div>
@@ -438,15 +438,15 @@ export const SatLandingView: React.FC<SatLandingViewProps> = ({
           {/* Option 2: Start Learning - Opens Popup Modal */}
           <div
             onClick={() => setIsPopupOpen(true)}
-            className="bg-white text-slate-900 border border-slate-200/80 rounded-2xl sm:rounded-[28px] p-4 sm:p-6 shadow-xs hover:shadow-lg hover:border-indigo-600 hover:bg-[#4338ca] hover:text-white cursor-pointer transition-all duration-150 flex flex-col items-center justify-center text-center min-h-[150px] sm:min-h-[200px] group relative overflow-hidden"
+            className="bg-white text-slate-900 border border-slate-200/80 rounded-xl sm:rounded-[28px] p-3.5 sm:p-6 shadow-xs hover:shadow-lg hover:border-indigo-600 hover:bg-[#4338ca] hover:text-white cursor-pointer transition-all duration-150 flex flex-col items-center justify-center text-center min-h-0 sm:min-h-[200px] group relative overflow-hidden"
           >
-            <div className="w-12 h-12 rounded-xl bg-amber-50 group-hover:bg-white/20 flex items-center justify-center mb-2.5 text-2xl transition-all shadow-xs">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-amber-50 group-hover:bg-white/20 flex items-center justify-center mb-2 sm:mb-2.5 text-xl sm:text-2xl transition-all shadow-xs">
               🚀
             </div>
-            <span className="text-sm sm:text-lg font-extrabold text-slate-950 group-hover:text-white tracking-tight transition-colors">
+            <span className="text-xs sm:text-lg font-extrabold text-slate-950 group-hover:text-white tracking-tight transition-colors">
               Start Learning
             </span>
-            <span className="text-[11px] sm:text-xs text-slate-500 group-hover:text-indigo-200 transition-colors mt-1 font-medium">
+            <span className="text-[10px] sm:text-xs text-slate-500 group-hover:text-indigo-200 transition-colors mt-0.5 sm:mt-1 font-medium">
               Practice Drills, Flashcards & Tools
             </span>
           </div>
@@ -461,7 +461,7 @@ export const SatLandingView: React.FC<SatLandingViewProps> = ({
       {/* POPUP MODAL WITH ONLY 4 OPTIONS */}
       <AnimatePresence>
         {isPopupOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-slate-900/60">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-900/60">
             {/* Backdrop click to close */}
             <motion.div
               initial={{ opacity: 0 }}
@@ -477,23 +477,23 @@ export const SatLandingView: React.FC<SatLandingViewProps> = ({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.15 }}
-              className="bg-white border border-slate-200 rounded-[32px] max-w-2xl w-full p-6 sm:p-8 shadow-2xl relative z-10 space-y-6 overflow-hidden max-h-[90vh] overflow-y-auto"
+              className="bg-white border border-slate-200 rounded-2xl sm:rounded-[32px] max-w-2xl w-full p-4 sm:p-8 shadow-2xl relative z-10 space-y-4 sm:space-y-6 overflow-hidden max-h-[85vh] overflow-y-auto"
             >
               {/* Close Icon */}
               <button
                 onClick={() => setIsPopupOpen(false)}
-                className="absolute top-6 right-6 p-2 rounded-full bg-slate-100 text-slate-500 hover:text-slate-900 hover:bg-slate-200 transition-all cursor-pointer"
+                className="absolute top-4 right-4 sm:top-6 sm:right-6 p-1.5 sm:p-2 rounded-full bg-slate-100 text-slate-500 hover:text-slate-900 hover:bg-slate-200 transition-all cursor-pointer"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
 
               {/* Modal Header */}
-              <div className="space-y-2 pr-8 text-left">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-[11px] font-black uppercase tracking-wider">
-                  <Target className="w-3.5 h-3.5 text-indigo-600" />
+              <div className="space-y-1 sm:space-y-2 pr-6 text-left">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-[10px] font-black uppercase tracking-wider">
+                  <Target className="w-3 h-3 text-indigo-600" />
                   Digital SAT Core Modules
                 </div>
-                <h2 className="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight">
+                <h2 className="text-xl sm:text-3xl font-black text-slate-950 tracking-tight">
                   Select Learning Option
                 </h2>
                 <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
@@ -502,102 +502,102 @@ export const SatLandingView: React.FC<SatLandingViewProps> = ({
               </div>
 
               {/* OPTIONS IN A GRID */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 pt-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 pt-1 sm:pt-2">
                 {/* OPTION 1: READING */}
                 <button
                   onClick={() => handleSelectOption('reading')}
-                  className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/90 hover:border-indigo-600 hover:bg-indigo-50/40 hover:shadow-lg transition-all cursor-pointer text-left flex flex-col justify-between min-h-[160px] group relative overflow-hidden"
+                  className="p-3 sm:p-5 rounded-xl sm:rounded-2xl bg-white border border-slate-200/90 hover:border-indigo-600 hover:bg-indigo-50/40 hover:shadow-lg transition-all cursor-pointer text-left flex flex-col justify-between min-h-0 sm:min-h-[160px] group relative overflow-hidden"
                 >
                   <div>
-                    <div className="flex items-center justify-between mb-2.5">
-                      <span className="text-2xl">📖</span>
-                      <span className="px-2.5 py-0.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-[10px] font-black uppercase tracking-wider">
+                    <div className="flex items-center justify-between mb-1.5 sm:mb-2.5">
+                      <span className="text-xl sm:text-2xl">📖</span>
+                      <span className="px-2 py-0.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-[9px] sm:text-[10px] font-black uppercase tracking-wider">
                         6 Chapters
                       </span>
                     </div>
-                    <h3 className="text-base font-extrabold text-slate-950 group-hover:text-indigo-900 tracking-tight">
+                    <h3 className="text-sm sm:text-base font-extrabold text-slate-950 group-hover:text-indigo-900 tracking-tight">
                       1. Reading
                     </h3>
-                    <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                    <p className="text-[11px] sm:text-xs text-slate-600 mt-0.5 leading-relaxed line-clamp-2 sm:line-clamp-none">
                       Main idea, claims, structure, inference, evidence & vocabulary in context.
                     </p>
                   </div>
-                  <div className="mt-3 flex items-center justify-between text-xs font-bold text-indigo-600 group-hover:text-indigo-700">
+                  <div className="mt-2 sm:mt-3 flex items-center justify-between text-xs font-bold text-indigo-600 group-hover:text-indigo-700">
                     <span>Start Reading</span>
-                    <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                    <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 transition-transform group-hover:translate-x-1" />
                   </div>
                 </button>
 
                 {/* OPTION 2: WRITING */}
                 <button
                   onClick={() => handleSelectOption('writing')}
-                  className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/90 hover:border-indigo-600 hover:bg-indigo-50/40 hover:shadow-lg transition-all cursor-pointer text-left flex flex-col justify-between min-h-[160px] group relative overflow-hidden"
+                  className="p-3 sm:p-5 rounded-xl sm:rounded-2xl bg-white border border-slate-200/90 hover:border-indigo-600 hover:bg-indigo-50/40 hover:shadow-lg transition-all cursor-pointer text-left flex flex-col justify-between min-h-0 sm:min-h-[160px] group relative overflow-hidden"
                 >
                   <div>
-                    <div className="flex items-center justify-between mb-2.5">
-                      <span className="text-2xl">✍️</span>
-                      <span className="px-2.5 py-0.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-[10px] font-black uppercase tracking-wider">
+                    <div className="flex items-center justify-between mb-1.5 sm:mb-2.5">
+                      <span className="text-xl sm:text-2xl">✍️</span>
+                      <span className="px-2 py-0.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-[9px] sm:text-[10px] font-black uppercase tracking-wider">
                         7 Chapters
                       </span>
                     </div>
-                    <h3 className="text-base font-extrabold text-slate-950 group-hover:text-indigo-900 tracking-tight">
+                    <h3 className="text-sm sm:text-base font-extrabold text-slate-950 group-hover:text-indigo-900 tracking-tight">
                       2. Writing
                     </h3>
-                    <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                    <p className="text-[11px] sm:text-xs text-slate-600 mt-0.5 leading-relaxed line-clamp-2 sm:line-clamp-none">
                       Standard English conventions, punctuation, sentence clauses & transitions.
                     </p>
                   </div>
-                  <div className="mt-3 flex items-center justify-between text-xs font-bold text-indigo-600 group-hover:text-indigo-700">
+                  <div className="mt-2 sm:mt-3 flex items-center justify-between text-xs font-bold text-indigo-600 group-hover:text-indigo-700">
                     <span>Start Writing</span>
-                    <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                    <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 transition-transform group-hover:translate-x-1" />
                   </div>
                 </button>
 
                 {/* OPTION 3: MATH */}
                 <button
                   onClick={() => handleSelectOption('math')}
-                  className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/90 hover:border-indigo-600 hover:bg-indigo-50/40 hover:shadow-lg transition-all cursor-pointer text-left flex flex-col justify-between min-h-[160px] group relative overflow-hidden"
+                  className="p-3 sm:p-5 rounded-xl sm:rounded-2xl bg-white border border-slate-200/90 hover:border-indigo-600 hover:bg-indigo-50/40 hover:shadow-lg transition-all cursor-pointer text-left flex flex-col justify-between min-h-0 sm:min-h-[160px] group relative overflow-hidden"
                 >
                   <div>
-                    <div className="flex items-center justify-between mb-2.5">
-                      <span className="text-2xl">📐</span>
-                      <span className="px-2.5 py-0.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-[10px] font-black uppercase tracking-wider">
+                    <div className="flex items-center justify-between mb-1.5 sm:mb-2.5">
+                      <span className="text-xl sm:text-2xl">📐</span>
+                      <span className="px-2 py-0.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-[9px] sm:text-[10px] font-black uppercase tracking-wider">
                         11 Chapters
                       </span>
                     </div>
-                    <h3 className="text-base font-extrabold text-slate-950 group-hover:text-indigo-900 tracking-tight">
+                    <h3 className="text-sm sm:text-base font-extrabold text-slate-950 group-hover:text-indigo-900 tracking-tight">
                       3. Math
                     </h3>
-                    <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                    <p className="text-[11px] sm:text-xs text-slate-600 mt-0.5 leading-relaxed line-clamp-2 sm:line-clamp-none">
                       Algebra, Advanced Math, Problem Solving & Geometry with step-by-step solutions.
                     </p>
                   </div>
-                  <div className="mt-3 flex items-center justify-between text-xs font-bold text-indigo-600 group-hover:text-indigo-700">
+                  <div className="mt-2 sm:mt-3 flex items-center justify-between text-xs font-bold text-indigo-600 group-hover:text-indigo-700">
                     <span>Start Math</span>
-                    <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                    <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 transition-transform group-hover:translate-x-1" />
                   </div>
                 </button>
 
                 {/* OPTION 4: DRILLS */}
                 <button
                   onClick={() => handleSelectOption('drills')}
-                  className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/90 hover:border-indigo-600 hover:bg-indigo-50/40 hover:shadow-lg transition-all cursor-pointer text-left flex flex-col justify-between min-h-[160px] group relative overflow-hidden"
+                  className="p-3 sm:p-5 rounded-xl sm:rounded-2xl bg-white border border-slate-200/90 hover:border-indigo-600 hover:bg-indigo-50/40 hover:shadow-lg transition-all cursor-pointer text-left flex flex-col justify-between min-h-0 sm:min-h-[160px] group relative overflow-hidden"
                 >
                   <div>
-                    <div className="flex items-center justify-between mb-2.5">
-                      <span className="text-2xl">⚡</span>
-                      <span className="px-2.5 py-0.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-[10px] font-black uppercase">
+                    <div className="flex items-center justify-between mb-1.5 sm:mb-2.5">
+                      <span className="text-xl sm:text-2xl">⚡</span>
+                      <span className="px-2 py-0.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-[9px] sm:text-[10px] font-black uppercase">
                         Full Practice
                       </span>
                     </div>
-                    <h3 className="text-base font-extrabold text-slate-950 group-hover:text-indigo-900 tracking-tight">
+                    <h3 className="text-sm sm:text-base font-extrabold text-slate-950 group-hover:text-indigo-900 tracking-tight">
                       4. Drills
                     </h3>
-                    <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                    <p className="text-[11px] sm:text-xs text-slate-600 mt-0.5 leading-relaxed line-clamp-2 sm:line-clamp-none">
                       Timed mixed speed drills, 400-1600 Score Predictor & Vocab Flashcards.
                     </p>
                   </div>
-                  <div className="mt-3 flex items-center justify-between text-xs font-bold text-indigo-600 group-hover:text-indigo-700">
+                  <div className="mt-2 sm:mt-3 flex items-center justify-between text-xs font-bold text-indigo-600 group-hover:text-indigo-700">
                     <span>Start Speed Drills</span>
                     <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
                   </div>
