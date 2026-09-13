@@ -21,6 +21,7 @@ import { VoiceRecorderWidget } from './components/VoiceRecorderWidget';
 import { FloatingAssistantBubble } from './components/FloatingAssistantBubble';
 import { FaqSection } from './components/FaqSection';
 import { Footer } from './components/Footer';
+import { Analytics } from '@vercel/analytics/react';
 
 type ViewType =
   | 'home'
@@ -373,10 +374,7 @@ export default function App() {
           />
         )}
       </AnimatePresence>
+      <Analytics />
     </div>
   );
 }
-
-
-
-
