@@ -560,13 +560,13 @@ const FormattedConceptText: React.FC<{ text: string }> = ({ text }) => {
   }, [blocks]);
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2.5 sm:space-y-3">
       {groupedBlocks.map((group, idx) => {
         if ('blocks' in group && group.type === 'principle_group') {
           return (
             <div
               key={idx}
-              className="bg-white border-2 border-emerald-500 rounded-2xl p-4 sm:p-5 sm:p-6 space-y-4 shadow-2xs my-3 text-slate-900"
+              className="bg-white border-2 border-emerald-500 rounded-xl sm:rounded-2xl p-3.5 sm:p-6 space-y-3 sm:space-y-4 shadow-2xs my-2 sm:my-3 text-slate-900"
             >
               <div className="flex items-center justify-between flex-wrap gap-2 border-b border-emerald-100 pb-3">
                 <span className="text-xs sm:text-sm font-black text-slate-950 uppercase tracking-wider flex items-center gap-2">
@@ -578,7 +578,7 @@ const FormattedConceptText: React.FC<{ text: string }> = ({ text }) => {
                 </span>
               </div>
 
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 {group.blocks.map((subBlock, subIdx) => (
                   <div
                     key={subIdx}
@@ -607,7 +607,7 @@ const FormattedConceptText: React.FC<{ text: string }> = ({ text }) => {
           return (
             <div
               key={idx}
-              className="bg-white border-2 border-indigo-200/90 rounded-2xl sm:rounded-3xl p-4 sm:p-6 space-y-4 sm:space-y-5 shadow-xs my-3"
+              className="bg-white border-2 border-indigo-200/90 rounded-xl sm:rounded-3xl p-3.5 sm:p-6 space-y-3 sm:space-y-5 shadow-xs my-2 sm:my-3"
             >
               <div className="flex items-center justify-between flex-wrap gap-2 border-b border-indigo-100 pb-3">
                 <div className="flex items-center gap-2">
@@ -637,7 +637,7 @@ const FormattedConceptText: React.FC<{ text: string }> = ({ text }) => {
           return (
             <div
               key={idx}
-              className="bg-rose-50/90 border-2 border-rose-300 rounded-2xl p-4 sm:p-5 space-y-2.5 shadow-2xs my-3 text-rose-950"
+              className="bg-rose-50/90 border-2 border-rose-300 rounded-xl sm:rounded-2xl p-3 sm:p-5 space-y-2 sm:space-y-2.5 shadow-2xs my-2 sm:my-3 text-rose-950"
             >
               <div className="flex items-center justify-between flex-wrap gap-2 border-b border-rose-200/80 pb-2">
                 <span className="text-xs font-black text-rose-950 uppercase tracking-wider flex items-center gap-2">

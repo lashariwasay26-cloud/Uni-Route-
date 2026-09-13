@@ -507,13 +507,13 @@ const FormattedReadingConceptText: React.FC<{ text: string }> = ({ text }) => {
   const blocks = parseTheoryText(text);
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2.5 sm:space-y-3">
       {blocks.map((block, idx) => {
         if (block.type === 'example') {
           return (
             <div
               key={idx}
-              className="bg-amber-50/90 border-2 border-amber-300 rounded-2xl p-4 sm:p-5 space-y-3 shadow-2xs my-3"
+              className="bg-amber-50/90 border-2 border-amber-300 rounded-xl sm:rounded-2xl p-3 sm:p-5 space-y-2.5 sm:space-y-3 shadow-2xs my-2 sm:my-3"
             >
               <div className="flex items-center justify-between flex-wrap gap-2 border-b border-amber-200/80 pb-2.5">
                 <span className="text-xs font-black text-amber-950 uppercase tracking-wider flex items-center gap-2">
@@ -535,7 +535,7 @@ const FormattedReadingConceptText: React.FC<{ text: string }> = ({ text }) => {
           return (
             <div
               key={idx}
-              className="bg-rose-50/90 border-2 border-rose-300 rounded-2xl p-4 sm:p-5 space-y-2.5 shadow-2xs my-3"
+              className="bg-rose-50/90 border-2 border-rose-300 rounded-xl sm:rounded-2xl p-3 sm:p-5 space-y-2 sm:space-y-2.5 shadow-2xs my-2 sm:my-3"
             >
               <div className="flex items-center justify-between flex-wrap gap-2 border-b border-rose-200/80 pb-2">
                 <span className="text-xs font-black text-rose-950 uppercase tracking-wider flex items-center gap-2">
@@ -557,7 +557,7 @@ const FormattedReadingConceptText: React.FC<{ text: string }> = ({ text }) => {
           return (
             <div
               key={idx}
-              className="bg-sky-50/90 border-2 border-sky-400 rounded-2xl p-4 sm:p-5 space-y-2.5 shadow-2xs my-3"
+              className="bg-sky-50/90 border-2 border-sky-400 rounded-xl sm:rounded-2xl p-3 sm:p-5 space-y-2 sm:space-y-2.5 shadow-2xs my-2 sm:my-3"
             >
               <div className="flex items-center justify-between flex-wrap gap-2 border-b border-sky-200/80 pb-2">
                 <span className="text-xs font-black text-sky-950 uppercase tracking-wider flex items-center gap-2">
@@ -579,7 +579,7 @@ const FormattedReadingConceptText: React.FC<{ text: string }> = ({ text }) => {
           return (
             <div
               key={idx}
-              className="bg-emerald-50/90 border-2 border-emerald-300 rounded-2xl p-4 sm:p-5 space-y-2.5 shadow-2xs my-3"
+              className="bg-emerald-50/90 border-2 border-emerald-300 rounded-xl sm:rounded-2xl p-3 sm:p-5 space-y-2 sm:space-y-2.5 shadow-2xs my-2 sm:my-3"
             >
               <div className="flex items-center justify-between flex-wrap gap-2 border-b border-emerald-200/80 pb-2">
                 <span className="text-xs font-black text-emerald-950 uppercase tracking-wider flex items-center gap-2">
@@ -1280,7 +1280,7 @@ export const SatReadingSectionExplorer: React.FC = () => {
               {chapter.modules.map((mod) => (
                 <div
                   key={mod.id}
-                  className="bg-white border border-slate-200 rounded-3xl p-5 sm:p-7 shadow-xs space-y-4"
+                  className="bg-white border border-slate-200 rounded-2xl sm:rounded-3xl p-3.5 sm:p-7 shadow-xs space-y-3 sm:space-y-4"
                 >
                   <div className="border-b border-slate-100 pb-3 flex items-center justify-between flex-wrap gap-2">
                     <h3 className="text-base sm:text-xl font-black text-slate-950 tracking-tight flex items-center gap-2.5">
@@ -1387,7 +1387,7 @@ export const SatReadingSectionExplorer: React.FC = () => {
                       return (
                         <div
                           key={section.id}
-                          className="p-4 sm:p-5 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-3"
+                          className="p-3 sm:p-5 rounded-xl sm:rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2.5 sm:space-y-3"
                         >
                           {section.sectionTitle && (
                             <h4 className="text-sm sm:text-base font-black text-slate-950 border-b border-slate-200/60 pb-2">

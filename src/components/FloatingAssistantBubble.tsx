@@ -79,7 +79,7 @@ export const FloatingAssistantBubble: React.FC<FloatingAssistantBubbleProps> = (
   };
 
   return (
-    <div className="fixed bottom-5 right-5 z-50">
+    <div className="fixed bottom-3 right-3 sm:bottom-5 sm:right-5 z-50">
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -87,7 +87,7 @@ export const FloatingAssistantBubble: React.FC<FloatingAssistantBubbleProps> = (
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.15 }}
-            className="mb-4 w-[calc(100vw-2.5rem)] sm:w-[400px] h-[520px] bg-white border border-slate-200/90 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] flex flex-col overflow-hidden"
+            className="mb-3 sm:mb-4 w-[calc(100vw-1.5rem)] sm:w-[400px] h-[480px] sm:h-[520px] bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] flex flex-col overflow-hidden"
           >
             {/* Header */}
             <div className="bg-gradient-to-r from-indigo-600 via-indigo-700 to-purple-700 p-4 text-white flex items-center justify-between shrink-0">
@@ -188,10 +188,10 @@ export const FloatingAssistantBubble: React.FC<FloatingAssistantBubbleProps> = (
       {/* Main Floating Trigger Bubble */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-14 h-14 rounded-full bg-gradient-to-tr from-indigo-600 via-indigo-700 to-purple-600 text-white shadow-lg hover:shadow-indigo-500/30 flex items-center justify-center hover:scale-105 transition-transform cursor-pointer relative group"
+        className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-tr from-indigo-600 via-indigo-700 to-purple-600 text-white shadow-lg hover:shadow-indigo-500/30 flex items-center justify-center hover:scale-105 transition-transform cursor-pointer relative group"
         title="Chat with Gemini AI Counselor"
       >
-        <MessageSquare className="w-6 h-6 text-white" />
+        <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
         <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-white animate-pulse" />
       </button>
     </div>
