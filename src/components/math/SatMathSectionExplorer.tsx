@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { saveSatPracticeProgress } from '../../lib/userStorage';
+import { shuffleExerciseGroupQuestions } from '../../utils/questionShuffler';
 import {
   Calculator,
   BookOpen,
@@ -82,9 +83,17 @@ export const SatMathSectionExplorer: React.FC = () => {
   const currentChapter: FullSatMathChapter | undefined =
     FULL_SAT_MATH_BOOK.find((ch) => ch.id === selectedChapterId);
 
-  const currentExerciseGroup: MathExerciseGroup | undefined = currentChapter?.exerciseGroups.find(
+  const currentExerciseGroupRaw: MathExerciseGroup | undefined = currentChapter?.exerciseGroups.find(
     (eg) => eg.exerciseNumber === selectedExerciseTab
   );
+
+  const currentExerciseGroup: MathExerciseGroup | undefined = useMemo(() => {
+    if (!currentExerciseGroupRaw) return undefined;
+    return {
+      ...currentExerciseGroupRaw,
+      questions: shuffleExerciseGroupQuestions(currentExerciseGroupRaw.questions)
+    };
+  }, [currentExerciseGroupRaw]);
 
   const handleSelectAnswer = (qId: string, choiceIdx: number) => {
     setUserSelectedAnswers((prev) => ({ ...prev, [qId]: choiceIdx }));

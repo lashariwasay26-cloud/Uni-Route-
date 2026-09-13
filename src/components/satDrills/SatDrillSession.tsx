@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { SatCalculatorView } from '../math/SatCalculatorView';
+import { shuffleExerciseGroupQuestions } from '../../utils/questionShuffler';
 import {
   Clock,
   Eye,
@@ -86,7 +87,8 @@ export const SatDrillSession: React.FC<SatDrillSessionProps> = ({
 
   // Active question bank for current module
   const moduleQuestions = useMemo(() => {
-    return getDrillModuleQuestions(drillId, currentSection, currentModule, currentRoute);
+    const rawQs = getDrillModuleQuestions(drillId, currentSection, currentModule, currentRoute);
+    return shuffleExerciseGroupQuestions(rawQs);
   }, [drillId, currentSection, currentModule, currentRoute]);
 
   // Current Question Navigation Index

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { shuffleExerciseGroupQuestions } from '../../utils/questionShuffler';
 import {
   Table as TableIcon,
   TrendingUp,
@@ -41,7 +42,8 @@ export const SatMathExerciseTableMatrix: React.FC<SatMathExerciseTableMatrixProp
   const activeQuestions: (MathExerciseQuestion & { exerciseNum: number })[] = [];
   chapter.exerciseGroups.forEach((eg) => {
     if (!selectedExerciseNumber || eg.exerciseNumber === selectedExerciseNumber) {
-      eg.questions.forEach((q) => {
+      const shuffled = shuffleExerciseGroupQuestions<MathExerciseQuestion>(eg.questions);
+      shuffled.forEach((q) => {
         activeQuestions.push({
           ...q,
           exerciseNum: eg.exerciseNumber

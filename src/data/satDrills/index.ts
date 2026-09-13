@@ -4,6 +4,7 @@ import { DRILL_3_QUESTIONS } from './drill3Data';
 import { DRILL_4_QUESTIONS } from './drill4Data';
 import { DRILL_5_QUESTIONS } from './drill5Data';
 import { SatDrillQuestion, SatSection, SatModuleType, SatRouteType, DrillMetadata } from './types';
+import { shuffleExerciseGroupQuestions } from '../../utils/questionShuffler';
 
 export * from './types';
 export * from './routingEngine';
@@ -79,7 +80,7 @@ export function getDrillModuleQuestions(
   module: SatModuleType,
   route: SatRouteType = 'base'
 ): SatDrillQuestion[] {
-  return ALL_DRILL_QUESTIONS.filter((q) => {
+  const filtered = ALL_DRILL_QUESTIONS.filter((q) => {
     if (q.drillId !== drillId) return false;
     if (q.section !== section) return false;
     if (q.module !== module) return false;
@@ -91,6 +92,8 @@ export function getDrillModuleQuestions(
     // Module 2 requires matching Lower or Higher route
     return q.route === route;
   });
+
+  return shuffleExerciseGroupQuestions(filtered);
 }
 
 /**

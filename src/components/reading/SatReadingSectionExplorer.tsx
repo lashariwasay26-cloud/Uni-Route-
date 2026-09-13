@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { saveSatPracticeProgress } from '../../lib/userStorage';
+import { shuffleExerciseGroupQuestions } from '../../utils/questionShuffler';
 import {
   BookOpen,
   CheckCircle2,
@@ -972,7 +973,8 @@ export const SatReadingSectionExplorer: React.FC = () => {
     else if (selectedChapterId === 'ch3') { activeChapter = SAT_READING_CHAPTER_3; chNum = 3; }
     else if (selectedChapterId === 'ch2') { activeChapter = SAT_READING_CHAPTER_2; chNum = 2; }
     
-    return extractQuestionsForChapter(activeChapter.modules, chNum);
+    const raw = extractQuestionsForChapter(activeChapter.modules, chNum);
+    return shuffleExerciseGroupQuestions(raw);
   }, [selectedChapterId]);
 
   const READING_CHAPTERS_METADATA: ReadingChapterSummary[] = useMemo(
@@ -1084,10 +1086,10 @@ export const SatReadingSectionExplorer: React.FC = () => {
       });
 
       return [
-        { exerciseNumber: 1, title: `Exercise 1: Targeted Practice Part 1 (${e1.length} Qs)`, questions: e1 },
-        { exerciseNumber: 2, title: `Exercise 2: Targeted Practice Part 2 (${e2.length} Qs)`, questions: e2 },
-        { exerciseNumber: 3, title: `Exercise 3: Mixed Practice (${e3.length} Qs)`, questions: e3 },
-        { exerciseNumber: 4, title: `Exercise 4: Comprehensive Chapter Assessment (${e4.length} Qs)`, questions: e4 },
+        { exerciseNumber: 1, title: `Exercise 1: Targeted Practice Part 1 (${e1.length} Qs)`, questions: shuffleExerciseGroupQuestions(e1) },
+        { exerciseNumber: 2, title: `Exercise 2: Targeted Practice Part 2 (${e2.length} Qs)`, questions: shuffleExerciseGroupQuestions(e2) },
+        { exerciseNumber: 3, title: `Exercise 3: Mixed Practice (${e3.length} Qs)`, questions: shuffleExerciseGroupQuestions(e3) },
+        { exerciseNumber: 4, title: `Exercise 4: Comprehensive Chapter Assessment (${e4.length} Qs)`, questions: shuffleExerciseGroupQuestions(e4) },
       ];
     };
 

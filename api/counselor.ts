@@ -1,7 +1,65 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { getGeminiClient, callWithModelFallback } from './_helpers.js';
+import { GoogleGenAI } from '@google/genai';
+
+const getGeminiClient = () => {
+  const apiKey = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY;
+  if (!apiKey) {
+    throw new Error("GEMINI_API_KEY environment variable is not configured.");
+  }
+  return new GoogleGenAI({
+    apiKey,
+    httpOptions: {
+      headers: {
+        'User-Agent': 'aistudio-build',
+      },
+    },
+  });
+};
+
+const FALLBACK_MODELS = ["gemini-3.8-flash", "gemini-3.1-pro-preview", "gemini-flash-latest"];
+
+async function callWithTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
+  let timeoutId: NodeJS.Timeout;
+  const timeoutPromise = new Promise<T>((_, reject) => {
+    timeoutId = setTimeout(() => {
+      reject(new Error(`Timeout after ${timeoutMs}ms`));
+    }, timeoutMs);
+  });
+  return Promise.race([promise, timeoutPromise]).finally(() => {
+    clearTimeout(timeoutId);
+  });
+}
+
+async function callWithModelFallback<T>(
+  actionName: string,
+  fn: (model: string) => Promise<T>
+): Promise<T> {
+  let lastError: any = null;
+  for (const model of FALLBACK_MODELS) {
+    try {
+      return await callWithTimeout(fn(model), 8000);
+    } catch (err: any) {
+      lastError = err;
+      console.warn(`[${actionName}] Model ${model} fallback attempt:`, err?.message || err);
+    }
+  }
+  throw lastError;
+}
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  // Enable CORS headers for Vercel
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
+  res.setHeader(
+    'Access-Control-Allow-Headers',
+    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
+  );
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }

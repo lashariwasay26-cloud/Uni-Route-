@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { saveSatPracticeProgress } from '../../lib/userStorage';
+import { shuffleExerciseGroupQuestions } from '../../utils/questionShuffler';
 import { BookOpen, CheckCircle2, XCircle, ChevronRight, HelpCircle, Sparkles, Layers, ShieldCheck, Target, ArrowRight, ArrowLeft, RefreshCw, Award, Lightbulb, AlertTriangle, Zap, FileText, Check } from 'lucide-react';
 import { SAT_WRITING_CHAPTER_1_FULL } from '../../data/writing/satWritingChapter1Full';
 import { SAT_WRITING_CHAPTER_2_FULL } from '../../data/writing/satWritingChapter2Full';
@@ -949,10 +950,10 @@ export const SatWritingSectionExplorer: React.FC = () => {
     const e4 = qWithGlobalNumber.slice(q1Count * 3);
 
     return [
-      { exerciseNumber: 1, title: `Exercise 1: Targeted Practice Part 1 (${e1.length} Qs)`, questions: e1 },
-      { exerciseNumber: 2, title: `Exercise 2: Targeted Practice Part 2 (${e2.length} Qs)`, questions: e2 },
-      { exerciseNumber: 3, title: `Exercise 3: Mixed Practice (${e3.length} Qs)`, questions: e3 },
-      { exerciseNumber: 4, title: `Exercise 4: Comprehensive Chapter Assessment (${e4.length} Qs)`, questions: e4 },
+      { exerciseNumber: 1, title: `Exercise 1: Targeted Practice Part 1 (${e1.length} Qs)`, questions: shuffleExerciseGroupQuestions(e1) },
+      { exerciseNumber: 2, title: `Exercise 2: Targeted Practice Part 2 (${e2.length} Qs)`, questions: shuffleExerciseGroupQuestions(e2) },
+      { exerciseNumber: 3, title: `Exercise 3: Mixed Practice (${e3.length} Qs)`, questions: shuffleExerciseGroupQuestions(e3) },
+      { exerciseNumber: 4, title: `Exercise 4: Comprehensive Chapter Assessment (${e4.length} Qs)`, questions: shuffleExerciseGroupQuestions(e4) },
     ];
   }, [chapter]);
 

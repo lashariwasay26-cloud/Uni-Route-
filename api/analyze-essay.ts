@@ -1,8 +1,89 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { Type } from '@google/genai';
-import { getGeminiClient, callWithModelFallback, generateEssayFallback } from './_helpers.js';
+import { GoogleGenAI, Type } from '@google/genai';
+
+const getGeminiClient = () => {
+  const apiKey = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY;
+  if (!apiKey) {
+    throw new Error("GEMINI_API_KEY environment variable is not configured.");
+  }
+  return new GoogleGenAI({
+    apiKey,
+    httpOptions: {
+      headers: {
+        'User-Agent': 'aistudio-build',
+      },
+    },
+  });
+};
+
+const FALLBACK_MODELS = ["gemini-3.8-flash", "gemini-3.1-pro-preview", "gemini-flash-latest"];
+
+async function callWithTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
+  let timeoutId: NodeJS.Timeout;
+  const timeoutPromise = new Promise<T>((_, reject) => {
+    timeoutId = setTimeout(() => {
+      reject(new Error(`Timeout after ${timeoutMs}ms`));
+    }, timeoutMs);
+  });
+  return Promise.race([promise, timeoutPromise]).finally(() => {
+    clearTimeout(timeoutId);
+  });
+}
+
+async function callWithModelFallback<T>(
+  actionName: string,
+  fn: (model: string) => Promise<T>
+): Promise<T> {
+  let lastError: any = null;
+  for (const model of FALLBACK_MODELS) {
+    try {
+      return await callWithTimeout(fn(model), 8000);
+    } catch (err: any) {
+      lastError = err;
+      console.warn(`[${actionName}] Model ${model} fallback:`, err?.message || err);
+    }
+  }
+  throw lastError;
+}
+
+function generateEssayFallback(essayText: string, promptTitle: string, targetUniversity: string) {
+  return {
+    overallScore: 83,
+    hookRating: "8.5/10 - Engaging personal narrative opening with clear thematic resonance",
+    clarityAndFlow: "8/10 - Strong logical transitions between personal reflection and academic goals",
+    toneAnalysis: "Authentic, reflective, intellectually curious, and determined",
+    strengths: [
+      "Demonstrates high self-awareness and genuine intellectual curiosity",
+      "Connects personal experiences smoothly to future goals at " + (targetUniversity || "top universities"),
+      "Maintains a distinct and authentic personal voice throughout"
+    ],
+    improvementAreas: [
+      "Incorporate more quantifiable impact metrics or specific project achievements",
+      "Strengthen the conclusion to create a lasting impression on admissions readers",
+      "Ensure word count fits comfortably within competitive application guidelines"
+    ],
+    revisedExcerpt: "Instead of summarizing your aspirations, ground the opening in an active moment of inquiry—such as your first breakthrough in the laboratory or debate podium—to instantly magnetize the reader.",
+    recommendedNextSteps: [
+      "Refine the opening hook for immediate impact",
+      "Check word count against target portal limits",
+      "Verify that tone remains natural and authentically yours"
+    ]
+  };
+}
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
+  res.setHeader(
+    'Access-Control-Allow-Headers',
+    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
+  );
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
