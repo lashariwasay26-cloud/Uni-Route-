@@ -185,6 +185,48 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuc
     }
   };
 
+  const handleGoogleSignIn = async () => {
+    setError(null);
+    setSuccess(null);
+    setLoading(true);
+
+    try {
+      if (isSupabase && supabase) {
+        const { error: oAuthError } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            redirectTo: window.location.origin,
+          }
+        });
+        if (oAuthError) throw oAuthError;
+      } else {
+        // Mock Google Sign-In
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        
+        const mockUserSession = {
+          email: 'google.student@example.com',
+          id: `mock-google-${Date.now()}`
+        };
+        localStorage.setItem('mock_user_session', JSON.stringify(mockUserSession));
+        
+        onAuthSuccess(mockUserSession);
+        setSuccess('Successfully authenticated via Google!');
+        
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('uniroute-auth-change', { detail: { user: { email: mockUserSession.email, id: mockUserSession.id } } }));
+        }
+        
+        setTimeout(() => {
+          onClose();
+        }, 1200);
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to authenticate with Google.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSwitchTab = (signUp: boolean) => {
     setIsSignUp(signUp);
     setError(null);
@@ -307,6 +349,42 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuc
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* Google Sign In Button */}
+        <button
+          type="button"
+          onClick={handleGoogleSignIn}
+          disabled={loading}
+          className="w-full h-11 rounded-xl border border-slate-200 bg-white text-slate-700 font-extrabold text-sm hover:bg-slate-50 hover:border-slate-300 focus:ring-4 focus:ring-slate-100 transition-all cursor-pointer flex items-center justify-center gap-2.5 shadow-2xs"
+        >
+          <svg className="w-4.5 h-4.5 shrink-0" viewBox="0 0 24 24" width="18" height="18">
+            <path
+              fill="#4285F4"
+              d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v3.92h6.61c-.29 1.5-1.14 2.78-2.4 3.63v3.02h3.88c2.27-2.09 3.56-5.17 3.56-8.5z"
+            />
+            <path
+              fill="#34A853"
+              d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.02c-1.08.72-2.45 1.16-4.05 1.16-3.11 0-5.74-2.11-6.68-4.96H1.21v3.11C3.18 21.88 7.31 24 12 24z"
+            />
+            <path
+              fill="#FBBC05"
+              d="M5.32 14.27c-.24-.72-.38-1.49-.38-2.27s.14-1.55.38-2.27V6.62H1.21C.44 8.16 0 9.88 0 11.73c0 1.85.44 3.57 1.21 5.11l4.11-3.11z"
+            />
+            <path
+              fill="#EA4335"
+              d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.93 1.19 15.24 0 12 0 7.31 0 3.18 2.12 1.21 5.62l4.11 3.11c.94-2.85 3.57-4.98 6.68-4.98z"
+            />
+          </svg>
+          <span>Continue with Google</span>
+        </button>
+
+        {/* Divider */}
+        <div className="relative my-5 flex items-center justify-center">
+          <div className="absolute inset-x-0 h-px bg-slate-100" />
+          <span className="relative bg-white px-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+            Or continue with email
+          </span>
+        </div>
 
         {/* Login/Signup Form */}
         <form onSubmit={handleAuth} className="space-y-4 text-left">
