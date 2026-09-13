@@ -6,6 +6,7 @@ import { supabase, isSupabaseConfigured } from './lib/supabase';
 import { syncEssaysFromSupabase } from './lib/essayStorage';
 import { syncDrillDataFromSupabase } from './data/satDrills/progressStorage';
 import { fetchSavedUniversityIds, loadSatPracticeProgress } from './lib/userStorage';
+import { isPublicInternationalUniversity, isPublicGovernmentScholarship } from './config/previewAccess';
 import { FloatingIconsGateway } from './components/FloatingIconsGateway';
 import { ScholarshipPage } from './components/ScholarshipPage';
 import { UniversityListView } from './components/UniversityListView';
@@ -21,34 +22,65 @@ import { FloatingAssistantBubble } from './components/FloatingAssistantBubble';
 import { FaqSection } from './components/FaqSection';
 import { Footer } from './components/Footer';
 
+type ViewType =
+  | 'home'
+  | 'scholarship'
+  | 'pakistani-scholarships'
+  | 'sat-landing'
+  | 'sat-intro'
+  | 'sat-learning'
+  | 'ai-analysis'
+  | 'essay-hub'
+  | 'tools';
+
+interface NavigationTarget {
+  view: ViewType;
+  uniId?: string;
+  scholarshipId?: string;
+  satCategory?: 'reading' | 'writing' | 'math' | 'drills' | 'stats';
+  subView?: 'selection' | 'university' | 'government';
+}
+
 export default function App() {
-  const [currentView, setCurrentView] = useState<
-    'home' | 'scholarship' | 'pakistani-scholarships' | 'sat-landing' | 'sat-intro' | 'sat-learning' | 'ai-analysis' | 'essay-hub' | 'tools'
-  >('home');
+  const [currentView, setCurrentView] = useState<ViewType>('home');
   const [satCategory, setSatCategory] = useState<'reading' | 'writing' | 'math' | 'drills' | 'stats'>('reading');
   const [user, setUser] = useState<{ email: string; id: string } | null>(null);
+  const [authLoading, setAuthLoading] = useState<boolean>(true);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authModalMessage, setAuthModalMessage] = useState<string | undefined>(undefined);
+  
+  // Pending target after auth
+  const [pendingAuthTarget, setPendingAuthTarget] = useState<NavigationTarget | null>(null);
+  const [pendingUniId, setPendingUniId] = useState<string | undefined>(undefined);
+  const [pendingScholarshipId, setPendingScholarshipId] = useState<string | undefined>(undefined);
+  const [pendingSubView, setPendingSubView] = useState<'selection' | 'university' | 'government'>('selection');
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
   }, [currentView]);
 
   useEffect(() => {
+    let mounted = true;
+
     if (isSupabaseConfigured() && supabase) {
       // Fetch initial user session
       supabase.auth.getSession().then(({ data: { session } }) => {
+        if (!mounted) return;
         if (session && session.user) {
           setUser({ email: session.user.email || '', id: session.user.id });
-          // Background sync user personal data
           syncEssaysFromSupabase(session.user.id).catch(() => {});
           syncDrillDataFromSupabase(session.user.id).catch(() => {});
           fetchSavedUniversityIds(session.user.id).catch(() => {});
           loadSatPracticeProgress(session.user.id).catch(() => {});
         }
+        setAuthLoading(false);
+      }).catch(() => {
+        if (mounted) setAuthLoading(false);
       });
 
       // Bind listener
       const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+        if (!mounted) return;
         if (session && session.user) {
           setUser({ email: session.user.email || '', id: session.user.id });
           syncEssaysFromSupabase(session.user.id).catch(() => {});
@@ -64,9 +96,11 @@ export default function App() {
             window.dispatchEvent(new CustomEvent('uniroute-auth-change', { detail: { user: null } }));
           }
         }
+        setAuthLoading(false);
       });
 
       return () => {
+        mounted = false;
         subscription.unsubscribe();
       };
     } else {
@@ -77,8 +111,67 @@ export default function App() {
       } catch (e) {
         console.error(e);
       }
+      setAuthLoading(false);
     }
   }, []);
+
+  const handleProtectedNavigate = (target: NavigationTarget, message?: string) => {
+    if (target.view === 'home') {
+      setCurrentView('home');
+      return;
+    }
+
+    if (target.view === 'scholarship' && !target.uniId && !target.scholarshipId) {
+      setCurrentView('scholarship');
+      if (target.subView) setPendingSubView(target.subView);
+      return;
+    }
+
+    if (!user) {
+      // Allow public preview international unis & gov scholarships
+      if (target.uniId && isPublicInternationalUniversity(target.uniId)) {
+        setCurrentView('scholarship');
+        setPendingSubView('university');
+        setPendingUniId(target.uniId);
+        return;
+      }
+
+      if (target.scholarshipId && isPublicGovernmentScholarship(target.scholarshipId)) {
+        setCurrentView('scholarship');
+        setPendingSubView('government');
+        setPendingScholarshipId(target.scholarshipId);
+        return;
+      }
+
+      // Lock protected view & prompt Auth Modal
+      setPendingAuthTarget(target);
+      setAuthModalMessage(
+        message || 'A free Uni Route account is required to unlock full access to this university profile and features.'
+      );
+      setIsAuthModalOpen(true);
+      return;
+    }
+
+    // Authenticated -> allow navigation
+    setCurrentView(target.view);
+    if (target.satCategory) setSatCategory(target.satCategory);
+    if (target.uniId) setPendingUniId(target.uniId);
+    if (target.scholarshipId) setPendingScholarshipId(target.scholarshipId);
+    if (target.subView) setPendingSubView(target.subView);
+  };
+
+  const handleAuthSuccess = (u: { email: string; id: string }) => {
+    setUser(u);
+    if (pendingAuthTarget) {
+      setCurrentView(pendingAuthTarget.view);
+      if (pendingAuthTarget.satCategory) setSatCategory(pendingAuthTarget.satCategory);
+      if (pendingAuthTarget.uniId) setPendingUniId(pendingAuthTarget.uniId);
+      if (pendingAuthTarget.scholarshipId) setPendingScholarshipId(pendingAuthTarget.scholarshipId);
+      if (pendingAuthTarget.subView) setPendingSubView(pendingAuthTarget.subView);
+      setPendingAuthTarget(null);
+      setAuthModalMessage(undefined);
+    }
+  };
 
   const handleLogout = async () => {
     if (isSupabaseConfigured() && supabase) {
@@ -101,11 +194,26 @@ export default function App() {
       console.error(e);
     }
     setUser(null);
+    setPendingAuthTarget(null);
+    setCurrentView('home');
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('uniroute-auth-change', { detail: { user: null } }));
       window.dispatchEvent(new CustomEvent('uniroute-bookmarks-updated', { detail: { bookmarkedIds: [] } }));
     }
   };
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-[#f6f8fc] flex items-center justify-center p-6">
+        <div className="flex flex-col items-center justify-center text-center">
+          <div className="w-12 h-12 rounded-2xl bg-slate-950 text-white font-black text-xl flex items-center justify-center shadow-lg animate-pulse mb-4">
+            U
+          </div>
+          <p className="text-slate-600 text-sm font-semibold">Verifying secure session...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#f6f8fc] text-slate-900 font-sans flex flex-col selection:bg-indigo-500 selection:text-white relative">
@@ -113,13 +221,31 @@ export default function App() {
       <Navbar
         currentView={currentView}
         user={user}
-        onOpenAuth={() => setIsAuthModalOpen(true)}
+        onOpenAuth={() => {
+          setAuthModalMessage(undefined);
+          setIsAuthModalOpen(true);
+        }}
         onLogout={handleLogout}
         onNavigateHome={() => setCurrentView('home')}
         onNavigateScholarships={() => setCurrentView('scholarship')}
-        onNavigateSat={() => setCurrentView('sat-landing')}
-        onNavigateAiAnalysis={() => setCurrentView('ai-analysis')}
-        onNavigateEssayHub={() => setCurrentView('essay-hub')}
+        onNavigateSat={() =>
+          handleProtectedNavigate(
+            { view: 'sat-landing' },
+            'SAT Preparation Hub requires a free account to access practice drills, full mock tests, and score analytics.'
+          )
+        }
+        onNavigateAiAnalysis={() =>
+          handleProtectedNavigate(
+            { view: 'ai-analysis' },
+            'AI Profile Counselor requires a free account for personalized university match estimations.'
+          )
+        }
+        onNavigateEssayHub={() =>
+          handleProtectedNavigate(
+            { view: 'essay-hub' },
+            'Essay Hub requires a free account to draft personal statements and generate AI reviews.'
+          )
+        }
       />
 
       {/* Main Content Area */}
@@ -137,17 +263,44 @@ export default function App() {
               <>
                 <FloatingIconsGateway
                   onOpenScholarships={() => setCurrentView('scholarship')}
-                  onOpenSatPrep={() => setCurrentView('sat-landing')}
-                  onOpenPakistaniScholarships={() => setCurrentView('pakistani-scholarships')}
-                  onOpenAiAnalysis={() => setCurrentView('ai-analysis')}
-                  onOpenEssayHub={() => setCurrentView('essay-hub')}
+                  onOpenSatPrep={() =>
+                    handleProtectedNavigate(
+                      { view: 'sat-landing' },
+                      'SAT Preparation Hub requires a free account to access practice drills, full mock tests, and score analytics.'
+                    )
+                  }
+                  onOpenPakistaniScholarships={() =>
+                    handleProtectedNavigate(
+                      { view: 'pakistani-scholarships' },
+                      'Pakistani University & Scholarship Directory requires a free account for full access.'
+                    )
+                  }
+                  onOpenAiAnalysis={() =>
+                    handleProtectedNavigate(
+                      { view: 'ai-analysis' },
+                      'AI Profile Counselor requires a free account for personalized university match estimations.'
+                    )
+                  }
+                  onOpenEssayHub={() =>
+                    handleProtectedNavigate(
+                      { view: 'essay-hub' },
+                      'Essay Hub requires a free account to draft personal statements and generate AI reviews.'
+                    )
+                  }
                 />
                 <FaqSection />
               </>
             )}
 
             {currentView === 'scholarship' && (
-              <ScholarshipPage onBackToHome={() => setCurrentView('home')} />
+              <ScholarshipPage
+                onBackToHome={() => setCurrentView('home')}
+                user={user}
+                onRequestAuth={(target, msg) => handleProtectedNavigate(target || { view: 'scholarship' }, msg)}
+                initialSubView={pendingSubView}
+                pendingUniId={pendingUniId}
+                pendingScholarshipId={pendingScholarshipId}
+              />
             )}
 
             {currentView === 'pakistani-scholarships' && (
@@ -156,6 +309,8 @@ export default function App() {
                 initialUniversities={PAKISTANI_UNIVERSITIES}
                 title="Pakistani Scholarship Directory"
                 description="Explore Pakistan's leading higher education institutions, fully funded local grants, need-based programs, and HEC/Ehsaas/PEEF funding options."
+                user={user}
+                onRequestAuth={(target, msg) => handleProtectedNavigate(target || { view: 'pakistani-scholarships' }, msg)}
               />
             )}
 
@@ -204,7 +359,7 @@ export default function App() {
       {/* Footer shown only on home */}
       {currentView === 'home' && <Footer />}
 
-      {/* Floating Gemini AI Counselor Chatbot */}
+      {/* Floating AI Counselor Chatbot */}
       <FloatingAssistantBubble onOpenScholarships={() => setCurrentView('scholarship')} />
 
       {/* Secure User Authenticator Modal Overlay */}
@@ -213,7 +368,8 @@ export default function App() {
           <AuthModal
             isOpen={isAuthModalOpen}
             onClose={() => setIsAuthModalOpen(false)}
-            onAuthSuccess={(u) => setUser(u)}
+            onAuthSuccess={handleAuthSuccess}
+            customMessage={authModalMessage}
           />
         )}
       </AnimatePresence>

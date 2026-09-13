@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   ArrowLeft, Search, GraduationCap, Calendar, FileText, 
@@ -8,17 +8,52 @@ import {
 import { FEATURED_GOVERNMENT_SCHOLARSHIPS, GovernmentTrackItem } from '../data/scholarshipTracksData';
 import { GovernmentProfile } from './GovernmentProfile';
 
+import { isPublicGovernmentScholarship } from '../config/previewAccess';
+
 interface GovernmentTrackViewProps {
   onBackToTracks: () => void;
+  user?: { email: string; id: string } | null;
+  onRequestAuth?: (pendingAction?: any, message?: string) => void;
+  pendingScholarshipId?: string;
 }
 
-export const GovernmentTrackView: React.FC<GovernmentTrackViewProps> = ({ onBackToTracks }) => {
+export const GovernmentTrackView: React.FC<GovernmentTrackViewProps> = ({
+  onBackToTracks,
+  user = null,
+  onRequestAuth,
+  pendingScholarshipId,
+}) => {
   const scrollPositionRef = useRef<number>(0);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDegree, setSelectedDegree] = useState<string>('All');
   const [selectedRegion, setSelectedRegion] = useState<'All' | 'Americas' | 'Asia' | 'Europe' | 'Oceania' | 'Africa'>('All');
   const [selectedScholarship, setSelectedScholarship] = useState<GovernmentTrackItem | null>(null);
   const [visibleCount, setVisibleCount] = useState<number>(10);
+
+  // Auto open pending scholarship after auth
+  useEffect(() => {
+    if (pendingScholarshipId && !selectedScholarship) {
+      const item = FEATURED_GOVERNMENT_SCHOLARSHIPS.find((s) => s.id === pendingScholarshipId);
+      if (item) {
+        setSelectedScholarship(item);
+      }
+    }
+  }, [pendingScholarshipId]);
+
+  const handleSelectScholarship = (item: GovernmentTrackItem) => {
+    if (!user && !isPublicGovernmentScholarship(item.id)) {
+      if (onRequestAuth) {
+        onRequestAuth(
+          { view: 'scholarship', scholarshipId: item.id },
+          `Accessing the official dossier for ${item.programTitle} requires a free account.`
+        );
+      }
+      return;
+    }
+    scrollPositionRef.current = window.scrollY;
+    setSelectedScholarship(item);
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  };
 
   const oceaniaCountries = useMemo(() => new Set([
     'Australia', 'New Zealand'
@@ -390,11 +425,7 @@ export const GovernmentTrackView: React.FC<GovernmentTrackViewProps> = ({ onBack
                     </div>
 
                     <button
-                      onClick={() => {
-                        scrollPositionRef.current = window.scrollY;
-                        setSelectedScholarship(item);
-                        window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
-                      }}
+                      onClick={() => handleSelectScholarship(item)}
                       className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-indigo-600 text-white text-xs font-bold transition-all shadow-xs group-hover:bg-indigo-600 cursor-pointer"
                     >
                       <span>Open Official Dossier</span>

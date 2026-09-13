@@ -7,9 +7,10 @@ interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
   onAuthSuccess: (user: { email: string; id: string }) => void;
+  customMessage?: string;
 }
 
-export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuccess }) => {
+export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuccess, customMessage }) => {
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -215,7 +216,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuc
         </button>
 
         {/* Brand Banner */}
-        <div className="flex items-center gap-2.5 mb-6">
+        <div className="flex items-center gap-2.5 mb-4">
           <div className="w-9 h-9 rounded-xl bg-slate-950 text-white font-extrabold text-base flex items-center justify-center shadow-xs">
             U
           </div>
@@ -223,6 +224,16 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuc
             Uni Route Portal
           </span>
         </div>
+
+        {customMessage && (
+          <div className="mb-5 p-3.5 rounded-2xl bg-indigo-50/80 border border-indigo-100 flex items-start gap-2.5 text-xs text-indigo-950 font-medium leading-relaxed">
+            <Sparkles className="w-4 h-4 text-indigo-600 shrink-0 mt-0.5" />
+            <div>
+              <span className="font-extrabold block text-indigo-900 mb-0.5">Full Account Required</span>
+              {customMessage}
+            </div>
+          </div>
+        )}
 
         {/* Tab Selection */}
         <div className="flex border-b border-slate-200 mb-6">

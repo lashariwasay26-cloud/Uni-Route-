@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { FEATURED_UNIVERSITIES, UniversityTrackItem } from '../data/scholarshipTracksData';
 import { UniversityProfile } from './UniversityProfile';
+import { isPublicInternationalUniversity } from '../config/previewAccess';
 import { getUniversityLogo } from '../utils/universityUtils';
 import {
   fetchUniversityScholarshipsFromSupabase,
@@ -42,13 +43,19 @@ interface UniversityListViewProps {
   initialUniversities?: UniversityTrackItem[];
   title?: string;
   description?: string;
+  user?: { email: string; id: string } | null;
+  onRequestAuth?: (pendingAction?: any, message?: string) => void;
+  pendingUniId?: string;
 }
 
 export const UniversityListView: React.FC<UniversityListViewProps> = ({ 
   onBackToTracks,
   initialUniversities,
   title = "University Track Directory",
-  description = "Explore world-renowned institutions, admission acceptance rates, financial aid policies, and test requirements."
+  description = "Explore world-renowned institutions, admission acceptance rates, financial aid policies, and test requirements.",
+  user = null,
+  onRequestAuth,
+  pendingUniId,
 }) => {
   // Master universities state (defaults to initialUniversities or featured, updated dynamically from Supabase if connected)
   const [universities, setUniversities] = useState<UniversityTrackItem[]>(initialUniversities || FEATURED_UNIVERSITIES);
@@ -106,10 +113,30 @@ export const UniversityListView: React.FC<UniversityListViewProps> = ({
   const lastSelectedUniIdRef = useRef<string | null>(null);
 
   const handleSelectUniversity = (uni: UniversityTrackItem) => {
+    if (!user && !isPublicInternationalUniversity(uni.id)) {
+      if (onRequestAuth) {
+        onRequestAuth(
+          { view: 'scholarship', uniId: uni.id },
+          `Accessing ${uni.universityName} requires a free Uni Route account. Sign in or create an account to unlock all global and Pakistani university profiles.`
+        );
+      }
+      return;
+    }
+
     scrollPosRef.current = window.scrollY || document.documentElement.scrollTop || 0;
     lastSelectedUniIdRef.current = uni.id;
     setActiveModalUni(uni);
   };
+
+  // Handle auto-opening uni profile after successful auth
+  useEffect(() => {
+    if (pendingUniId && !activeModalUni) {
+      const targetUni = universities.find((u) => u.id === pendingUniId);
+      if (targetUni) {
+        setActiveModalUni(targetUni);
+      }
+    }
+  }, [pendingUniId, universities]);
 
   // Scroll to top when UniversityListView mounts
   useEffect(() => {
@@ -191,6 +218,17 @@ export const UniversityListView: React.FC<UniversityListViewProps> = ({
   // Toggle bookmark with Supabase and local persistence
   const toggleBookmark = (uni: UniversityTrackItem, e: React.MouseEvent) => {
     e.stopPropagation();
+
+    if (!user) {
+      if (onRequestAuth) {
+        onRequestAuth(
+          { view: 'scholarship', uniId: uni.id },
+          'Saving universities to your profile requires a free account.'
+        );
+      }
+      return;
+    }
+
     // Optimistic local state update
     setBookmarkedIds((prev) => {
       const next = new Set(prev);

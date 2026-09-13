@@ -6,10 +6,26 @@ import { GovernmentTrackView } from './GovernmentTrackView';
 
 interface ScholarshipPageProps {
   onBackToHome: () => void;
+  user?: { email: string; id: string } | null;
+  onRequestAuth?: (pendingAction?: any, message?: string) => void;
+  initialSubView?: 'selection' | 'university' | 'government';
+  pendingUniId?: string;
+  pendingScholarshipId?: string;
 }
 
-export const ScholarshipPage: React.FC<ScholarshipPageProps> = ({ onBackToHome }) => {
-  const [subView, setSubView] = useState<'selection' | 'university' | 'government'>('selection');
+export const ScholarshipPage: React.FC<ScholarshipPageProps> = ({
+  onBackToHome,
+  user = null,
+  onRequestAuth,
+  initialSubView = 'selection',
+  pendingUniId,
+  pendingScholarshipId,
+}) => {
+  const [subView, setSubView] = useState<'selection' | 'university' | 'government'>(initialSubView);
+
+  useEffect(() => {
+    if (initialSubView) setSubView(initialSubView);
+  }, [initialSubView]);
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
@@ -129,6 +145,9 @@ export const ScholarshipPage: React.FC<ScholarshipPageProps> = ({ onBackToHome }
           >
             <UniversityListView
               onBackToTracks={() => setSubView('selection')}
+              user={user}
+              onRequestAuth={onRequestAuth}
+              pendingUniId={pendingUniId}
             />
           </motion.div>
         )}
@@ -143,6 +162,9 @@ export const ScholarshipPage: React.FC<ScholarshipPageProps> = ({ onBackToHome }
           >
             <GovernmentTrackView
               onBackToTracks={() => setSubView('selection')}
+              user={user}
+              onRequestAuth={onRequestAuth}
+              pendingScholarshipId={pendingScholarshipId}
             />
           </motion.div>
         )}
