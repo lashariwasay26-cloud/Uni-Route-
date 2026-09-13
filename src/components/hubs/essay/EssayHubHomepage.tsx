@@ -241,26 +241,26 @@ export const EssayHubHomepage: React.FC<EssayHubHomepageProps> = ({
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-5">
           {essayTypeCards.map((card) => (
             <motion.div
               key={card.type}
               whileHover={{ scale: 1.02, y: -4 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => onSelectEssayType(card.type)}
-              className="bg-white text-slate-900 border border-slate-200/80 rounded-[28px] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.04)] hover:bg-[#4338ca] hover:text-white active:bg-[#3730a3] hover:border-[#4338ca] hover:shadow-xl cursor-pointer transition-all flex flex-col justify-between min-h-[220px] group relative overflow-hidden"
+              className="bg-white text-slate-900 border border-slate-200/80 rounded-2xl sm:rounded-[28px] p-4 sm:p-6 shadow-xs hover:bg-[#4338ca] hover:text-white active:bg-[#3730a3] hover:border-[#4338ca] hover:shadow-xl cursor-pointer transition-all flex flex-col justify-between min-h-0 sm:min-h-[200px] group relative overflow-hidden"
             >
-              <div className="space-y-3">
+              <div className="space-y-2.5 sm:space-y-3">
                 <div className="flex items-center justify-between">
-                  <div className="w-11 h-11 rounded-2xl bg-slate-100 group-hover:bg-white/20 flex items-center justify-center transition-all shadow-xs">
+                  <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-slate-100 group-hover:bg-white/20 flex items-center justify-center transition-all shadow-xs">
                     {card.icon}
                   </div>
-                  <span className="text-[10px] font-extrabold px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 group-hover:bg-white/20 group-hover:text-white transition-colors">
+                  <span className="text-[10px] font-extrabold px-2.5 py-0.5 sm:py-1 rounded-full bg-slate-100 text-slate-600 group-hover:bg-white/20 group-hover:text-white transition-colors">
                     {card.badge}
                   </span>
                 </div>
 
-                <h3 className="text-base sm:text-lg font-extrabold text-slate-950 group-hover:text-white transition-colors tracking-tight">
+                <h3 className="text-sm sm:text-lg font-extrabold text-slate-950 group-hover:text-white transition-colors tracking-tight">
                   {card.title}
                 </h3>
 
@@ -269,7 +269,7 @@ export const EssayHubHomepage: React.FC<EssayHubHomepageProps> = ({
                 </p>
               </div>
 
-              <div className="pt-4 mt-2 border-t border-slate-100 group-hover:border-white/20 flex items-center justify-between text-xs font-bold text-indigo-600 group-hover:text-white transition-colors">
+              <div className="pt-3 sm:pt-4 mt-2 border-t border-slate-100 group-hover:border-white/20 flex items-center justify-between text-xs font-bold text-indigo-600 group-hover:text-white transition-colors">
                 <span>Start Writing</span>
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </div>

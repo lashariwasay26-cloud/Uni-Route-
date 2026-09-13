@@ -566,7 +566,7 @@ const FormattedConceptText: React.FC<{ text: string }> = ({ text }) => {
           return (
             <div
               key={idx}
-              className="bg-white border-2 border-emerald-500 rounded-xl sm:rounded-2xl p-3.5 sm:p-6 space-y-3 sm:space-y-4 shadow-2xs my-2 sm:my-3 text-slate-900"
+              className="bg-white border-2 border-emerald-500 rounded-xl sm:rounded-2xl p-3 sm:p-6 space-y-2.5 sm:space-y-4 shadow-2xs my-2 sm:my-3 text-slate-900"
             >
               <div className="flex items-center justify-between flex-wrap gap-2 border-b border-emerald-100 pb-3">
                 <span className="text-xs sm:text-sm font-black text-slate-950 uppercase tracking-wider flex items-center gap-2">
@@ -1144,7 +1144,7 @@ export const SatWritingSectionExplorer: React.FC = () => {
               {chapter.theoryBlocks.map((block) => (
                 <div
                   key={block.blockNumber}
-                  className="bg-white border border-slate-200 rounded-3xl p-5 sm:p-7 shadow-xs space-y-4"
+                  className="bg-white border border-slate-200 rounded-xl sm:rounded-3xl p-3 sm:p-6 shadow-xs space-y-3 sm:space-y-4"
                 >
                     <div className="border-b border-slate-100 pb-3 flex items-center justify-between flex-wrap gap-2">
                       <h3 className="text-base sm:text-xl font-black text-slate-950 tracking-tight flex items-center gap-2.5">
@@ -1161,7 +1161,7 @@ export const SatWritingSectionExplorer: React.FC = () => {
                     {/* Render Concepts in this Block */}
                     <div className="space-y-4 pt-1">
                       {block.concepts.map((concept, cIdx) => (
-                        <div key={concept.id} className="p-4 sm:p-5 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-3">
+                        <div key={concept.id} className="p-2.5 sm:p-5 rounded-lg sm:rounded-2xl bg-slate-50/70 sm:bg-slate-50 border border-slate-200/80 space-y-2 sm:space-y-3">
                           <h4 className="text-sm sm:text-base font-black text-slate-950 border-b border-slate-200/60 pb-2">
                             {cleanConceptTitle(concept.title, cIdx + 1)}
                           </h4>

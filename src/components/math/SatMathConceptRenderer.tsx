@@ -457,7 +457,7 @@ export const FormattedMathConceptText: React.FC<{ text: string }> = ({ text }) =
           return (
             <div
               key={idx}
-              className="bg-rose-50/90 border-2 border-rose-300 rounded-2xl p-4 sm:p-5 space-y-2.5 shadow-2xs my-3"
+              className="bg-rose-50/90 border-2 border-rose-300 rounded-xl sm:rounded-2xl p-3 sm:p-5 space-y-2.5 shadow-2xs my-2 sm:my-3"
             >
               <div className="flex items-center justify-between flex-wrap gap-2 border-b border-rose-200/80 pb-2">
                 <span className="text-xs font-black text-rose-950 uppercase tracking-wider flex items-center gap-2">
@@ -480,7 +480,7 @@ export const FormattedMathConceptText: React.FC<{ text: string }> = ({ text }) =
           return (
             <div
               key={idx}
-              className="bg-sky-50/90 border-2 border-sky-400 rounded-2xl p-4 sm:p-5 space-y-2.5 shadow-2xs my-3"
+              className="bg-sky-50/90 border-2 border-sky-400 rounded-xl sm:rounded-2xl p-3 sm:p-5 space-y-2.5 shadow-2xs my-2 sm:my-3"
             >
               <div className="flex items-center justify-between flex-wrap gap-2 border-b border-sky-200/80 pb-2">
                 <span className="text-xs font-black text-sky-950 uppercase tracking-wider flex items-center gap-2">
@@ -503,7 +503,7 @@ export const FormattedMathConceptText: React.FC<{ text: string }> = ({ text }) =
           return (
             <div
               key={idx}
-              className="bg-amber-50/90 border-2 border-amber-300 rounded-2xl p-4 sm:p-5 space-y-3 shadow-2xs my-3"
+              className="bg-amber-50/90 border-2 border-amber-300 rounded-xl sm:rounded-2xl p-3 sm:p-5 space-y-3 shadow-2xs my-2 sm:my-3"
             >
               <div className="flex items-center justify-between flex-wrap gap-2 border-b border-amber-200/80 pb-2.5">
                 <span className="text-xs font-black text-amber-950 uppercase tracking-wider flex items-center gap-2">
