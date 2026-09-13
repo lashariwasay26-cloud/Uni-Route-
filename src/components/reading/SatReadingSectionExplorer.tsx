@@ -503,12 +503,88 @@ function renderExampleContent(content: string) {
   );
 }
 
+type GroupedBlock =
+  | { type: 'principle_group'; blocks: TheoryParsedBlock[] }
+  | TheoryParsedBlock;
+
 const FormattedReadingConceptText: React.FC<{ text: string }> = ({ text }) => {
   const blocks = parseTheoryText(text);
 
+  // Group adjacent 'principle' blocks into a single principle_group container
+  const groupedBlocks = useMemo(() => {
+    const result: GroupedBlock[] = [];
+    let currentGroup: TheoryParsedBlock[] = [];
+
+    const flushGroup = () => {
+      if (currentGroup.length > 0) {
+        if (currentGroup.length === 1) {
+          result.push(currentGroup[0]);
+        } else {
+          result.push({
+            type: 'principle_group',
+            blocks: [...currentGroup],
+          });
+        }
+        currentGroup = [];
+      }
+    };
+
+    for (const block of blocks) {
+      if (block.type === 'principle') {
+        currentGroup.push(block);
+      } else {
+        flushGroup();
+        result.push(block);
+      }
+    }
+    flushGroup();
+
+    return result;
+  }, [blocks]);
+
   return (
     <div className="space-y-2.5 sm:space-y-3">
-      {blocks.map((block, idx) => {
+      {groupedBlocks.map((group, idx) => {
+        if ('blocks' in group && group.type === 'principle_group') {
+          return (
+            <div
+              key={idx}
+              className="bg-white border-2 border-emerald-500 rounded-xl sm:rounded-2xl p-3.5 sm:p-6 space-y-3 sm:space-y-4 shadow-2xs my-2 sm:my-3 text-slate-900"
+            >
+              <div className="flex items-center justify-between flex-wrap gap-2 border-b border-emerald-100 pb-3">
+                <span className="text-xs sm:text-sm font-black text-slate-950 uppercase tracking-wider flex items-center gap-2">
+                  <ShieldCheck className="w-4.5 h-4.5 text-emerald-600 shrink-0" />
+                  <span>MASTER PRINCIPLES & CORE RULES</span>
+                </span>
+                <span className="text-[10px] font-black px-2.5 py-0.5 rounded-md bg-white text-emerald-700 border-2 border-emerald-500 uppercase tracking-wider shadow-2xs">
+                  CORE RULES
+                </span>
+              </div>
+
+              <div className="space-y-3 sm:space-y-4">
+                {group.blocks.map((subBlock, subIdx) => (
+                  <div
+                    key={subIdx}
+                    className={subIdx > 0 ? 'pt-3.5 border-t border-emerald-100/90 space-y-2' : 'space-y-2'}
+                  >
+                    {subBlock.title && (
+                      <div className="text-xs font-black text-slate-950 uppercase tracking-wide flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 shrink-0"></span>
+                        <span>{cleanInlineMarkdown(cleanTitle(subBlock.title))}</span>
+                      </div>
+                    )}
+                    <div className="text-xs sm:text-sm text-slate-800 font-medium leading-relaxed">
+                      {renderFormattedContent(subBlock.content)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        }
+
+        const block = group as TheoryParsedBlock;
+
         if (block.type === 'example') {
           return (
             <div
@@ -579,18 +655,18 @@ const FormattedReadingConceptText: React.FC<{ text: string }> = ({ text }) => {
           return (
             <div
               key={idx}
-              className="bg-emerald-50/90 border-2 border-emerald-300 rounded-xl sm:rounded-2xl p-3 sm:p-5 space-y-2 sm:space-y-2.5 shadow-2xs my-2 sm:my-3"
+              className="bg-white border-2 border-emerald-500 rounded-xl sm:rounded-2xl p-3.5 sm:p-6 space-y-3 shadow-2xs my-2 sm:my-3 text-slate-900"
             >
-              <div className="flex items-center justify-between flex-wrap gap-2 border-b border-emerald-200/80 pb-2">
-                <span className="text-xs font-black text-emerald-950 uppercase tracking-wider flex items-center gap-2">
-                  <ShieldCheck className="w-4 h-4 text-emerald-700 shrink-0" />
-                  <span>{block.title || 'MASTER PRINCIPLE & GOLDEN RULE'}</span>
+              <div className="flex items-center justify-between flex-wrap gap-2 border-b border-emerald-100 pb-3">
+                <span className="text-xs sm:text-sm font-black text-slate-950 uppercase tracking-wider flex items-center gap-2">
+                  <ShieldCheck className="w-4.5 h-4.5 text-emerald-600 shrink-0" />
+                  <span>{cleanInlineMarkdown(cleanTitle(block.title)) || 'MASTER PRINCIPLES & CORE RULES'}</span>
                 </span>
-                <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-emerald-200 text-emerald-950 border border-emerald-300 uppercase tracking-wider">
-                  Core Rule
+                <span className="text-[10px] font-black px-2.5 py-0.5 rounded-md bg-white text-emerald-700 border-2 border-emerald-500 uppercase tracking-wider shadow-2xs">
+                  CORE RULES
                 </span>
               </div>
-              <div className="text-xs sm:text-sm text-emerald-950 font-medium leading-relaxed">
+              <div className="text-xs sm:text-sm text-slate-800 font-medium leading-relaxed">
                 {renderFormattedContent(block.content)}
               </div>
             </div>
