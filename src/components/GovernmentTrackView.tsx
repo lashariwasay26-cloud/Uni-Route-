@@ -151,7 +151,7 @@ export const GovernmentTrackView: React.FC<GovernmentTrackViewProps> = ({
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -18 }}
             transition={{ duration: 0.18, ease: "easeOut" }}
-            className="py-8 sm:py-12 max-w-7xl mx-auto px-4 sm:px-6"
+            className="py-4 sm:py-8 max-w-5xl mx-auto px-1 sm:px-4"
           >
       
       {/* Header & Back Action */}

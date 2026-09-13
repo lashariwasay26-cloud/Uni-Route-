@@ -366,7 +366,7 @@ export const UniversityListView: React.FC<UniversityListViewProps> = ({
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -12 }}
             transition={{ duration: 0.1, ease: "easeOut" }}
-            className="py-8 sm:py-12 max-w-6xl mx-auto px-4 sm:px-6"
+            className="py-4 sm:py-8 max-w-5xl mx-auto px-1 sm:px-4"
           >
       
       {/* Header & Back Action */}

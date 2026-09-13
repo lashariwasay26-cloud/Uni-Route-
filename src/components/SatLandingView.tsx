@@ -224,12 +224,12 @@ export const SatLandingView: React.FC<SatLandingViewProps> = ({
   };
 
   return (
-    <div className="min-h-[75vh] flex flex-col justify-between py-6 sm:py-10 relative">
+    <div className="min-h-[75vh] flex flex-col justify-between py-3 sm:py-6 relative">
       {/* Back Button & Top Navigation */}
       <div className="flex items-center justify-between mb-2">
         <button
           onClick={onBackToHome}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white border border-slate-200/90 shadow-xs text-xs font-bold text-slate-700 hover:text-indigo-600 hover:bg-slate-50 transition-all cursor-pointer"
+          className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white border border-slate-200/90 shadow-xs text-xs font-bold text-slate-700 hover:text-indigo-600 hover:bg-slate-50 transition-all cursor-pointer"
         >
           <ArrowLeft className="w-4 h-4 text-indigo-600" />
           <span>Back to Homepage</span>
@@ -241,26 +241,26 @@ export const SatLandingView: React.FC<SatLandingViewProps> = ({
       </div>
 
       {/* Main Centered Content */}
-      <div className="my-auto max-w-3xl mx-auto w-full text-center py-8">
+      <div className="my-auto max-w-3xl mx-auto w-full text-center py-4 sm:py-6">
         {/* Soft Ambient Background Glow */}
         <div 
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 pointer-events-none -z-10"
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 sm:w-96 h-72 sm:h-96 pointer-events-none -z-10 max-w-full"
           style={{
             background: 'radial-gradient(circle, rgba(165, 180, 252, 0.2) 0%, rgba(216, 180, 254, 0.1) 40%, rgba(255, 255, 255, 0) 100%)'
           }}
         />
 
         {/* Eyebrow Tag */}
-        <div className="inline-flex items-center justify-center gap-2 px-5 py-2 rounded-full bg-white border border-slate-200/80 shadow-[0_2px_12px_rgba(0,0,0,0.04)] text-[11px] font-extrabold tracking-[0.2em] text-slate-600 uppercase mb-6">
+        <div className="inline-flex items-center justify-center gap-2 px-4 sm:px-5 py-1.5 sm:py-2 rounded-full bg-white border border-slate-200/80 shadow-[0_2px_12px_rgba(0,0,0,0.04)] text-[10px] sm:text-[11px] font-extrabold tracking-[0.2em] text-slate-600 uppercase mb-4">
           <span className="w-2 h-2 rounded-full bg-indigo-600 animate-pulse" />
           DIGITAL SAT PREPARATION
         </div>
 
         {/* Headline */}
-        <h1 className="text-3xl sm:text-5xl font-black text-slate-950 tracking-tight leading-tight mb-3">
+        <h1 className="text-2xl sm:text-4xl font-black text-slate-950 tracking-tight leading-tight mb-2">
           Select Your SAT Route
         </h1>
-        <p className="text-slate-600 text-sm sm:text-base max-w-md mx-auto mb-10">
+        <p className="text-slate-600 text-xs sm:text-base max-w-md mx-auto mb-6 sm:mb-8">
           Learn the official College Board Digital SAT format or jump right into practice drills.
         </p>
 
@@ -418,19 +418,19 @@ export const SatLandingView: React.FC<SatLandingViewProps> = ({
         </div>
 
         {/* Two Options */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6 max-w-2xl mx-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-6 max-w-2xl mx-auto">
           {/* Option 1: Introduction to SAT */}
           <div
             onClick={onSelectIntro}
-            className="bg-white text-slate-900 border border-slate-200/80 rounded-[28px] p-6 sm:p-8 shadow-xs hover:shadow-lg hover:border-indigo-600 hover:bg-[#4338ca] hover:text-white cursor-pointer transition-all duration-150 flex flex-col items-center justify-center text-center min-h-[200px] sm:min-h-[220px] group relative overflow-hidden"
+            className="bg-white text-slate-900 border border-slate-200/80 rounded-2xl sm:rounded-[28px] p-4 sm:p-6 shadow-xs hover:shadow-lg hover:border-indigo-600 hover:bg-[#4338ca] hover:text-white cursor-pointer transition-all duration-150 flex flex-col items-center justify-center text-center min-h-[150px] sm:min-h-[200px] group relative overflow-hidden"
           >
-            <div className="w-14 h-14 rounded-2xl bg-indigo-50 group-hover:bg-white/20 flex items-center justify-center mb-4 text-3xl transition-all shadow-sm">
+            <div className="w-12 h-12 rounded-xl bg-indigo-50 group-hover:bg-white/20 flex items-center justify-center mb-2.5 text-2xl transition-all shadow-xs">
               📖
             </div>
-            <span className="text-base sm:text-lg font-extrabold text-slate-950 group-hover:text-white tracking-tight transition-colors">
+            <span className="text-sm sm:text-lg font-extrabold text-slate-950 group-hover:text-white tracking-tight transition-colors">
               Introduction to SAT
             </span>
-            <span className="text-xs text-slate-500 group-hover:text-indigo-200 transition-colors mt-1.5 font-medium">
+            <span className="text-[11px] sm:text-xs text-slate-500 group-hover:text-indigo-200 transition-colors mt-1 font-medium">
               Format, Modules & Scoring Guide
             </span>
           </div>
@@ -438,15 +438,15 @@ export const SatLandingView: React.FC<SatLandingViewProps> = ({
           {/* Option 2: Start Learning - Opens Popup Modal */}
           <div
             onClick={() => setIsPopupOpen(true)}
-            className="bg-white text-slate-900 border border-slate-200/80 rounded-[28px] p-6 sm:p-8 shadow-xs hover:shadow-lg hover:border-indigo-600 hover:bg-[#4338ca] hover:text-white cursor-pointer transition-all duration-150 flex flex-col items-center justify-center text-center min-h-[200px] sm:min-h-[220px] group relative overflow-hidden"
+            className="bg-white text-slate-900 border border-slate-200/80 rounded-2xl sm:rounded-[28px] p-4 sm:p-6 shadow-xs hover:shadow-lg hover:border-indigo-600 hover:bg-[#4338ca] hover:text-white cursor-pointer transition-all duration-150 flex flex-col items-center justify-center text-center min-h-[150px] sm:min-h-[200px] group relative overflow-hidden"
           >
-            <div className="w-14 h-14 rounded-2xl bg-amber-50 group-hover:bg-white/20 flex items-center justify-center mb-4 text-3xl transition-all shadow-sm">
+            <div className="w-12 h-12 rounded-xl bg-amber-50 group-hover:bg-white/20 flex items-center justify-center mb-2.5 text-2xl transition-all shadow-xs">
               🚀
             </div>
-            <span className="text-base sm:text-lg font-extrabold text-slate-950 group-hover:text-white tracking-tight transition-colors">
+            <span className="text-sm sm:text-lg font-extrabold text-slate-950 group-hover:text-white tracking-tight transition-colors">
               Start Learning
             </span>
-            <span className="text-xs text-slate-500 group-hover:text-indigo-200 transition-colors mt-1.5 font-medium">
+            <span className="text-[11px] sm:text-xs text-slate-500 group-hover:text-indigo-200 transition-colors mt-1 font-medium">
               Practice Drills, Flashcards & Tools
             </span>
           </div>

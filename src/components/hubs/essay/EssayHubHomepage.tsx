@@ -169,14 +169,14 @@ export const EssayHubHomepage: React.FC<EssayHubHomepageProps> = ({
     });
 
   return (
-    <div id="essay-hub-homepage" className="space-y-12 sm:space-y-16 py-4">
+    <div id="essay-hub-homepage" className="space-y-6 sm:space-y-12 py-2 sm:py-4">
       
       {/* 1. TOP NAVIGATION ROW (Matching ScholarshipPage & SatLandingView) */}
       <div className="flex items-center justify-between mb-2">
         {onBackToHome && (
           <button
             onClick={onBackToHome}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white border border-slate-200/90 shadow-xs text-xs font-bold text-slate-700 hover:text-indigo-600 hover:bg-slate-50 transition-all cursor-pointer"
+            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white border border-slate-200/90 shadow-xs text-xs font-bold text-slate-700 hover:text-indigo-600 hover:bg-slate-50 transition-all cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4 text-indigo-600" />
             <span>Back to Homepage</span>
@@ -189,15 +189,15 @@ export const EssayHubHomepage: React.FC<EssayHubHomepageProps> = ({
       </div>
 
       {/* 2. CENTERED HERO SECTION (Matching Uni Route Header Style) */}
-      <div className="text-center max-w-2xl mx-auto py-4">
+      <div className="text-center max-w-2xl mx-auto py-2 sm:py-4">
         {/* Eyebrow Tag */}
-        <div className="inline-flex items-center justify-center gap-2 px-5 py-2 rounded-full bg-white border border-slate-200/80 shadow-[0_2px_12px_rgba(0,0,0,0.04)] text-[11px] font-extrabold tracking-[0.2em] text-slate-600 uppercase mb-4 sm:mb-6">
+        <div className="inline-flex items-center justify-center gap-2 px-4 sm:px-5 py-1.5 sm:py-2 rounded-full bg-white border border-slate-200/80 shadow-[0_2px_12px_rgba(0,0,0,0.04)] text-[10px] sm:text-[11px] font-extrabold tracking-[0.2em] text-slate-600 uppercase mb-3">
           <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
           ESSAY HUB & APPLICATION BUILDER
         </div>
 
         {/* Headline */}
-        <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-slate-950 tracking-tight leading-tight mb-4">
+        <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black text-slate-950 tracking-tight leading-tight mb-3">
           Your Story.{' '}
           <span className="bg-gradient-to-r from-indigo-600 via-indigo-700 to-purple-600 bg-clip-text text-transparent">
             Your Application.
@@ -205,7 +205,7 @@ export const EssayHubHomepage: React.FC<EssayHubHomepageProps> = ({
         </h1>
 
         {/* Description */}
-        <p className="text-slate-600 text-sm sm:text-base md:text-lg max-w-xl mx-auto leading-relaxed">
+        <p className="text-slate-600 text-xs sm:text-base md:text-lg max-w-xl mx-auto leading-relaxed">
           Turn your unique experiences, ideas, and goals into authentic application essays that stand out.
         </p>
 

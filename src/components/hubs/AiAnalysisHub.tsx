@@ -587,51 +587,51 @@ export const AiAnalysisHub: React.FC<AiAnalysisHubProps> = ({ onBackToHome, onSe
       </div>
 
       {/* Main Page Title & Hero Header */}
-      <div className="text-center max-w-3xl mx-auto py-4 relative">
+      <div className="text-center max-w-3xl mx-auto py-2 sm:py-4 relative">
         {/* Soft Ambient Background Glow */}
         <div 
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[480px] h-[480px] pointer-events-none -z-10"
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[280px] sm:w-[480px] h-[280px] sm:h-[480px] pointer-events-none -z-10 max-w-full"
           style={{
             background: 'radial-gradient(circle, rgba(165, 180, 252, 0.3) 0%, rgba(216, 180, 254, 0.15) 35%, rgba(110, 231, 183, 0.05) 60%, rgba(255, 255, 255, 0) 100%)'
           }}
         />
 
         {/* Eyebrow Tag */}
-        <div className="inline-flex items-center justify-center gap-2 px-5 py-2 rounded-full bg-white border border-slate-200/80 shadow-[0_2px_12px_rgba(0,0,0,0.04)] text-[11px] font-extrabold tracking-[0.2em] text-slate-600 uppercase mb-4">
+        <div className="inline-flex items-center justify-center gap-2 px-4 sm:px-5 py-1.5 sm:py-2 rounded-full bg-white border border-slate-200/80 shadow-[0_2px_12px_rgba(0,0,0,0.04)] text-[10px] sm:text-[11px] font-extrabold tracking-[0.2em] text-slate-600 uppercase mb-3">
           <span className="w-2 h-2 rounded-full bg-indigo-600 animate-pulse" />
           AI ADMISSIONS & AID DIAGNOSTIC
         </div>
 
         {/* Headline */}
-        <h1 className="text-3xl sm:text-5xl font-black text-slate-950 tracking-tight leading-tight mb-3">
+        <h1 className="text-2xl sm:text-4xl font-black text-slate-950 tracking-tight leading-tight mb-2">
           AI International Profile Analyzer
         </h1>
 
         {/* Subtitle */}
-        <p className="text-slate-600 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed">
+        <p className="text-slate-600 text-xs sm:text-base max-w-2xl mx-auto leading-relaxed">
           Evaluate your academic curriculum, test scores, extracurricular spike, and financial need against{' '}
           <span className="text-slate-950 font-bold">Uni Route&apos;s 200+ global university catalog</span> and live admissions search grounding to forecast your Reach, Target, and Safety odds.
         </p>
 
         {/* Live Grounding & Database Badges */}
-        <div className="mt-5 flex flex-wrap items-center justify-center gap-2 text-xs font-semibold text-slate-600">
-          <span className="px-3.5 py-1.5 rounded-full bg-white border border-slate-200/80 shadow-2xs flex items-center gap-1.5">
+        <div className="mt-4 flex flex-wrap items-center justify-center gap-2 text-[11px] sm:text-xs font-semibold text-slate-600">
+          <span className="px-3 py-1 sm:py-1.5 rounded-full bg-white border border-slate-200/80 shadow-2xs flex items-center gap-1.5">
             <Globe className="w-3.5 h-3.5 text-emerald-600" /> Live Search Grounding
           </span>
-          <span className="px-3.5 py-1.5 rounded-full bg-white border border-slate-200/80 shadow-2xs flex items-center gap-1.5">
+          <span className="px-3 py-1 sm:py-1.5 rounded-full bg-white border border-slate-200/80 shadow-2xs flex items-center gap-1.5">
             <Database className="w-3.5 h-3.5 text-indigo-600" /> 200+ Catalog Matches
           </span>
-          <span className="px-3.5 py-1.5 rounded-full bg-white border border-slate-200/80 shadow-2xs flex items-center gap-1.5">
+          <span className="px-3 py-1 sm:py-1.5 rounded-full bg-white border border-slate-200/80 shadow-2xs flex items-center gap-1.5">
             <Scale className="w-3.5 h-3.5 text-amber-600" /> Need-Blind vs. Need-Aware Reality
           </span>
         </div>
 
         {/* Segmented Mode Switcher Tabs */}
-        <div className="mt-8 inline-flex bg-white p-1.5 rounded-2xl border border-slate-200/90 shadow-sm">
+        <div className="mt-6 flex flex-wrap items-center justify-center bg-white p-1 rounded-2xl border border-slate-200/90 shadow-xs max-w-md mx-auto">
           <button
             id="tab-evaluator-btn"
             onClick={() => setActiveTab('evaluator')}
-            className={`px-5 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold transition-all flex items-center gap-2 cursor-pointer ${
+            className={`flex-1 min-w-[130px] px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold transition-all flex items-center justify-center gap-2 cursor-pointer ${
               activeTab === 'evaluator'
                 ? 'bg-slate-950 text-white shadow-sm'
                 : 'text-slate-600 hover:text-slate-950 hover:bg-slate-50'
@@ -643,7 +643,7 @@ export const AiAnalysisHub: React.FC<AiAnalysisHubProps> = ({ onBackToHome, onSe
           <button
             id="tab-counselor-btn"
             onClick={() => setActiveTab('counselor')}
-            className={`px-5 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold transition-all flex items-center gap-2 cursor-pointer ${
+            className={`flex-1 min-w-[130px] px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold transition-all flex items-center justify-center gap-2 cursor-pointer ${
               activeTab === 'counselor'
                 ? 'bg-slate-950 text-white shadow-sm'
                 : 'text-slate-600 hover:text-slate-950 hover:bg-slate-50'

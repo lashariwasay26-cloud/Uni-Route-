@@ -57,20 +57,20 @@ export const SatIntroductionView: React.FC<SatIntroductionViewProps> = ({
       <div className="text-center max-w-3xl mx-auto py-4 relative">
         {/* Soft Ambient Background Glow */}
         <div 
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 pointer-events-none -z-10"
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 sm:w-96 h-72 sm:h-96 pointer-events-none -z-10 max-w-full"
           style={{
             background: 'radial-gradient(circle, rgba(165, 180, 252, 0.2) 0%, rgba(216, 180, 254, 0.1) 40%, rgba(255, 255, 255, 0) 100%)'
           }}
         />
 
         {/* Eyebrow Tag */}
-        <div className="inline-flex items-center justify-center gap-2 px-5 py-2 rounded-full bg-white border border-slate-200/80 shadow-[0_2px_12px_rgba(0,0,0,0.04)] text-[11px] font-extrabold tracking-[0.2em] text-slate-600 uppercase mb-4 sm:mb-6">
+        <div className="inline-flex items-center justify-center gap-2 px-4 sm:px-5 py-1.5 sm:py-2 rounded-full bg-white border border-slate-200/80 shadow-[0_2px_12px_rgba(0,0,0,0.04)] text-[10px] sm:text-[11px] font-extrabold tracking-[0.2em] text-slate-600 uppercase mb-3 sm:mb-4">
           <span className="w-2 h-2 rounded-full bg-indigo-600 animate-pulse" />
           OFFICIAL DIGITAL SAT MASTER GUIDE
         </div>
 
         {/* Headline */}
-        <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-slate-950 tracking-tight leading-tight mb-4">
+        <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black text-slate-950 tracking-tight leading-tight mb-3">
           Everything About the{' '}
           <span className="bg-gradient-to-r from-indigo-600 via-indigo-700 to-purple-600 bg-clip-text text-transparent">
             Digital SAT
@@ -78,7 +78,7 @@ export const SatIntroductionView: React.FC<SatIntroductionViewProps> = ({
         </h1>
 
         {/* Description */}
-        <p className="text-slate-600 text-sm sm:text-base md:text-lg max-w-2xl mx-auto leading-relaxed mb-6 font-medium">
+        <p className="text-slate-600 text-xs sm:text-base md:text-lg max-w-2xl mx-auto leading-relaxed mb-5 font-medium">
           The complete handbook for university admissions: test structure, registration steps, scoring algorithm, percentiles, test frequency, and scholarship benchmarks.
         </p>
 

@@ -43,13 +43,13 @@ export const ScholarshipPage: React.FC<ScholarshipPageProps> = ({
             transition={{ duration: 0.1, ease: "easeOut" }}
           >
             {/* 1. Track Selection Screen */}
-            <div className="py-10 sm:py-16 max-w-4xl mx-auto px-4 sm:px-6">
+            <div className="py-4 sm:py-8 max-w-4xl mx-auto px-2 sm:px-4">
               
               {/* Top Navigation Row */}
-              <div className="flex items-center justify-between mb-10">
+              <div className="flex items-center justify-between mb-6 sm:mb-8">
                 <button
                   onClick={onBackToHome}
-                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white border border-slate-200/90 shadow-sm text-xs font-bold text-slate-700 hover:text-indigo-600 hover:bg-slate-50 transition-all cursor-pointer"
+                  className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white border border-slate-200/90 shadow-xs text-xs font-bold text-slate-700 hover:text-indigo-600 hover:bg-slate-50 transition-all cursor-pointer"
                 >
                   <ArrowLeft className="w-4 h-4" />
                   <span>Back to Homepage</span>
@@ -61,25 +61,25 @@ export const ScholarshipPage: React.FC<ScholarshipPageProps> = ({
               </div>
 
               {/* Main Page Title Header */}
-              <div className="text-center max-w-xl mx-auto mb-12 sm:mb-16">
-                <div className="inline-flex items-center justify-center px-4 py-1.5 rounded-full bg-white border border-slate-200/80 shadow-[0_2px_10px_rgba(0,0,0,0.04)] text-[11px] font-extrabold tracking-[0.2em] text-slate-500 uppercase mb-4">
+              <div className="text-center max-w-xl mx-auto mb-8 sm:mb-12">
+                <div className="inline-flex items-center justify-center px-4 py-1.5 rounded-full bg-white border border-slate-200/80 shadow-[0_2px_10px_rgba(0,0,0,0.04)] text-[10px] sm:text-[11px] font-extrabold tracking-[0.2em] text-slate-500 uppercase mb-3">
                   SELECT YOUR PATH
                 </div>
-                <h1 className="text-3xl sm:text-5xl font-black text-slate-950 tracking-tight leading-tight">
+                <h1 className="text-2xl sm:text-4xl font-extrabold text-slate-950 tracking-tight leading-tight">
                   Choose Your Track
                 </h1>
-                <p className="mt-3 text-slate-600 text-sm sm:text-base leading-relaxed">
+                <p className="mt-2 text-slate-600 text-xs sm:text-base leading-relaxed">
                   Select between university-specific admissions & aid or government-sponsored scholarship programs.
                 </p>
               </div>
 
               {/* 2 Prominent Academic Track Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 max-w-4xl mx-auto">
                 
                 {/* Card 1: University Track */}
                 <div
                   onClick={() => setSubView('university')}
-                  className="bg-white text-slate-900 border border-slate-200/90 rounded-[28px] p-8 sm:p-10 shadow-[0_4px_25px_rgba(0,0,0,0.04)] hover:bg-slate-950 hover:text-white active:bg-slate-900 hover:border-slate-900 hover:shadow-xl cursor-pointer hover:-translate-y-1 active:scale-[0.99] transition-all duration-150 flex flex-col justify-between min-h-[380px] sm:min-h-[420px] relative overflow-hidden group"
+                  className="bg-white text-slate-900 border border-slate-200/90 rounded-2xl sm:rounded-[28px] p-5 sm:p-8 shadow-[0_4px_25px_rgba(0,0,0,0.04)] hover:bg-slate-950 hover:text-white active:bg-slate-900 hover:border-slate-900 hover:shadow-xl cursor-pointer hover:-translate-y-1 active:scale-[0.99] transition-all duration-150 flex flex-col justify-between min-h-[260px] sm:min-h-[340px] relative overflow-hidden group"
                 >
                   <div className="absolute top-0 right-0 w-36 h-36 bg-slate-500/5 rounded-full pointer-events-none group-hover:bg-white/10" />
 
@@ -107,7 +107,7 @@ export const ScholarshipPage: React.FC<ScholarshipPageProps> = ({
                 {/* Card 2: Government Track */}
                 <div
                   onClick={() => setSubView('government')}
-                  className="bg-white text-slate-900 border border-slate-200/90 rounded-[28px] p-8 sm:p-10 shadow-[0_4px_25px_rgba(0,0,0,0.04)] hover:bg-slate-950 hover:text-white active:bg-slate-900 hover:border-slate-900 hover:shadow-xl cursor-pointer hover:-translate-y-1 active:scale-[0.99] transition-all duration-150 flex flex-col justify-between min-h-[380px] sm:min-h-[420px] relative overflow-hidden group"
+                  className="bg-white text-slate-900 border border-slate-200/90 rounded-2xl sm:rounded-[28px] p-5 sm:p-8 shadow-[0_4px_25px_rgba(0,0,0,0.04)] hover:bg-slate-950 hover:text-white active:bg-slate-900 hover:border-slate-900 hover:shadow-xl cursor-pointer hover:-translate-y-1 active:scale-[0.99] transition-all duration-150 flex flex-col justify-between min-h-[260px] sm:min-h-[340px] relative overflow-hidden group"
                 >
                   <div>
                     <div className="w-14 h-14 rounded-2xl bg-slate-950 text-white flex items-center justify-center mb-8 shadow-md transition-colors group-hover:bg-white/20">
