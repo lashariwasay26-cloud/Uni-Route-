@@ -120,17 +120,24 @@ export const EssayBuilder: React.FC<EssayBuilderProps> = ({
     });
   };
 
-  // Mark status as 'Unsaved' when draft content changes (Manual save mode)
-  const isInitialMount = useRef(true);
+  // Track unsaved changes relative to activeDraft (Manual save mode)
   useEffect(() => {
-    if (isInitialMount.current) {
-      isInitialMount.current = false;
-      return;
-    }
     if (!activeDraft) return;
 
-    setSaveStatus('Unsaved');
-  }, [title, prompt, wordLimit, brainstormAnswers, draftText, essayType]);
+    const isDifferent =
+      activeDraft.title !== title ||
+      activeDraft.prompt !== prompt ||
+      activeDraft.essayType !== essayType ||
+      activeDraft.wordLimit !== wordLimit ||
+      activeDraft.draftText !== draftText ||
+      JSON.stringify(activeDraft.brainstormAnswers || []) !== JSON.stringify(brainstormAnswers || []);
+
+    if (isDifferent) {
+      setSaveStatus('Unsaved');
+    } else {
+      setSaveStatus('Saved');
+    }
+  }, [title, prompt, wordLimit, brainstormAnswers, draftText, essayType, activeDraft]);
 
   // Execute AI Essay Analysis
   const handleRunEssayAnalysis = async () => {

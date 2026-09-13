@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Navbar } from './components/Navbar';
 import { AuthModal } from './components/AuthModal';
+import { SignOutConfirmModal } from './components/SignOutConfirmModal';
 import { supabase, isSupabaseConfigured } from './lib/supabase';
 import { syncEssaysFromSupabase } from './lib/essayStorage';
 import { syncDrillDataFromSupabase } from './data/satDrills/progressStorage';
@@ -47,6 +48,7 @@ export default function App() {
   const [user, setUser] = useState<{ email: string; id: string } | null>(null);
   const [authLoading, setAuthLoading] = useState<boolean>(true);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isSignOutModalOpen, setIsSignOutModalOpen] = useState(false);
   const [authModalMessage, setAuthModalMessage] = useState<string | undefined>(undefined);
   
   // Pending target after auth
@@ -225,7 +227,7 @@ export default function App() {
           setAuthModalMessage(undefined);
           setIsAuthModalOpen(true);
         }}
-        onLogout={handleLogout}
+        onLogout={() => setIsSignOutModalOpen(true)}
         onNavigateHome={() => setCurrentView('home')}
         onNavigateScholarships={() => setCurrentView('scholarship')}
         onNavigateSat={() =>
@@ -373,6 +375,14 @@ export default function App() {
           />
         )}
       </AnimatePresence>
+
+      {/* Sign Out Confirmation Modal */}
+      <SignOutConfirmModal
+        isOpen={isSignOutModalOpen}
+        onClose={() => setIsSignOutModalOpen(false)}
+        onConfirm={handleLogout}
+        userEmail={user?.email}
+      />
     </div>
   );
 }
