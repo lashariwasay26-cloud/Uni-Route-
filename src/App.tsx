@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/react';
@@ -11,19 +11,22 @@ import { syncDrillDataFromSupabase } from './data/satDrills/progressStorage';
 import { fetchSavedUniversityIds, loadSatPracticeProgress } from './lib/userStorage';
 import { isPublicInternationalUniversity, isPublicGovernmentScholarship } from './config/previewAccess';
 import { FloatingIconsGateway } from './components/FloatingIconsGateway';
-import { ScholarshipPage } from './components/ScholarshipPage';
-import { UniversityListView } from './components/UniversityListView';
 import { PAKISTANI_UNIVERSITIES } from './data/pakistaniUniversitiesData';
-import { SatLandingView } from './components/SatLandingView';
-import { SatIntroductionView } from './components/SatIntroductionView';
-import { SatPreparationHub } from './components/hubs/SatPreparationHub';
-import { AiAnalysisHub } from './components/hubs/AiAnalysisHub';
-import { EssayHub } from './components/hubs/EssayHub';
 import { SearchGroundingWidget } from './components/SearchGroundingWidget';
 import { VoiceRecorderWidget } from './components/VoiceRecorderWidget';
 import { FloatingAssistantBubble } from './components/FloatingAssistantBubble';
 import { FaqSection } from './components/FaqSection';
 import { Footer } from './components/Footer';
+import { InteractivePageLoader } from './components/InteractivePageLoader';
+
+// Route-Based Code Splitting (Lazy-loaded Premium Pages)
+const ScholarshipPage = React.lazy(() => import('./components/ScholarshipPage').then(module => ({ default: module.ScholarshipPage })));
+const UniversityListView = React.lazy(() => import('./components/UniversityListView').then(module => ({ default: module.UniversityListView })));
+const SatLandingView = React.lazy(() => import('./components/SatLandingView').then(module => ({ default: module.SatLandingView })));
+const SatIntroductionView = React.lazy(() => import('./components/SatIntroductionView').then(module => ({ default: module.SatIntroductionView })));
+const SatPreparationHub = React.lazy(() => import('./components/hubs/SatPreparationHub').then(module => ({ default: module.SatPreparationHub })));
+const AiAnalysisHub = React.lazy(() => import('./components/hubs/AiAnalysisHub').then(module => ({ default: module.AiAnalysisHub })));
+const EssayHub = React.lazy(() => import('./components/hubs/EssayHub').then(module => ({ default: module.EssayHub })));
 
 type ViewType =
   | 'home'
@@ -248,96 +251,98 @@ export default function App() {
             transition={{ duration: 0.1, ease: "easeOut" }}
             className="w-full transform-gpu"
           >
-            {currentView === 'home' && (
-              <>
-                <FloatingIconsGateway
-                  onOpenScholarships={() => handleProtectedNavigate({ view: 'scholarship' }, 'Please sign in to unlock access to our extensive database of global merit scholarships and matching university profiles.')}
-                  onOpenSatPrep={() => setCurrentView('sat-landing')}
-                  onOpenPakistaniScholarships={() => handleProtectedNavigate({ view: 'pakistani-scholarships' }, 'Please sign in to unlock access to the Pakistani Scholarship Directory and explore fully-funded need-based local grants.')}
-                  onOpenAiAnalysis={() => setCurrentView('ai-analysis')}
-                  onOpenEssayHub={() => setCurrentView('essay-hub')}
+            <Suspense fallback={<InteractivePageLoader />}>
+              {currentView === 'home' && (
+                <>
+                  <FloatingIconsGateway
+                    onOpenScholarships={() => handleProtectedNavigate({ view: 'scholarship' }, 'Please sign in to unlock access to our extensive database of global merit scholarships and matching university profiles.')}
+                    onOpenSatPrep={() => setCurrentView('sat-landing')}
+                    onOpenPakistaniScholarships={() => handleProtectedNavigate({ view: 'pakistani-scholarships' }, 'Please sign in to unlock access to the Pakistani Scholarship Directory and explore fully-funded need-based local grants.')}
+                    onOpenAiAnalysis={() => setCurrentView('ai-analysis')}
+                    onOpenEssayHub={() => setCurrentView('essay-hub')}
+                  />
+                  <FaqSection />
+                </>
+              )}
+
+              {currentView === 'scholarship' && (
+                <ScholarshipPage
+                  onBackToHome={() => setCurrentView('home')}
+                  user={user}
+                  onRequestAuth={(target, msg) => handleProtectedNavigate(target || { view: 'scholarship' }, msg)}
+                  initialSubView={pendingSubView}
+                  pendingUniId={pendingUniId}
+                  pendingScholarshipId={pendingScholarshipId}
                 />
-                <FaqSection />
-              </>
-            )}
+              )}
 
-            {currentView === 'scholarship' && (
-              <ScholarshipPage
-                onBackToHome={() => setCurrentView('home')}
-                user={user}
-                onRequestAuth={(target, msg) => handleProtectedNavigate(target || { view: 'scholarship' }, msg)}
-                initialSubView={pendingSubView}
-                pendingUniId={pendingUniId}
-                pendingScholarshipId={pendingScholarshipId}
-              />
-            )}
+              {currentView === 'pakistani-scholarships' && (
+                <UniversityListView
+                  onBackToTracks={() => setCurrentView('home')}
+                  initialUniversities={PAKISTANI_UNIVERSITIES}
+                  title="Pakistani Scholarship Directory"
+                  description="Explore Pakistan's leading higher education institutions, fully funded local grants, need-based programs, and HEC/Ehsaas/PEEF funding options."
+                  user={user}
+                  onRequestAuth={(target, msg) => handleProtectedNavigate(target || { view: 'pakistani-scholarships' }, msg)}
+                />
+              )}
 
-            {currentView === 'pakistani-scholarships' && (
-              <UniversityListView
-                onBackToTracks={() => setCurrentView('home')}
-                initialUniversities={PAKISTANI_UNIVERSITIES}
-                title="Pakistani Scholarship Directory"
-                description="Explore Pakistan's leading higher education institutions, fully funded local grants, need-based programs, and HEC/Ehsaas/PEEF funding options."
-                user={user}
-                onRequestAuth={(target, msg) => handleProtectedNavigate(target || { view: 'pakistani-scholarships' }, msg)}
-              />
-            )}
+              {currentView === 'sat-landing' && (
+                <SatLandingView
+                  onBackToHome={() => setCurrentView('home')}
+                  onSelectIntro={() => setCurrentView('sat-intro')}
+                  onSelectLearning={(category) => {
+                    if (category) setSatCategory(category);
+                    setCurrentView('sat-learning');
+                  }}
+                />
+              )}
 
-            {currentView === 'sat-landing' && (
-              <SatLandingView
-                onBackToHome={() => setCurrentView('home')}
-                onSelectIntro={() => setCurrentView('sat-intro')}
-                onSelectLearning={(category) => {
-                  if (category) setSatCategory(category);
-                  setCurrentView('sat-learning');
-                }}
-              />
-            )}
+              {currentView === 'sat-intro' && (
+                <SatIntroductionView
+                  onBackToHome={() => setCurrentView('sat-landing')}
+                  onStartLearning={() => {
+                    setSatCategory('writing');
+                    setCurrentView('sat-learning');
+                  }}
+                />
+              )}
 
-            {currentView === 'sat-intro' && (
-              <SatIntroductionView
-                onBackToHome={() => setCurrentView('sat-landing')}
-                onStartLearning={() => {
-                  setSatCategory('writing');
-                  setCurrentView('sat-learning');
-                }}
-              />
-            )}
+              {currentView === 'sat-learning' && (
+                <SatPreparationHub
+                  initialCategory={satCategory}
+                  onBackToHome={() => setCurrentView('sat-landing')}
+                  user={user}
+                  onOpenAuth={(msg) => {
+                    setAuthModalMessage(msg || 'Create a free Uni Route account to unlock unlimited practice questions, full mock exams, and persistent score stats.');
+                    setIsAuthModalOpen(true);
+                  }}
+                />
+              )}
 
-            {currentView === 'sat-learning' && (
-              <SatPreparationHub
-                initialCategory={satCategory}
-                onBackToHome={() => setCurrentView('sat-landing')}
-                user={user}
-                onOpenAuth={(msg) => {
-                  setAuthModalMessage(msg || 'Create a free Uni Route account to unlock unlimited practice questions, full mock exams, and persistent score stats.');
-                  setIsAuthModalOpen(true);
-                }}
-              />
-            )}
+              {currentView === 'ai-analysis' && (
+                <AiAnalysisHub
+                  onBackToHome={() => setCurrentView('home')}
+                  onSelectUniversity={(uniName) => setCurrentView('scholarship')}
+                  user={user}
+                  onOpenAuth={(msg) => {
+                    setAuthModalMessage(msg || 'Unlock unlimited profile diagnostics, Ivy League admissions odds modeling, and interactive chats with the counselor by creating your free account.');
+                    setIsAuthModalOpen(true);
+                  }}
+                />
+              )}
 
-            {currentView === 'ai-analysis' && (
-              <AiAnalysisHub
-                onBackToHome={() => setCurrentView('home')}
-                onSelectUniversity={(uniName) => setCurrentView('scholarship')}
-                user={user}
-                onOpenAuth={(msg) => {
-                  setAuthModalMessage(msg || 'Unlock unlimited profile diagnostics, Ivy League admissions odds modeling, and interactive chats with the counselor by creating your free account.');
-                  setIsAuthModalOpen(true);
-                }}
-              />
-            )}
-
-            {currentView === 'essay-hub' && (
-              <EssayHub
-                onBackToHome={() => setCurrentView('home')}
-                user={user}
-                onOpenAuth={(msg) => {
-                  setAuthModalMessage(msg || 'Draft college admission personal statements and receive unlimited AI-powered structured reviews with a free Uni Route account.');
-                  setIsAuthModalOpen(true);
-                }}
-              />
-            )}
+              {currentView === 'essay-hub' && (
+                <EssayHub
+                  onBackToHome={() => setCurrentView('home')}
+                  user={user}
+                  onOpenAuth={(msg) => {
+                    setAuthModalMessage(msg || 'Draft college admission personal statements and receive unlimited AI-powered structured reviews with a free Uni Route account.');
+                    setIsAuthModalOpen(true);
+                  }}
+                />
+              )}
+            </Suspense>
           </motion.div>
         </AnimatePresence>
       </main>

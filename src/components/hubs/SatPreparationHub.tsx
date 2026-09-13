@@ -9,6 +9,7 @@ import { SatMathSectionExplorer } from '../math/SatMathSectionExplorer';
 import { SatMathStatisticsChapter } from '../math/SatMathStatisticsChapter';
 import { SatDrillsHub } from '../satDrills/SatDrillsHub';
 import { SatCalculatorView } from '../math/SatCalculatorView';
+import { FormattedMathExplanation } from '../math/SatMathConceptRenderer';
 
 interface SatPreparationHubProps {
   initialCategory?: 'reading' | 'writing' | 'math' | 'drills' | 'stats' | 'calculator';
@@ -34,16 +35,268 @@ export const SatPreparationHub: React.FC<SatPreparationHubProps> = ({
   const [diagWritingCorrect, setDiagWritingCorrect] = useState(0);
   const [diagMathCorrect, setDiagMathCorrect] = useState(0);
   const [diagCompleted, setDiagCompleted] = useState(false);
+  const [explanationTab, setExplanationTab] = useState<'correct' | 'incorrect'>('correct');
 
-  const diagnosticQuestions = useMemo(() => {
-    // Balanced set of 10 questions: 4 Reading, 3 Writing, 3 Math
-    const reading = SAT_QUESTIONS.filter(q => q.section === 'Reading' || q.id.startsWith('r-')).slice(0, 4);
-    const writing = SAT_QUESTIONS.filter(q => q.section === 'Writing' || q.id.startsWith('w-')).slice(0, 3);
-    const math = SAT_QUESTIONS.filter(q => q.section === 'Math' || q.id.startsWith('m-') || !['Reading', 'Writing', 'Reading & Writing'].includes(q.section)).slice(0, 3);
-    return [...reading, ...writing, ...math].slice(0, 10);
+  useEffect(() => {
+    setExplanationTab('correct');
+  }, [diagIndex]);
+
+  const diagnosticQuestions = useMemo<SatQuestion[]>(() => {
+    return [
+      {
+        id: 'diag-1',
+        section: 'Reading',
+        topic: 'Craft & Structure (Vocabulary in Context)',
+        difficulty: 'Elite',
+        question: `Select the word that best completes the passage with the most logical and precise meaning:
+
+While many twentieth-century developmental biologists posited that cellular differentiation was an irreversible process, recent breakthroughs in somatic cell nuclear transfer and induced pluripotency have thoroughly _______ this dogma, demonstrating that specialized cells retain the latent genetic capacity to be reprogrammed back to an embryonic state.`,
+        options: ['obfuscated', 'reinforced', 'subverted', 'cataloged'],
+        correctIndex: 2,
+        explanation: `• CORRECT ANSWER (C): "Subverted" means to undermine, overturn, or completely reverse an established dogma, theory, or structure. Because recent research has proven that cell differentiation is indeed reversible (by reprogramming mature cells back to pluripotency), the older biology doctrine has been completely overturned. Therefore, "subverted" is the most precise and contextually accurate choice.
+
+• INCORRECT OPTION ANALYSIS:
+- A) "obfuscated" is incorrect because it means to make something intentionally obscure or unclear. While the new scientific results make the old dogma obsolete, they clarify cellular potential rather than muddling it.
+- B) "reinforced" is incorrect because it means to strengthen or support. This represents the opposite of the context, as the breakthroughs disprove rather than support the old theory.
+- D) "cataloged" is incorrect because it means to compile or systematically list. Scientists do not merely catalog a belief that they have actively disproved and overturned.`
+      },
+      {
+        id: 'diag-2',
+        section: 'Reading',
+        topic: 'Information & Ideas (Inference & Evidence)',
+        difficulty: 'Elite',
+        question: `Read the text below:
+
+In a 2022 study of avian foraging behaviors, Dr. Elena Rostova monitored several populations of scrub jays (Aphelocoma coerulescens). Rostova observed that when scrub jays cached food while being watched by a competitor jay of dominant social status, they were significantly more likely to re-cache those items in private locations later. Crucially, this behavior was only exhibited by jays that had themselves previously stolen caches from other birds. Jays without a history of pilfering did not adjust their caching patterns when observed.
+
+Which statement is best supported by Rostova's findings?`,
+        options: [
+          'Scrub jays cache food primarily to establish dominant social status over competitors.',
+          'The propensity of a scrub jay to secure its cached food is influenced by its own past experiences with theft.',
+          'Dominant scrub jays are physically incapable of locating food caches that were made in private locations.',
+          'Experience with pilfering is a biological trait passed genetically rather than through behavioral modeling.'
+        ],
+        correctIndex: 1,
+        explanation: `• CORRECT ANSWER (B): The study reveals that scrub jays only take precautions (re-caching food privately after being watched) if they have a personal history of stealing ("pilfering") from others. Birds without this history do not change their behavior. This directly supports the inference that a scrub jay's self-protective caching strategy is guided by its own past experiences as a thief, projecting its own behavior onto potential competitors.
+
+• INCORRECT OPTION ANALYSIS:
+- A) "cache food primarily to establish dominant social status" is incorrect because caching is described as a food-preservation and foraging behavior, not a status-seeking display.
+- C) "physically incapable of locating private caches" is incorrect because the study doesn't discuss the sensory limitations of dominant jays; it focuses on the active caching decisions made by the hiding bird.
+- D) "biological trait passed genetically" is incorrect because the passage focuses entirely on experiential factors (whether a bird has previously pilfered) rather than genetic transmission.`
+      },
+      {
+        id: 'diag-3',
+        section: 'Reading',
+        topic: 'Information & Ideas (Inference)',
+        difficulty: 'Elite',
+        question: `Read the passage below:
+
+Historian Koji Hayashi argues that the rapid spread of movable-type printing in fifteenth-century Europe was not merely a consequence of Johannes Gutenberg’s technological ingenuity, but was fundamentally dependent on the pre-existing, highly localized paper-making guilds of the Rhine Valley. Hayashi points out that without this regional surplus of rag-based paper, which was significantly cheaper than animal parchment, the physical volume of books required to make printing economically viable would have been impossible to sustain.
+
+Based on the passage, how would Hayashi most likely respond to the assertion that Gutenberg’s printing press was the sole catalyst for the European print revolution?`,
+        options: [
+          'He would agree, emphasizing that Gutenberg designed his press to utilize local paper specifically.',
+          'He would counter that Gutenberg’s press actually delayed the revolution because animal parchment was more durable than rag-based paper.',
+          'He would contend that the technological innovation of the press itself was secondary to the cultural prestige of hand-copied parchment manuscripts.',
+          'He would disagree, arguing that the success of the technology was contingent upon regional supply chains of cheap, abundant paper.'
+        ],
+        correctIndex: 3,
+        explanation: `• CORRECT ANSWER (D): Hayashi's core thesis is that Gutenberg's technological achievement alone was not the sole catalyst; it depended "fundamentally" on the pre-existing, regional paper-making guilds that provided cheap, abundant rag-based paper. Without this paper supply chain, the massive printing volume would be economically unsustainable. Therefore, Hayashi would disagree with the assertion of a "sole catalyst" by citing the critical reliance on regional resource supply chains.
+
+• INCORRECT OPTION ANALYSIS:
+- A) "He would agree..." is incorrect because Hayashi's primary argument is to challenge the idea of Gutenberg's press being the sole catalyst.
+- B) "Gutenberg's press actually delayed the revolution" is incorrect because the text suggests the press advanced printing, but was dependent on regional economic factors, not that it delayed it.
+- C) "secondary to the cultural prestige of manuscripts" is incorrect because the passage discusses industrial, resource-based, and economic factors (cheap paper vs. parchment cost), not the social prestige of manuscripts.`
+      },
+      {
+        id: 'diag-4',
+        section: 'Reading',
+        topic: 'Rhetorical Synthesis & Purpose',
+        difficulty: 'Elite',
+        question: `While studying the atmospheric compositions of gas giants, a researcher takes the following notes:
+- Jupiter's upper atmosphere contains high concentrations of ammonia (NH₃) ice crystals.
+- Saturn's clouds are similarly characterized by ammonia ice, but feature a deeper layer of ammonium hydrosulfide (NH₄SH).
+- Voyager 2 data revealed that Uranus and Neptune, by contrast, possess atmospheres dominated by methane (CH₄) gas.
+- The differences in atmospheric volatile compounds are primarily driven by core temperatures and distances from the Sun.
+
+The researcher wants to contrast the atmospheric composition of the outer gas giants (Jupiter and Saturn) with that of the ice giants (Uranus and Neptune). Which choice most effectively uses information from the notes to achieve this goal?`,
+        options: [
+          "While Jupiter and Saturn's atmospheres are characterized by ammonia ice crystals, Uranus and Neptune's atmospheres are notably dominated by methane gas.",
+          "Outer planets have atmospheres rich in volatile chemical compounds like ammonia and methane, which are affected by core temperatures.",
+          "Ammonia is present on both Jupiter and Saturn, whereas ammonium hydrosulfide is located only on Saturn.",
+          "The atmospheres of gas giants differ from those of ice giants because of their varying distances from the Sun and core temperatures."
+        ],
+        correctIndex: 0,
+        explanation: `• CORRECT ANSWER (A): This choice directly and clearly fulfills the prompt's instruction by contrasting the atmospheric composition of the gas giants (Jupiter/Saturn are characterized by ammonia ice crystals) with that of the ice giants (Uranus/Neptune are dominated by methane gas). It highlights the specific chemical differences recorded in the notes.
+
+• INCORRECT OPTION ANALYSIS:
+- B) is incorrect because it describes a general similarity (all outer planets have rich volatile compounds) rather than establishing a clear, specific contrast between the two pairs of planets.
+- C) is incorrect because it only contrasts Jupiter with Saturn, omitting Uranus and Neptune entirely.
+- D) is incorrect because it states the general causal reasons for the atmospheric differences (core temperatures and distance from the Sun) but fails to state what the actual chemical compositions are, missing the core descriptive details.`
+      },
+      {
+        id: 'diag-5',
+        section: 'Writing',
+        topic: 'Standard English Conventions (Punctuation & Clauses)',
+        difficulty: 'Elite',
+        question: `Which choice completes the text so that it conforms to the conventions of Standard English?
+
+In her landmark 1974 monograph, linguist Dr. Sylvia Mercer argues that the syntactic development of pidgin languages is not a random blending of parent tongues; rather, it represents a rapid, highly structured crystallization of universal grammar principles _______ that is inherently governed by innate human cognitive structures.`,
+        options: ['a process', 'a process—', 'is a process', 'process:'],
+        correctIndex: 1,
+        explanation: `• CORRECT ANSWER (B): The em dash (—) is utilized to set off a parenthetical or appositive modifier ("a process") that refers back to and defines the "rapid, highly structured crystallization of universal grammar principles." This appositive is immediately followed by a restrictive relative clause ("that is inherently governed..."), making the em dash the most syntactically sound option to separate the primary clause from its modifier.
+
+• INCORRECT OPTION ANALYSIS:
+- A) "a process" is incorrect because without punctuation, the noun phrase is run directly into the sentence, creating a major punctuation and syntax error (a run-on appositive structure).
+- C) "is a process" is incorrect because adding the verb "is" creates a structural conflict with the main verb of the clause ("represents"), leading to a fragmented, ungrammatical double-predicate.
+- D) "process:" is incorrect because it omits the indefinite article "a" and places an ungrammatical colon that breaks the structural link to the relative clause.`
+      },
+      {
+        id: 'diag-6',
+        section: 'Writing',
+        topic: 'Standard English Conventions (Subject-Verb Agreement)',
+        difficulty: 'Elite',
+        question: `Which choice completes the text so that it conforms to the conventions of Standard English?
+
+The expansion of the Roman Empire into the Iberian Peninsula, coupled with the systemic enforcement of administrative law, military garrisoning, and linguistic assimilation, _______ the foundational landscape for what would eventually evolve into the modern Romance languages.`,
+        options: ['have established', 'establish', 'establishes', 'were establishing'],
+        correctIndex: 2,
+        explanation: `• CORRECT ANSWER (C): The subject of this sentence is the singular noun phrase "The expansion." The long parenthetical insertion set off by commas ("coupled with the systemic enforcement of administrative law, military garrisoning, and linguistic assimilation") is a prepositional modifier and does not alter the singular nature of the subject. Thus, we require the singular third-person verb "establishes."
+
+• INCORRECT OPTION ANALYSIS:
+- A) "have established" is incorrect because "have" is a plural verb form, which incorrectly agrees with the plural nouns in the parenthetical modifier instead of the true subject "The expansion".
+- B) "establish" is incorrect because it is the plural base form, violating subject-verb agreement rules.
+- D) "were establishing" is incorrect because "were" is plural, creating a past plural agreement mismatch.`
+      },
+      {
+        id: 'diag-7',
+        section: 'Writing',
+        topic: 'Expression of Ideas (Transitions)',
+        difficulty: 'Elite',
+        question: `Which choice completes the text with the most logical transition?
+
+In 1911, physicist Ernest Rutherford conducted his famous gold foil experiment, expecting alpha particles to pass straight through the positive atomic "plum pudding" matrix with minimal deflection. What he observed, however, was that a tiny fraction of the particles bounced almost directly backward. _______, Rutherford was forced to discard the prevailing Thomson model of the atom and propose a highly concentrated, dense positive nucleus.`,
+        options: ['Nevertheless', 'Alternatively', 'Consequently', 'Conversely'],
+        correctIndex: 2,
+        explanation: `• CORRECT ANSWER (C): The first two sentences detail a surprising, paradigm-shattering experimental result. The final sentence describes Rutherford's subsequent action: discarding the Thomson plum-pudding model and proposing the nuclear model. This action was a direct consequence of the shocking results. Therefore, "Consequently" is the most logical cause-and-effect transition.
+
+• INCORRECT OPTION ANALYSIS:
+- A) "Nevertheless" is incorrect because it indicates a contrast or concession (in spite of). The action taken was a logical continuation of the experiment, not an action done in spite of it.
+- B) "Alternatively" is incorrect because it is used to introduce an alternative choice or option. The passage details a chronological progression of cause and effect, not a choice.
+- D) "Conversely" is incorrect because it introduces an opposite or inverse statement, whereas Rutherford's discovery is a direct, supportive outcome of the experiment's results.`
+      },
+      {
+        id: 'diag-8',
+        section: 'Math',
+        topic: 'Advanced Math & Quadratic/Linear Systems',
+        difficulty: 'Elite',
+        question: `A system of equations consists of a quadratic equation and a linear equation in the xy-plane:
+y = 2x² - 8x + 22
+y = kx + 4
+
+If the system has exactly one real solution (x, y), and k > 0, what is the value of k?`,
+        options: ['2', '4', '6', '8'],
+        correctIndex: 1,
+        explanation: `• CORRECT ANSWER (B):
+1. Equate the two equations to find their points of intersection:
+   2x² - 8x + 22 = kx + 4
+2. Move all terms to one side to establish a standard quadratic equation (ax² + bx + c = 0):
+   2x² - (8 + k)x + 18 = 0
+3. A system has exactly one real solution when the discriminant of the resulting quadratic equation is exactly zero (b² - 4ac = 0):
+   D = [-(8 + k)]² - 4(2)(18) = 0
+   (8 + k)² - 144 = 0
+   (8 + k)² = 144
+4. Solve for k by taking the square root of both sides:
+   8 + k = 12  or  8 + k = -12
+   k = 4       or  k = -20
+5. Since the prompt specifies that k > 0, we select the positive result: k = 4.
+
+• INCORRECT OPTION ANALYSIS:
+- A) 2: If k = 2, the equation becomes 2x² - 10x + 18 = 0. Its discriminant is 100 - 144 = -44, which is less than zero, meaning the system has zero real solutions.
+- C) 6: If k = 6, the equation is 2x² - 14x + 18 = 0. Its discriminant is 196 - 144 = 52, which is greater than zero, meaning the system has two distinct real solutions.
+- D) 8: If k = 8, the equation is 2x² - 16x + 18 = 0. Its discriminant is 256 - 144 = 112, which is greater than zero, meaning the system has two distinct real solutions.`
+      },
+      {
+        id: 'diag-9',
+        section: 'Math',
+        topic: 'Passport to Advanced Math (Exponential Growth)',
+        difficulty: 'Elite',
+        question: `The population of a rare species of orchid in a protected rainforest reserve is modeled by the function:
+N(t) = 150 · (k)^(t / 4)
+
+where t represents the time in years since the start of the study, and N(t) represents the total orchid population. If the population increases by 125% every 4 years, what is the value of k?`,
+        options: ['1.25', '1.5', '2.25', '3.375'],
+        correctIndex: 2,
+        explanation: `• CORRECT ANSWER (C):
+1. An increase of 125% means the new population size is 100% (the original population) + 125% (the increase) = 225% of the initial population size. This corresponds to a growth multiplier of 2.25.
+2. Let's evaluate the function N(t) at t = 4 years:
+   N(4) = 150 · (k)^(4 / 4) = 150 · k¹ = 150k
+3. Since we know the population increases by 125% after 4 years, the population at t = 4 must also be equal to the initial population of 150 multiplied by the growth factor 2.25:
+   N(4) = 150 · 2.25
+4. Set these two expressions for N(4) equal to each other to solve for k:
+   150k = 150 · 2.25
+   k = 2.25
+
+• INCORRECT OPTION ANALYSIS:
+- A) 1.25: This represents a 25% increase, not 125%. It mistakenly treats the percent increase directly as the growth multiplier.
+- B) 1.5: This represents a 50% increase, which is a mathematical mismatch.
+- D) 3.375: This is 1.5 cubed, which would correspond to an incorrect compounded growth calculation rather than the specified 125% increase over 4 years.`
+      },
+      {
+        id: 'diag-10',
+        section: 'Math',
+        topic: 'Geometry & Trigonometry (Arc Length & Radians)',
+        difficulty: 'Elite',
+        question: `In the xy-plane, a circle has its center at the origin (0, 0). An arc on this circle is intercepted by a central angle of (5π / 6) radians. If the length of this intercepted arc is (15π / 2) units, what is the area of the circle?`,
+        options: ['36π', '45π', '81π', '100π'],
+        correctIndex: 2,
+        explanation: `• CORRECT ANSWER (C):
+1. The formula for the length of an intercepted arc in radians is:
+   s = r · θ
+   where s is the arc length, r is the radius of the circle, and θ is the central angle in radians.
+2. Substitute the given values (s = 15π / 2 and θ = 5π / 6) into the formula:
+   15π / 2 = r · (5π / 6)
+3. Divide both sides by π:
+   15 / 2 = r · (5 / 6)
+4. Isolate the radius r by multiplying both sides by the reciprocal (6 / 5):
+   r = (15 / 2) · (6 / 5)
+   r = (15 · 6) / (2 · 5) = 90 / 10 = 9 units
+5. Now, calculate the area of the circle using the area formula:
+   Area = π · r²
+   Area = π · (9)² = 81π units²
+
+• INCORRECT OPTION ANALYSIS:
+- A) 36π: This would correspond to a radius of 6, which is incorrect.
+- B) 45π: This is a common fraction multiplication error and does not yield an integer radius.
+- D) 100π: This would correspond to a radius of 10, which represents an arithmetic error when solving for r.`
+      }
+    ];
   }, []);
 
   const currentDiagQuestion = diagnosticQuestions[diagIndex];
+
+  const explanationData = useMemo(() => {
+    const rawExplanation = currentDiagQuestion?.explanation || '';
+    if (!rawExplanation) return { correctLetter: '', correctContent: '', incorrectContent: '' };
+
+    const parts = rawExplanation.split(/•\s*INCORRECT\s+OPTION\s+ANALYSIS\s*\:?/i);
+    let correctPart = parts[0] || '';
+    let incorrectPart = parts[1] || '';
+
+    // Clean up "• CORRECT ANSWER (X):" from correctPart
+    const correctMatch = correctPart.match(/•\s*CORRECT\s+ANSWER\s*\(([A-D])\)\s*\:?\s*/i);
+    let correctLetter = '';
+    if (correctMatch) {
+      correctLetter = correctMatch[1];
+      correctPart = correctPart.replace(/•\s*CORRECT\s+ANSWER\s*\(([A-D])\)\s*\:?\s*/i, '');
+    }
+
+    return {
+      correctLetter,
+      correctContent: correctPart.trim(),
+      incorrectContent: incorrectPart.trim()
+    };
+  }, [currentDiagQuestion]);
 
   const handleDiagOptionSelect = (idx: number) => {
     if (diagSubmitted) return;
@@ -286,11 +539,90 @@ export const SatPreparationHub: React.FC<SatPreparationHubProps> = ({
               )}
             </div>
 
-            {/* Explanation box */}
+            {/* Interactive Explanation Box */}
             {diagSubmitted && (
-              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/70 text-xs sm:text-sm text-slate-600 leading-relaxed mt-4">
-                <span className="font-bold text-slate-900 block mb-1">Explanation:</span>
-                {currentDiagQuestion?.explanation}
+              <div id="diag-explanation" className="mt-6 border border-slate-200/80 rounded-2xl bg-white overflow-hidden shadow-xs animate-fade-in">
+                {/* Segmented Control / Tabs Header */}
+                <div className="flex border-b border-slate-100 bg-slate-50/70 p-1.5 gap-1.5">
+                  <button
+                    onClick={() => setExplanationTab('correct')}
+                    className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
+                      explanationTab === 'correct'
+                        ? 'bg-emerald-600 text-white shadow-xs'
+                        : 'bg-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
+                    }`}
+                  >
+                    <CheckCircle2 className="w-3.5 h-3.5 shrink-0 text-white" />
+                    <span>Correct Explanation</span>
+                    {explanationData.correctLetter && (
+                      <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-bold leading-none ${
+                        explanationTab === 'correct' ? 'bg-emerald-700/85 text-white' : 'bg-slate-200 text-slate-700'
+                      }`}>
+                        Option {explanationData.correctLetter}
+                      </span>
+                    )}
+                  </button>
+
+                  {explanationData.incorrectContent && (
+                    <button
+                      onClick={() => setExplanationTab('incorrect')}
+                      className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
+                        explanationTab === 'incorrect'
+                          ? 'bg-rose-600 text-white shadow-xs'
+                          : 'bg-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
+                      }`}
+                    >
+                      <XCircle className="w-3.5 h-3.5 shrink-0 text-white" />
+                      <span>Incorrect Choices</span>
+                    </button>
+                  )}
+                </div>
+
+                {/* Content Panel */}
+                <div className="p-4 sm:p-5">
+                  <AnimatePresence mode="wait">
+                    {explanationTab === 'correct' ? (
+                      <motion.div
+                        key="correct-tab"
+                        initial={{ opacity: 0, y: 4 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -4 }}
+                        transition={{ duration: 0.15 }}
+                        className="space-y-4 text-left"
+                      >
+                        {/* Elite Solution Intro Badge */}
+                        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-emerald-50 border border-emerald-100 text-emerald-800 text-[10px] font-extrabold uppercase tracking-wider">
+                          <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+                          <span>Guaranteed Elite Method & Solution Rationale</span>
+                        </div>
+                        
+                        {/* Interactive formatted block */}
+                        <div className="prose prose-slate max-w-none">
+                          <FormattedMathExplanation text={explanationData.correctContent} />
+                        </div>
+                      </motion.div>
+                    ) : (
+                      <motion.div
+                        key="incorrect-tab"
+                        initial={{ opacity: 0, y: 4 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -4 }}
+                        transition={{ duration: 0.15 }}
+                        className="space-y-4 text-left"
+                      >
+                        {/* SAT Trap Warning Badge */}
+                        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-rose-50 border border-rose-100 text-rose-800 text-[10px] font-extrabold uppercase tracking-wider">
+                          <XCircle className="w-3.5 h-3.5 text-rose-600" />
+                          <span>SAT Traps & Distractors Analysis</span>
+                        </div>
+
+                        <div className="prose prose-slate max-w-none">
+                          <FormattedMathExplanation text={explanationData.incorrectContent} />
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
               </div>
             )}
           </div>
