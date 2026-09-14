@@ -194,7 +194,7 @@ const getSmoothSplinePath = (pts: [number, number][]): string => {
   return path;
 };
 
-export const SinglePlot: React.FC<SinglePlotProps> = ({
+export const SinglePlot: React.FC<SinglePlotProps> = React.memo(({
   curves = [],
   xRange = [-5, 5],
   yRange = [-5, 5],
@@ -1248,9 +1248,9 @@ export const SinglePlot: React.FC<SinglePlotProps> = ({
       )}
     </div>
   );
-};
+});
 
-export const SatMathGraph: React.FC<SatMathGraphProps> = ({ diagram, className = '', isSubmitted }) => {
+export const SatMathGraph: React.FC<SatMathGraphProps> = React.memo(({ diagram, className = '', isSubmitted }) => {
   if (!diagram) return null;
 
   return (
@@ -1314,4 +1314,4 @@ export const SatMathGraph: React.FC<SatMathGraphProps> = ({ diagram, className =
       )}
     </div>
   );
-};
+});

@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { saveSatPracticeProgress } from '../../lib/userStorage';
 import { shuffleExerciseGroupQuestions } from '../../utils/questionShuffler';
+import { InteractivePageLoader } from '../InteractivePageLoader';
 import { 
   fetchSatReadingChapter1FromSupabase, 
   SatReadingChapter1Data,
@@ -14,7 +15,8 @@ import {
   fetchSatReadingChapter5FromSupabase,
   SatReadingChapter5Data,
   fetchSatReadingChapter6FromSupabase,
-  SatReadingChapter6Data
+  SatReadingChapter6Data,
+  isSupabaseConfigured
 } from '../../lib/supabase';
 import {
   BookOpen,
@@ -1043,193 +1045,89 @@ interface SatReadingSectionExplorerProps {
 export const SatReadingSectionExplorer: React.FC<SatReadingSectionExplorerProps> = ({ user, onOpenAuth }) => {
   const [selectedChapterId, setSelectedChapterId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'theory' | 'practice'>('theory');
-  const [ch1SupabaseData, setCh1SupabaseData] = useState<SatReadingChapter1Data | null>(null);
-  const [ch2SupabaseData, setCh2SupabaseData] = useState<SatReadingChapter2Data | null>(null);
-  const [ch3SupabaseData, setCh3SupabaseData] = useState<SatReadingChapter3Data | null>(null);
-  const [ch4SupabaseData, setCh4SupabaseData] = useState<SatReadingChapter4Data | null>(null);
-  const [ch5SupabaseData, setCh5SupabaseData] = useState<SatReadingChapter5Data | null>(null);
-  const [ch6SupabaseData, setCh6SupabaseData] = useState<SatReadingChapter6Data | null>(null);
-  const [isCh1Loading, setIsCh1Loading] = useState<boolean>(false);
-  const [isCh2Loading, setIsCh2Loading] = useState<boolean>(false);
-  const [isCh3Loading, setIsCh3Loading] = useState<boolean>(false);
-  const [isCh4Loading, setIsCh4Loading] = useState<boolean>(false);
-  const [isCh5Loading, setIsCh5Loading] = useState<boolean>(false);
-  const [isCh6Loading, setIsCh6Loading] = useState<boolean>(false);
+  const [currentChapterData, setCurrentChapterData] = useState<any | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (!selectedChapterId) return;
+
+    let isMounted = true;
+    setIsLoading(true);
+    setCurrentChapterData(null);
+
+    const timer = setTimeout(() => {
+      if (isMounted && !isSupabaseConfigured()) {
+        setIsLoading(false);
+      }
+    }, 600);
+
+    if (!isSupabaseConfigured()) {
+      return () => {
+        isMounted = false;
+        clearTimeout(timer);
+      };
+    }
+
+    const chapterFetchMap: Record<string, () => Promise<{ data: any | null; error: any }>> = {
+      'ch1': fetchSatReadingChapter1FromSupabase,
+      'ch2': fetchSatReadingChapter2FromSupabase,
+      'ch3': fetchSatReadingChapter3FromSupabase,
+      'ch4': fetchSatReadingChapter4FromSupabase,
+      'ch5': fetchSatReadingChapter5FromSupabase,
+      'ch6': fetchSatReadingChapter6FromSupabase,
+    };
+
+    const fetchFunc = chapterFetchMap[selectedChapterId];
+    if (!fetchFunc) {
+      clearTimeout(timer);
+      if (isMounted) setIsLoading(false);
+      return () => { isMounted = false; };
+    }
+
+    fetchFunc()
+      .then(({ data }) => {
+        if (isMounted) {
+          setCurrentChapterData(data);
+          setIsLoading(false);
+        }
+      })
+      .catch((err) => {
+        console.error(`Failed to fetch ${selectedChapterId} from Supabase:`, err);
+        if (isMounted) setIsLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+      clearTimeout(timer);
+    };
+  }, [selectedChapterId]);
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
   }, [selectedChapterId, activeTab]);
 
-  // Load Chapter 1, Chapter 2, Chapter 3, Chapter 4, Chapter 5, and Chapter 6 from Supabase on mount
-  useEffect(() => {
-    let mounted = true;
-    setIsCh1Loading(true);
-    setIsCh2Loading(true);
-    setIsCh3Loading(true);
-    setIsCh4Loading(true);
-    setIsCh5Loading(true);
-    setIsCh6Loading(true);
-
-    // Safety timeout: Never hang in loading state longer than 3.5 seconds
-    const safetyTimer = setTimeout(() => {
-      if (!mounted) return;
-      setIsCh1Loading(false);
-      setIsCh2Loading(false);
-      setIsCh3Loading(false);
-      setIsCh4Loading(false);
-      setIsCh5Loading(false);
-      setIsCh6Loading(false);
-    }, 3500);
-
-    fetchSatReadingChapter1FromSupabase().then(({ data }) => {
-      if (!mounted) return;
-      if (data) {
-        setCh1SupabaseData(data);
-      }
-      setIsCh1Loading(false);
-    }).catch(() => {
-      if (mounted) setIsCh1Loading(false);
-    });
-
-    fetchSatReadingChapter2FromSupabase().then(({ data }) => {
-      if (!mounted) return;
-      if (data) {
-        setCh2SupabaseData(data);
-      }
-      setIsCh2Loading(false);
-    }).catch(() => {
-      if (mounted) setIsCh2Loading(false);
-    });
-
-    fetchSatReadingChapter3FromSupabase().then(({ data }) => {
-      if (!mounted) return;
-      if (data) {
-        setCh3SupabaseData(data);
-      }
-      setIsCh3Loading(false);
-    }).catch(() => {
-      if (mounted) setIsCh3Loading(false);
-    });
-
-    fetchSatReadingChapter4FromSupabase().then(({ data }) => {
-      if (!mounted) return;
-      if (data) {
-        setCh4SupabaseData(data);
-      }
-      setIsCh4Loading(false);
-    }).catch(() => {
-      if (mounted) setIsCh4Loading(false);
-    });
-
-    fetchSatReadingChapter5FromSupabase().then(({ data }) => {
-      if (!mounted) return;
-      if (data) {
-        setCh5SupabaseData(data);
-      }
-      setIsCh5Loading(false);
-    }).catch(() => {
-      if (mounted) setIsCh5Loading(false);
-    });
-
-    fetchSatReadingChapter6FromSupabase().then(({ data }) => {
-      if (!mounted) return;
-      if (data) {
-        setCh6SupabaseData(data);
-      }
-      setIsCh6Loading(false);
-    }).catch(() => {
-      if (mounted) setIsCh6Loading(false);
-    });
-
-    return () => {
-      mounted = false;
-      clearTimeout(safetyTimer);
-    };
-  }, []);
 
   // Active Chapter Object
   const chapter = useMemo(() => {
-    if (selectedChapterId === 'ch6') {
-      const hasSupa = ch6SupabaseData?.modules && ch6SupabaseData.modules.length > 0;
-      return {
-        ...SAT_READING_CHAPTER_6,
-        totalModules: hasSupa ? ch6SupabaseData.modules.length : SAT_READING_CHAPTER_6.modules.length,
-        modules: hasSupa ? ch6SupabaseData.modules : SAT_READING_CHAPTER_6.modules,
-      };
-    }
-    if (selectedChapterId === 'ch5') {
-      const hasSupa = ch5SupabaseData?.modules && ch5SupabaseData.modules.length > 0;
-      return {
-        ...SAT_READING_CHAPTER_5,
-        totalModules: hasSupa ? ch5SupabaseData.modules.length : SAT_READING_CHAPTER_5.modules.length,
-        modules: hasSupa ? ch5SupabaseData.modules : SAT_READING_CHAPTER_5.modules,
-      };
-    }
-    if (selectedChapterId === 'ch4') {
-      const hasSupa = ch4SupabaseData?.modules && ch4SupabaseData.modules.length > 0;
-      return {
-        ...SAT_READING_CHAPTER_4,
-        totalModules: hasSupa ? ch4SupabaseData.modules.length : SAT_READING_CHAPTER_4.modules.length,
-        modules: hasSupa ? ch4SupabaseData.modules : SAT_READING_CHAPTER_4.modules,
-      };
-    }
-    if (selectedChapterId === 'ch3') {
-      const hasSupa = ch3SupabaseData?.modules && ch3SupabaseData.modules.length > 0;
-      return {
-        ...SAT_READING_CHAPTER_3,
-        totalModules: hasSupa ? ch3SupabaseData.modules.length : SAT_READING_CHAPTER_3.modules.length,
-        modules: hasSupa ? ch3SupabaseData.modules : SAT_READING_CHAPTER_3.modules,
-      };
-    }
-    if (selectedChapterId === 'ch2') {
-      const hasSupa = ch2SupabaseData?.modules && ch2SupabaseData.modules.length > 0;
-      return {
-        ...SAT_READING_CHAPTER_2,
-        totalModules: hasSupa ? ch2SupabaseData.modules.length : SAT_READING_CHAPTER_2.modules.length,
-        modules: hasSupa ? ch2SupabaseData.modules : SAT_READING_CHAPTER_2.modules,
-      };
-    }
-    
-    // Chapter 1: Combine base metadata with live Supabase modules
-    const hasSupa1 = ch1SupabaseData?.modules && ch1SupabaseData.modules.length > 0;
+    let base = SAT_READING_CHAPTER_1;
+    if (selectedChapterId === 'ch6') base = SAT_READING_CHAPTER_6;
+    else if (selectedChapterId === 'ch5') base = SAT_READING_CHAPTER_5;
+    else if (selectedChapterId === 'ch4') base = SAT_READING_CHAPTER_4;
+    else if (selectedChapterId === 'ch3') base = SAT_READING_CHAPTER_3;
+    else if (selectedChapterId === 'ch2') base = SAT_READING_CHAPTER_2;
+
+    const hasSupa = currentChapterData?.modules && currentChapterData.modules.length > 0;
     return {
-      ...SAT_READING_CHAPTER_1,
-      totalModules: hasSupa1 ? ch1SupabaseData.modules.length : SAT_READING_CHAPTER_1.modules.length,
-      modules: hasSupa1 ? ch1SupabaseData.modules : SAT_READING_CHAPTER_1.modules,
+      ...base,
+      totalModules: hasSupa ? currentChapterData.modules.length : base.modules.length,
+      modules: hasSupa ? currentChapterData.modules : base.modules,
     };
-  }, [selectedChapterId, ch1SupabaseData, ch2SupabaseData, ch3SupabaseData, ch4SupabaseData, ch5SupabaseData, ch6SupabaseData]);
+  }, [selectedChapterId, currentChapterData]);
 
   // Active Chapter Questions - Lazily Extracted for Current Chapter Only
   const allChapterQuestions = useMemo(() => {
-    if (selectedChapterId === 'ch1' || !selectedChapterId) {
-      if (ch1SupabaseData?.practiceQuestions && ch1SupabaseData.practiceQuestions.length > 0) {
-        return ch1SupabaseData.practiceQuestions;
-      }
-    }
-    if (selectedChapterId === 'ch2') {
-      if (ch2SupabaseData?.practiceQuestions && ch2SupabaseData.practiceQuestions.length > 0) {
-        return ch2SupabaseData.practiceQuestions;
-      }
-    }
-    if (selectedChapterId === 'ch3') {
-      if (ch3SupabaseData?.practiceQuestions && ch3SupabaseData.practiceQuestions.length > 0) {
-        return ch3SupabaseData.practiceQuestions;
-      }
-    }
-    if (selectedChapterId === 'ch4') {
-      if (ch4SupabaseData?.practiceQuestions && ch4SupabaseData.practiceQuestions.length > 0) {
-        return ch4SupabaseData.practiceQuestions;
-      }
-    }
-    if (selectedChapterId === 'ch5') {
-      if (ch5SupabaseData?.practiceQuestions && ch5SupabaseData.practiceQuestions.length > 0) {
-        return ch5SupabaseData.practiceQuestions;
-      }
-    }
-    if (selectedChapterId === 'ch6') {
-      if (ch6SupabaseData?.practiceQuestions && ch6SupabaseData.practiceQuestions.length > 0) {
-        return ch6SupabaseData.practiceQuestions;
-      }
+    if (currentChapterData?.practiceQuestions && currentChapterData.practiceQuestions.length > 0) {
+      return currentChapterData.practiceQuestions;
     }
 
     let activeChapter = SAT_READING_CHAPTER_1;
@@ -1242,7 +1140,7 @@ export const SatReadingSectionExplorer: React.FC<SatReadingSectionExplorerProps>
     
     const raw = extractQuestionsForChapter(activeChapter.modules, chNum);
     return shuffleExerciseGroupQuestions(raw);
-  }, [selectedChapterId, ch1SupabaseData, ch2SupabaseData, ch3SupabaseData, ch4SupabaseData, ch5SupabaseData, ch6SupabaseData]);
+  }, [selectedChapterId, currentChapterData]);
 
   const READING_CHAPTERS_METADATA: ReadingChapterSummary[] = useMemo(
     () => [
@@ -1250,8 +1148,8 @@ export const SatReadingSectionExplorer: React.FC<SatReadingSectionExplorerProps>
         id: 'ch1',
         chapterNumber: 1,
         chapterTitle: 'Foundations of Reading & Core Analysis',
-        sectionsCount: ch1SupabaseData?.modules?.length || 10,
-        questionsCount: ch1SupabaseData?.practiceQuestions?.length || 50,
+        sectionsCount: SAT_READING_CHAPTER_1.modules.length,
+        questionsCount: 50,
         introduction:
           "Master main ideas, central claims, author's purpose, paragraph function, passage structure, explicit evidence, tone calibration, and logical inference across 10 sequential modules.",
         isAvailable: true,
@@ -1260,8 +1158,8 @@ export const SatReadingSectionExplorer: React.FC<SatReadingSectionExplorerProps>
         id: 'ch2',
         chapterNumber: 2,
         chapterTitle: 'Evidence & Inference',
-        sectionsCount: ch2SupabaseData?.modules?.length || 10,
-        questionsCount: ch2SupabaseData?.practiceQuestions?.length || 60,
+        sectionsCount: SAT_READING_CHAPTER_2.modules.length,
+        questionsCount: 60,
         introduction:
           "Master the complete evidence & inference system: claim-evidence pairs, uncertainty boundaries, competing counterevidence, causation vs correlation, and synthesis across 10 in-depth modules.",
         isAvailable: true,
@@ -1270,8 +1168,8 @@ export const SatReadingSectionExplorer: React.FC<SatReadingSectionExplorerProps>
         id: 'ch3',
         chapterNumber: 3,
         chapterTitle: 'Vocabulary in Context',
-        sectionsCount: ch3SupabaseData?.modules?.length || 12,
-        questionsCount: ch3SupabaseData?.practiceQuestions?.length || 60,
+        sectionsCount: SAT_READING_CHAPTER_3.modules.length,
+        questionsCount: 60,
         introduction:
           "Master contextual substitution, category constraints, secondary definitions, tone and connotation, rhetorical function, precision traps, and 5-step elimination across 12 master modules.",
         isAvailable: true,
@@ -1280,8 +1178,8 @@ export const SatReadingSectionExplorer: React.FC<SatReadingSectionExplorerProps>
         id: 'ch4',
         chapterNumber: 4,
         chapterTitle: 'Rhetorical Analysis',
-        sectionsCount: ch4SupabaseData?.modules?.length || 14,
-        questionsCount: ch4SupabaseData?.practiceQuestions?.length || 40,
+        sectionsCount: SAT_READING_CHAPTER_4.modules.length,
+        questionsCount: 40,
         introduction:
           "Master author's purpose, central claims, point of view, tone, paragraph roles, rhetorical strategy, evidence function, concessions, qualifications, idea relationships, and architecture across 14 master modules.",
         isAvailable: true,
@@ -1290,8 +1188,8 @@ export const SatReadingSectionExplorer: React.FC<SatReadingSectionExplorerProps>
         id: 'ch5',
         chapterNumber: 5,
         chapterTitle: 'Relationships & Synthesis',
-        sectionsCount: ch5SupabaseData?.modules?.length || 14,
-        questionsCount: ch5SupabaseData?.practiceQuestions?.length || 40,
+        sectionsCount: SAT_READING_CHAPTER_5.modules.length,
+        questionsCount: 40,
         introduction:
           "Master individual positions, multi-layer connections, agreement/disagreement, qualification, authorial priorities, shared goals/competing methods, time horizons, and elite paired-passage synthesis across 14 master modules.",
         isAvailable: true,
@@ -1300,14 +1198,14 @@ export const SatReadingSectionExplorer: React.FC<SatReadingSectionExplorerProps>
         id: 'ch6',
         chapterNumber: 6,
         chapterTitle: 'Data & Informational Reading',
-        sectionsCount: ch6SupabaseData?.modules?.length || 16,
-        questionsCount: ch6SupabaseData?.practiceQuestions?.length || 54,
+        sectionsCount: SAT_READING_CHAPTER_6.modules.length,
+        questionsCount: 54,
         introduction:
           "Master data as argument, multi-variable tables, complex graphs, text-data synthesis, percentages vs raw counts, scientific evidence, survey sampling, correlation vs causation, multi-source synthesis, and elite data reasoning across 16 master modules.",
         isAvailable: true,
       },
     ],
-    [ch1SupabaseData, ch2SupabaseData, ch3SupabaseData, ch4SupabaseData, ch5SupabaseData, ch6SupabaseData]
+    []
   );
 
   // Practice State
@@ -1382,15 +1280,7 @@ export const SatReadingSectionExplorer: React.FC<SatReadingSectionExplorerProps>
     return exercisesList.filter((e) => e.exerciseNumber === selectedExerciseTab);
   }, [exercisesList, selectedExerciseTab, allChapterQuestions, totalQuestionsCount]);
 
-  const isCurrentChapterLoading = useMemo(() => {
-    if (selectedChapterId === 'ch1') return isCh1Loading && !ch1SupabaseData;
-    if (selectedChapterId === 'ch2') return isCh2Loading && !ch2SupabaseData;
-    if (selectedChapterId === 'ch3') return isCh3Loading && !ch3SupabaseData;
-    if (selectedChapterId === 'ch4') return isCh4Loading && !ch4SupabaseData;
-    if (selectedChapterId === 'ch5') return isCh5Loading && !ch5SupabaseData;
-    if (selectedChapterId === 'ch6') return isCh6Loading && !ch6SupabaseData;
-    return false;
-  }, [selectedChapterId, isCh1Loading, isCh2Loading, isCh3Loading, isCh4Loading, isCh5Loading, isCh6Loading, ch1SupabaseData, ch2SupabaseData, ch3SupabaseData, ch4SupabaseData, ch5SupabaseData, ch6SupabaseData]);
+  const isCurrentChapterLoading = isLoading;
 
   const handleSelectAnswer = (questionId: string, optionIdx: number) => {
     // Freemium Limit Check: Non-logged-in users get a maximum of 5 free practice questions
@@ -1478,29 +1368,7 @@ export const SatReadingSectionExplorer: React.FC<SatReadingSectionExplorerProps>
             </div>
           </motion.div>
         ) : isCurrentChapterLoading ? (
-          <motion.div
-            key="loading"
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -12 }}
-            transition={{ duration: 0.15, ease: "easeOut" }}
-            className="bg-white border border-slate-200/90 rounded-3xl p-12 text-center shadow-xs flex flex-col items-center justify-center space-y-4 min-h-[400px]"
-          >
-            <div className="relative flex items-center justify-center">
-              <div className="w-16 h-16 rounded-full border-4 border-slate-100 border-t-indigo-600 animate-spin" />
-              <div className="absolute w-10 h-10 rounded-full bg-indigo-50 border border-indigo-100 flex items-center justify-center">
-                <BookOpen className="w-5 h-5 text-indigo-600 animate-pulse" />
-              </div>
-            </div>
-            <div className="space-y-1.5 max-w-sm">
-              <h3 className="text-lg font-black text-slate-900 tracking-tight">
-                Loading Chapter Content
-              </h3>
-              <p className="text-xs text-slate-500 font-medium leading-relaxed">
-                Assembling curriculum modules, structured analytics, and interactive practice questions...
-              </p>
-            </div>
-          </motion.div>
+          <InteractivePageLoader />
         ) : (
           <motion.div
             key={`chapter-${selectedChapterId}`}
@@ -2047,7 +1915,7 @@ export const SatReadingSectionExplorer: React.FC<SatReadingSectionExplorerProps>
                             return (
                               <button
                                 key={item.id}
-                                onClick={() => setActiveQuestionIndex(idx)}
+                                onClick={() => React.startTransition(() => setActiveQuestionIndex(idx))}
                                 className={`w-8 h-8 rounded-xl border text-xs font-black transition-all cursor-pointer flex items-center justify-center shrink-0 ${
                                   isSelected
                                     ? 'bg-indigo-600 border-indigo-600 text-white shadow-xs ring-2 ring-indigo-500/25'
@@ -2316,7 +2184,7 @@ export const SatReadingSectionExplorer: React.FC<SatReadingSectionExplorerProps>
                       <div className="flex items-center justify-between pt-4 border-t border-slate-100 font-sans">
                         <button
                           disabled={activeQuestionIndex === 0}
-                          onClick={() => setActiveQuestionIndex((prev) => Math.max(0, prev - 1))}
+                          onClick={() => React.startTransition(() => setActiveQuestionIndex((prev) => Math.max(0, prev - 1)))}
                           className={`px-4 py-2.5 rounded-xl border text-xs font-black transition-all inline-flex items-center gap-1.5 ${
                             activeQuestionIndex === 0
                               ? 'bg-slate-50 border-slate-200 text-slate-300 cursor-not-allowed'
@@ -2333,7 +2201,7 @@ export const SatReadingSectionExplorer: React.FC<SatReadingSectionExplorerProps>
 
                         <button
                           disabled={activeQuestionIndex === activeQuestionsList.length - 1}
-                          onClick={() => setActiveQuestionIndex((prev) => Math.min(activeQuestionsList.length - 1, prev + 1))}
+                          onClick={() => React.startTransition(() => setActiveQuestionIndex((prev) => Math.min(activeQuestionsList.length - 1, prev + 1)))}
                           className={`px-4 py-2.5 rounded-xl border text-xs font-black transition-all inline-flex items-center gap-1.5 ${
                             activeQuestionIndex === activeQuestionsList.length - 1
                               ? 'bg-slate-50 border-slate-200 text-slate-300 cursor-not-allowed'

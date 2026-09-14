@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { saveSatPracticeProgress } from '../../lib/userStorage';
 import { shuffleExerciseGroupQuestions } from '../../utils/questionShuffler';
+import { InteractivePageLoader } from '../InteractivePageLoader';
 import { BookOpen, CheckCircle2, XCircle, ChevronRight, HelpCircle, Sparkles, Layers, ShieldCheck, Target, ArrowRight, ArrowLeft, RefreshCw, Award, Lightbulb, AlertTriangle, Zap, FileText, Check } from 'lucide-react';
 import { fetchSatWritingChapter1FromSupabase, fetchSatWritingChapter2FromSupabase, fetchSatWritingChapter3FromSupabase, fetchSatWritingChapter4FromSupabase, fetchSatWritingChapter5FromSupabase, fetchSatWritingChapter6FromSupabase, fetchSatWritingChapter7FromSupabase, isSupabaseConfigured } from '../../lib/supabase';
 import { SAT_WRITING_CHAPTER_1_FULL } from '../../data/writing/satWritingChapter1Full';
@@ -825,120 +826,63 @@ interface SatWritingSectionExplorerProps {
 
 export const SatWritingSectionExplorer: React.FC<SatWritingSectionExplorerProps> = ({ user, onOpenAuth }) => {
   const [selectedChapterId, setSelectedChapterId] = useState<string | null>(null);
-  const [ch1SupabaseData, setCh1SupabaseData] = useState<any | null>(null);
-  const [isCh1Loading, setIsCh1Loading] = useState<boolean>(false);
-  const [ch2SupabaseData, setCh2SupabaseData] = useState<any | null>(null);
-  const [isCh2Loading, setIsCh2Loading] = useState<boolean>(false);
-  const [ch3SupabaseData, setCh3SupabaseData] = useState<any | null>(null);
-  const [isCh3Loading, setIsCh3Loading] = useState<boolean>(false);
-  const [ch4SupabaseData, setCh4SupabaseData] = useState<any | null>(null);
-  const [isCh4Loading, setIsCh4Loading] = useState<boolean>(false);
-  const [ch5SupabaseData, setCh5SupabaseData] = useState<any | null>(null);
-  const [isCh5Loading, setIsCh5Loading] = useState<boolean>(false);
-  const [ch6SupabaseData, setCh6SupabaseData] = useState<any | null>(null);
-  const [isCh6Loading, setIsCh6Loading] = useState<boolean>(false);
-  const [ch7SupabaseData, setCh7SupabaseData] = useState<any | null>(null);
-  const [isCh7Loading, setIsCh7Loading] = useState<boolean>(false);
+  const [currentChapterData, setCurrentChapterData] = useState<any | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   useEffect(() => {
-    if (isSupabaseConfigured()) {
-      let mounted = true;
-      setIsCh1Loading(true);
-      setIsCh2Loading(true);
-      setIsCh3Loading(true);
-      setIsCh4Loading(true);
-      setIsCh5Loading(true);
-      setIsCh6Loading(true);
-      setIsCh7Loading(true);
+    if (!selectedChapterId) return;
 
-      // Safety timeout: Never hang in loading state longer than 3.5 seconds
-      const safetyTimer = setTimeout(() => {
-        if (!mounted) return;
-        setIsCh1Loading(false);
-        setIsCh2Loading(false);
-        setIsCh3Loading(false);
-        setIsCh4Loading(false);
-        setIsCh5Loading(false);
-        setIsCh6Loading(false);
-        setIsCh7Loading(false);
-      }, 3500);
+    let isMounted = true;
+    setIsLoading(true);
+    setCurrentChapterData(null);
 
-      fetchSatWritingChapter1FromSupabase().then(({ data }) => {
-        if (!mounted) return;
-        if (data) {
-          setCh1SupabaseData(data);
-        }
-        setIsCh1Loading(false);
-      }).catch(() => {
-        if (mounted) setIsCh1Loading(false);
-      });
+    const timer = setTimeout(() => {
+      if (isMounted && !isSupabaseConfigured()) {
+        setIsLoading(false);
+      }
+    }, 600);
 
-      fetchSatWritingChapter2FromSupabase().then(({ data }) => {
-        if (!mounted) return;
-        if (data) {
-          setCh2SupabaseData(data);
-        }
-        setIsCh2Loading(false);
-      }).catch(() => {
-        if (mounted) setIsCh2Loading(false);
-      });
-
-      fetchSatWritingChapter3FromSupabase().then(({ data }) => {
-        if (!mounted) return;
-        if (data) {
-          setCh3SupabaseData(data);
-        }
-        setIsCh3Loading(false);
-      }).catch(() => {
-        if (mounted) setIsCh3Loading(false);
-      });
-
-      fetchSatWritingChapter4FromSupabase().then(({ data }) => {
-        if (!mounted) return;
-        if (data) {
-          setCh4SupabaseData(data);
-        }
-        setIsCh4Loading(false);
-      }).catch(() => {
-        if (mounted) setIsCh4Loading(false);
-      });
-
-      fetchSatWritingChapter5FromSupabase().then(({ data }) => {
-        if (!mounted) return;
-        if (data) {
-          setCh5SupabaseData(data);
-        }
-        setIsCh5Loading(false);
-      }).catch(() => {
-        if (mounted) setIsCh5Loading(false);
-      });
-
-      fetchSatWritingChapter6FromSupabase().then(({ data }) => {
-        if (!mounted) return;
-        if (data) {
-          setCh6SupabaseData(data);
-        }
-        setIsCh6Loading(false);
-      }).catch(() => {
-        if (mounted) setIsCh6Loading(false);
-      });
-
-      fetchSatWritingChapter7FromSupabase().then(({ data }) => {
-        if (!mounted) return;
-        if (data) {
-          setCh7SupabaseData(data);
-        }
-        setIsCh7Loading(false);
-      }).catch(() => {
-        if (mounted) setIsCh7Loading(false);
-      });
-
+    if (!isSupabaseConfigured()) {
       return () => {
-        mounted = false;
-        clearTimeout(safetyTimer);
+        isMounted = false;
+        clearTimeout(timer);
       };
     }
-  }, []);
+
+    const chapterFetchMap: Record<string, () => Promise<{ data: any | null; error: any }>> = {
+      'ch1': fetchSatWritingChapter1FromSupabase,
+      'ch2': fetchSatWritingChapter2FromSupabase,
+      'ch3': fetchSatWritingChapter3FromSupabase,
+      'ch4': fetchSatWritingChapter4FromSupabase,
+      'ch5': fetchSatWritingChapter5FromSupabase,
+      'ch6': fetchSatWritingChapter6FromSupabase,
+      'ch7': fetchSatWritingChapter7FromSupabase,
+    };
+
+    const fetchFunc = chapterFetchMap[selectedChapterId];
+    if (!fetchFunc) {
+      clearTimeout(timer);
+      if (isMounted) setIsLoading(false);
+      return () => { isMounted = false; };
+    }
+
+    fetchFunc()
+      .then(({ data }) => {
+        if (isMounted) {
+          setCurrentChapterData(data);
+          setIsLoading(false);
+        }
+      })
+      .catch((err) => {
+        console.error(`Failed to fetch ${selectedChapterId} from Supabase:`, err);
+        if (isMounted) setIsLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+      clearTimeout(timer);
+    };
+  }, [selectedChapterId]);
 
   const chapterMap: Record<string, typeof SAT_WRITING_CHAPTER_1_FULL> = {
     ch1: SAT_WRITING_CHAPTER_1_FULL,
@@ -1017,40 +961,13 @@ export const SatWritingSectionExplorer: React.FC<SatWritingSectionExplorerProps>
   ];
 
   const chapter = useMemo(() => {
-    if (selectedChapterId === 'ch1' && ch1SupabaseData && ch1SupabaseData.theoryBlocks?.length > 0) {
-      return ch1SupabaseData;
-    }
-    if (selectedChapterId === 'ch2' && ch2SupabaseData && ch2SupabaseData.theoryBlocks?.length > 0) {
-      return ch2SupabaseData;
-    }
-    if (selectedChapterId === 'ch3' && ch3SupabaseData && ch3SupabaseData.theoryBlocks?.length > 0) {
-      return ch3SupabaseData;
-    }
-    if (selectedChapterId === 'ch4' && ch4SupabaseData && ch4SupabaseData.theoryBlocks?.length > 0) {
-      return ch4SupabaseData;
-    }
-    if (selectedChapterId === 'ch5' && ch5SupabaseData && ch5SupabaseData.theoryBlocks?.length > 0) {
-      return ch5SupabaseData;
-    }
-    if (selectedChapterId === 'ch6' && ch6SupabaseData && ch6SupabaseData.theoryBlocks?.length > 0) {
-      return ch6SupabaseData;
-    }
-    if (selectedChapterId === 'ch7' && ch7SupabaseData && ch7SupabaseData.theoryBlocks?.length > 0) {
-      return ch7SupabaseData;
+    if (currentChapterData && currentChapterData.theoryBlocks?.length > 0) {
+      return currentChapterData;
     }
     return selectedChapterId && chapterMap[selectedChapterId] ? chapterMap[selectedChapterId] : SAT_WRITING_CHAPTER_1_FULL;
-  }, [selectedChapterId, ch1SupabaseData, ch2SupabaseData, ch3SupabaseData, ch4SupabaseData, ch5SupabaseData, ch6SupabaseData, ch7SupabaseData, chapterMap]);
+  }, [selectedChapterId, currentChapterData, chapterMap]);
 
-  const isCurrentChapterLoading = useMemo(() => {
-    if (selectedChapterId === 'ch1') return isCh1Loading && !ch1SupabaseData;
-    if (selectedChapterId === 'ch2') return isCh2Loading && !ch2SupabaseData;
-    if (selectedChapterId === 'ch3') return isCh3Loading && !ch3SupabaseData;
-    if (selectedChapterId === 'ch4') return isCh4Loading && !ch4SupabaseData;
-    if (selectedChapterId === 'ch5') return isCh5Loading && !ch5SupabaseData;
-    if (selectedChapterId === 'ch6') return isCh6Loading && !ch6SupabaseData;
-    if (selectedChapterId === 'ch7') return isCh7Loading && !ch7SupabaseData;
-    return false;
-  }, [selectedChapterId, isCh1Loading, ch1SupabaseData, isCh2Loading, ch2SupabaseData, isCh3Loading, ch3SupabaseData, isCh4Loading, ch4SupabaseData, isCh5Loading, ch5SupabaseData, isCh6Loading, ch6SupabaseData, isCh7Loading, ch7SupabaseData]);
+  const isCurrentChapterLoading = isLoading;
 
   // Active View Tab: 'theory' or 'practice'
   const [activeTab, setActiveTab] = useState<'theory' | 'practice'>('theory');
@@ -1224,29 +1141,7 @@ export const SatWritingSectionExplorer: React.FC<SatWritingSectionExplorerProps>
             </div>
           </motion.div>
         ) : isCurrentChapterLoading ? (
-          <motion.div
-            key="loading"
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -12 }}
-            transition={{ duration: 0.15, ease: "easeOut" }}
-            className="bg-white border border-slate-200/90 rounded-3xl p-12 text-center shadow-xs flex flex-col items-center justify-center space-y-4 min-h-[400px]"
-          >
-            <div className="relative flex items-center justify-center">
-              <div className="w-16 h-16 rounded-full border-4 border-slate-100 border-t-indigo-600 animate-spin" />
-              <div className="absolute w-10 h-10 rounded-full bg-indigo-50 border border-indigo-100 flex items-center justify-center">
-                <BookOpen className="w-5 h-5 text-indigo-600 animate-pulse" />
-              </div>
-            </div>
-            <div className="space-y-1.5 max-w-sm">
-              <h3 className="text-lg font-black text-slate-900 tracking-tight">
-                Loading Chapter Content
-              </h3>
-              <p className="text-xs text-slate-500 font-medium leading-relaxed">
-                Assembling curriculum modules, structured analytics, and interactive practice questions...
-              </p>
-            </div>
-          </motion.div>
+          <InteractivePageLoader />
         ) : (
           <motion.div
             key={`chapter-${selectedChapterId}`}
@@ -1694,7 +1589,7 @@ export const SatWritingSectionExplorer: React.FC<SatWritingSectionExplorerProps>
                             return (
                               <button
                                 key={item.id}
-                                onClick={() => setActiveQuestionIndex(idx)}
+                                onClick={() => React.startTransition(() => setActiveQuestionIndex(idx))}
                                 className={`w-8 h-8 rounded-xl border text-xs font-black transition-all cursor-pointer flex items-center justify-center shrink-0 ${
                                   isSelected
                                     ? 'bg-indigo-600 border-indigo-600 text-white shadow-xs ring-2 ring-indigo-500/25'
@@ -1965,7 +1860,7 @@ export const SatWritingSectionExplorer: React.FC<SatWritingSectionExplorerProps>
                       <div className="flex items-center justify-between pt-4 border-t border-slate-100 font-sans">
                         <button
                           disabled={activeQuestionIndex === 0}
-                          onClick={() => setActiveQuestionIndex((prev) => Math.max(0, prev - 1))}
+                          onClick={() => React.startTransition(() => setActiveQuestionIndex((prev) => Math.max(0, prev - 1)))}
                           className={`px-4 py-2.5 rounded-xl border text-xs font-black transition-all inline-flex items-center gap-1.5 ${
                             activeQuestionIndex === 0
                               ? 'bg-slate-50 border-slate-200 text-slate-300 cursor-not-allowed'
@@ -1982,7 +1877,7 @@ export const SatWritingSectionExplorer: React.FC<SatWritingSectionExplorerProps>
 
                         <button
                           disabled={activeQuestionIndex === activeQuestionsList.length - 1}
-                          onClick={() => setActiveQuestionIndex((prev) => Math.min(activeQuestionsList.length - 1, prev + 1))}
+                          onClick={() => React.startTransition(() => setActiveQuestionIndex((prev) => Math.min(activeQuestionsList.length - 1, prev + 1)))}
                           className={`px-4 py-2.5 rounded-xl border text-xs font-black transition-all inline-flex items-center gap-1.5 ${
                             activeQuestionIndex === activeQuestionsList.length - 1
                               ? 'bg-slate-50 border-slate-200 text-slate-300 cursor-not-allowed'

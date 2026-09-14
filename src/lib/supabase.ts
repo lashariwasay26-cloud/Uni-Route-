@@ -39,10 +39,11 @@ export const supabase = isSupabaseConfigured()
  * it rejects with a timeout error so callers don't hang indefinitely.
  */
 export function withTimeout<T>(promise: Promise<T>, ms: number = 3500): Promise<T> {
+  const actualMs = Math.max(ms, 10000);
   return new Promise((resolve, reject) => {
     const timer = setTimeout(() => {
-      reject(new Error(`Supabase operation timed out after ${ms}ms`));
-    }, ms);
+      reject(new Error(`Supabase operation timed out after ${actualMs}ms`));
+    }, actualMs);
 
     promise.then(
       (res) => {
@@ -443,6 +444,7 @@ export function mapRowToGovernmentTrack(row: any, index: number): GovernmentTrac
 // SAT READING SECTION SUPABASE INTEGRATION
 // ============================================================================
 export interface SatReadingChapter1Data {
+  id: string;
   modules: any[];
   practiceQuestions: any[];
 }
@@ -458,17 +460,26 @@ export async function fetchSatReadingChapter1FromSupabase(): Promise<{ data: Sat
     return { data: cachedReadingChapter1, error: null };
   }
 
+  const localCache = getLocalStorageCache<SatReadingChapter1Data>('sat_reading_ch1_cache');
+  if (localCache) {
+    cachedReadingChapter1 = localCache;
+    return { data: localCache, error: null };
+  }
+
   try {
-    const [theoryRes, exercisesRes] = await Promise.all([
-      supabase
-        .from('sat_reading_ch1_theory')
-        .select('*')
-        .order('module_number', { ascending: true }),
-      supabase
-        .from('sat_reading_ch1_exercises')
-        .select('*')
-        .order('question_number', { ascending: true })
-    ]);
+    const [theoryRes, exercisesRes] = await withTimeout(
+      Promise.all([
+        supabase
+          .from('sat_reading_ch1_theory')
+          .select('*')
+          .order('module_number', { ascending: true }),
+        supabase
+          .from('sat_reading_ch1_exercises')
+          .select('*')
+          .order('question_number', { ascending: true })
+      ]),
+      3500
+    ) as any[];
 
     if (theoryRes.error) throw theoryRes.error;
     if (exercisesRes.error) throw exercisesRes.error;
@@ -524,6 +535,7 @@ export async function fetchSatReadingChapter1FromSupabase(): Promise<{ data: Sat
     });
 
     const result: SatReadingChapter1Data = {
+      id: 'ch1',
       modules: mappedModules,
       practiceQuestions: rawExercises.map((row: any) => ({
         id: row.id,
@@ -552,6 +564,7 @@ export async function fetchSatReadingChapter1FromSupabase(): Promise<{ data: Sat
     };
 
     cachedReadingChapter1 = result;
+    setLocalStorageCache('sat_reading_ch1_cache', result);
     return { data: result, error: null };
   } catch (err: any) {
     console.error('Error fetching SAT Reading Chapter 1 from Supabase:', err);
@@ -560,6 +573,7 @@ export async function fetchSatReadingChapter1FromSupabase(): Promise<{ data: Sat
 }
 
 export interface SatReadingChapter2Data {
+  id: string;
   modules: any[];
   practiceQuestions: any[];
 }
@@ -575,17 +589,26 @@ export async function fetchSatReadingChapter2FromSupabase(): Promise<{ data: Sat
     return { data: cachedReadingChapter2, error: null };
   }
 
+  const localCache = getLocalStorageCache<SatReadingChapter2Data>('sat_reading_ch2_cache');
+  if (localCache) {
+    cachedReadingChapter2 = localCache;
+    return { data: localCache, error: null };
+  }
+
   try {
-    const [theoryRes, exercisesRes] = await Promise.all([
-      supabase
-        .from('sat_reading_ch2_theory')
-        .select('*')
-        .order('module_number', { ascending: true }),
-      supabase
-        .from('sat_reading_ch2_exercises')
-        .select('*')
-        .order('question_number', { ascending: true })
-    ]);
+    const [theoryRes, exercisesRes] = await withTimeout(
+      Promise.all([
+        supabase
+          .from('sat_reading_ch2_theory')
+          .select('*')
+          .order('module_number', { ascending: true }),
+        supabase
+          .from('sat_reading_ch2_exercises')
+          .select('*')
+          .order('question_number', { ascending: true })
+      ]),
+      3500
+    ) as any[];
 
     if (theoryRes.error) throw theoryRes.error;
     if (exercisesRes.error) throw exercisesRes.error;
@@ -645,6 +668,7 @@ export async function fetchSatReadingChapter2FromSupabase(): Promise<{ data: Sat
     });
 
     const result: SatReadingChapter2Data = {
+      id: 'ch2',
       modules: mappedModules,
       practiceQuestions: rawExercises.map((row: any) => ({
         id: row.id,
@@ -673,6 +697,7 @@ export async function fetchSatReadingChapter2FromSupabase(): Promise<{ data: Sat
     };
 
     cachedReadingChapter2 = result;
+    setLocalStorageCache('sat_reading_ch2_cache', result);
     return { data: result, error: null };
   } catch (err: any) {
     console.error('Error fetching SAT Reading Chapter 2 from Supabase:', err);
@@ -681,6 +706,7 @@ export async function fetchSatReadingChapter2FromSupabase(): Promise<{ data: Sat
 }
 
 export interface SatReadingChapter3Data {
+  id: string;
   modules: any[];
   practiceQuestions: any[];
 }
@@ -696,17 +722,26 @@ export async function fetchSatReadingChapter3FromSupabase(): Promise<{ data: Sat
     return { data: cachedReadingChapter3, error: null };
   }
 
+  const localCache = getLocalStorageCache<SatReadingChapter3Data>('sat_reading_ch3_cache');
+  if (localCache) {
+    cachedReadingChapter3 = localCache;
+    return { data: localCache, error: null };
+  }
+
   try {
-    const [theoryRes, exercisesRes] = await Promise.all([
-      supabase
-        .from('sat_reading_ch3_theory')
-        .select('*')
-        .order('module_number', { ascending: true }),
-      supabase
-        .from('sat_reading_ch3_exercises')
-        .select('*')
-        .order('question_number', { ascending: true })
-    ]);
+    const [theoryRes, exercisesRes] = await withTimeout(
+      Promise.all([
+        supabase
+          .from('sat_reading_ch3_theory')
+          .select('*')
+          .order('module_number', { ascending: true }),
+        supabase
+          .from('sat_reading_ch3_exercises')
+          .select('*')
+          .order('question_number', { ascending: true })
+      ]),
+      3500
+    ) as any[];
 
     if (theoryRes.error) throw theoryRes.error;
     if (exercisesRes.error) throw exercisesRes.error;
@@ -766,6 +801,7 @@ export async function fetchSatReadingChapter3FromSupabase(): Promise<{ data: Sat
     });
 
     const result: SatReadingChapter3Data = {
+      id: 'ch3',
       modules: mappedModules,
       practiceQuestions: rawExercises.map((row: any) => ({
         id: row.id,
@@ -794,6 +830,7 @@ export async function fetchSatReadingChapter3FromSupabase(): Promise<{ data: Sat
     };
 
     cachedReadingChapter3 = result;
+    setLocalStorageCache('sat_reading_ch3_cache', result);
     return { data: result, error: null };
   } catch (err: any) {
     console.error('Error fetching SAT Reading Chapter 3 from Supabase:', err);
@@ -802,6 +839,7 @@ export async function fetchSatReadingChapter3FromSupabase(): Promise<{ data: Sat
 }
 
 export interface SatReadingChapter4Data {
+  id: string;
   modules: any[];
   practiceQuestions: any[];
 }
@@ -817,17 +855,26 @@ export async function fetchSatReadingChapter4FromSupabase(): Promise<{ data: Sat
     return { data: cachedReadingChapter4, error: null };
   }
 
+  const localCache = getLocalStorageCache<SatReadingChapter4Data>('sat_reading_ch4_cache');
+  if (localCache) {
+    cachedReadingChapter4 = localCache;
+    return { data: localCache, error: null };
+  }
+
   try {
-    const [theoryRes, exercisesRes] = await Promise.all([
-      supabase
-        .from('sat_reading_ch4_theory')
-        .select('*')
-        .order('module_number', { ascending: true }),
-      supabase
-        .from('sat_reading_ch4_exercises')
-        .select('*')
-        .order('question_number', { ascending: true })
-    ]);
+    const [theoryRes, exercisesRes] = await withTimeout(
+      Promise.all([
+        supabase
+          .from('sat_reading_ch4_theory')
+          .select('*')
+          .order('module_number', { ascending: true }),
+        supabase
+          .from('sat_reading_ch4_exercises')
+          .select('*')
+          .order('question_number', { ascending: true })
+      ]),
+      3500
+    ) as any[];
 
     if (theoryRes.error) throw theoryRes.error;
     if (exercisesRes.error) throw exercisesRes.error;
@@ -887,6 +934,7 @@ export async function fetchSatReadingChapter4FromSupabase(): Promise<{ data: Sat
     });
 
     const result: SatReadingChapter4Data = {
+      id: 'ch4',
       modules: mappedModules,
       practiceQuestions: rawExercises.map((row: any) => ({
         id: row.id,
@@ -915,6 +963,7 @@ export async function fetchSatReadingChapter4FromSupabase(): Promise<{ data: Sat
     };
 
     cachedReadingChapter4 = result;
+    setLocalStorageCache('sat_reading_ch4_cache', result);
     return { data: result, error: null };
   } catch (err: any) {
     console.error('Error fetching SAT Reading Chapter 4 from Supabase:', err);
@@ -923,6 +972,7 @@ export async function fetchSatReadingChapter4FromSupabase(): Promise<{ data: Sat
 }
 
 export interface SatReadingChapter5Data {
+  id: string;
   modules: any[];
   practiceQuestions: any[];
 }
@@ -938,17 +988,26 @@ export async function fetchSatReadingChapter5FromSupabase(): Promise<{ data: Sat
     return { data: cachedReadingChapter5, error: null };
   }
 
+  const localCache = getLocalStorageCache<SatReadingChapter5Data>('sat_reading_ch5_cache');
+  if (localCache) {
+    cachedReadingChapter5 = localCache;
+    return { data: localCache, error: null };
+  }
+
   try {
-    const [theoryRes, exercisesRes] = await Promise.all([
-      supabase
-        .from('sat_reading_ch5_theory')
-        .select('*')
-        .order('module_number', { ascending: true }),
-      supabase
-        .from('sat_reading_ch5_exercises')
-        .select('*')
-        .order('question_number', { ascending: true })
-    ]);
+    const [theoryRes, exercisesRes] = await withTimeout(
+      Promise.all([
+        supabase
+          .from('sat_reading_ch5_theory')
+          .select('*')
+          .order('module_number', { ascending: true }),
+        supabase
+          .from('sat_reading_ch5_exercises')
+          .select('*')
+          .order('question_number', { ascending: true })
+      ]),
+      3500
+    ) as any[];
 
     if (theoryRes.error) throw theoryRes.error;
     if (exercisesRes.error) throw exercisesRes.error;
@@ -1008,6 +1067,7 @@ export async function fetchSatReadingChapter5FromSupabase(): Promise<{ data: Sat
     });
 
     const result: SatReadingChapter5Data = {
+      id: 'ch5',
       modules: mappedModules,
       practiceQuestions: rawExercises.map((row: any) => ({
         id: row.id,
@@ -1036,6 +1096,7 @@ export async function fetchSatReadingChapter5FromSupabase(): Promise<{ data: Sat
     };
 
     cachedReadingChapter5 = result;
+    setLocalStorageCache('sat_reading_ch5_cache', result);
     return { data: result, error: null };
   } catch (err: any) {
     console.error('Error fetching SAT Reading Chapter 5 from Supabase:', err);
@@ -1044,6 +1105,7 @@ export async function fetchSatReadingChapter5FromSupabase(): Promise<{ data: Sat
 }
 
 export interface SatReadingChapter6Data {
+  id: string;
   modules: any[];
   practiceQuestions: any[];
 }
@@ -1059,17 +1121,26 @@ export async function fetchSatReadingChapter6FromSupabase(): Promise<{ data: Sat
     return { data: cachedReadingChapter6, error: null };
   }
 
+  const localCache = getLocalStorageCache<SatReadingChapter6Data>('sat_reading_ch6_cache');
+  if (localCache) {
+    cachedReadingChapter6 = localCache;
+    return { data: localCache, error: null };
+  }
+
   try {
-    const [theoryRes, exercisesRes] = await Promise.all([
-      supabase
-        .from('sat_reading_ch6_theory')
-        .select('*')
-        .order('module_number', { ascending: true }),
-      supabase
-        .from('sat_reading_ch6_exercises')
-        .select('*')
-        .order('question_number', { ascending: true })
-    ]);
+    const [theoryRes, exercisesRes] = await withTimeout(
+      Promise.all([
+        supabase
+          .from('sat_reading_ch6_theory')
+          .select('*')
+          .order('module_number', { ascending: true }),
+        supabase
+          .from('sat_reading_ch6_exercises')
+          .select('*')
+          .order('question_number', { ascending: true })
+      ]),
+      3500
+    ) as any[];
 
     if (theoryRes.error) throw theoryRes.error;
     if (exercisesRes.error) throw exercisesRes.error;
@@ -1130,6 +1201,7 @@ export async function fetchSatReadingChapter6FromSupabase(): Promise<{ data: Sat
     });
 
     const result: SatReadingChapter6Data = {
+      id: 'ch6',
       modules: mappedModules,
       practiceQuestions: rawExercises.map((row: any) => ({
         id: row.id,
@@ -1159,6 +1231,7 @@ export async function fetchSatReadingChapter6FromSupabase(): Promise<{ data: Sat
     };
 
     cachedReadingChapter6 = result;
+    setLocalStorageCache('sat_reading_ch6_cache', result);
     return { data: result, error: null };
   } catch (err: any) {
     console.error('Error fetching SAT Reading Chapter 6 from Supabase:', err);
@@ -1177,17 +1250,26 @@ export async function fetchSatWritingChapter1FromSupabase(): Promise<{ data: Ful
     return { data: cachedWritingChapter1, error: null };
   }
 
+  const localCache = getLocalStorageCache<FullSatWritingChapter>('sat_writing_ch1_cache');
+  if (localCache) {
+    cachedWritingChapter1 = localCache;
+    return { data: localCache, error: null };
+  }
+
   try {
-    const [theoryRes, exercisesRes] = await Promise.all([
-      supabase
-        .from('sat_writing_ch1_theory')
-        .select('*')
-        .order('sort_order', { ascending: true }),
-      supabase
-        .from('sat_writing_ch1_exercises')
-        .select('*')
-        .order('sort_order', { ascending: true })
-    ]);
+    const [theoryRes, exercisesRes] = await withTimeout(
+      Promise.all([
+        supabase
+          .from('sat_writing_ch1_theory')
+          .select('*')
+          .order('sort_order', { ascending: true }),
+        supabase
+          .from('sat_writing_ch1_exercises')
+          .select('*')
+          .order('sort_order', { ascending: true })
+      ]),
+      3500
+    ) as any[];
 
     if (theoryRes.error) throw theoryRes.error;
     if (exercisesRes.error) throw exercisesRes.error;
@@ -1266,6 +1348,7 @@ export async function fetchSatWritingChapter1FromSupabase(): Promise<{ data: Ful
     const exerciseBlocks = Array.from(exerciseBlocksMap.values()).sort((a, b) => a.blockNumber - b.blockNumber);
 
     const result: FullSatWritingChapter = {
+      id: 'ch1',
       chapterNumber: 1,
       chapterTitle: 'Sentence Structure, Clausal Boundaries & Transitions',
       subtitle: 'The Mechanics of Clausal Integration and Boundary Diagnostics',
@@ -1277,6 +1360,7 @@ export async function fetchSatWritingChapter1FromSupabase(): Promise<{ data: Ful
     };
 
     cachedWritingChapter1 = result;
+    setLocalStorageCache('sat_writing_ch1_cache', result);
     return { data: result, error: null };
   } catch (err: any) {
     console.error('Error fetching SAT Writing Chapter 1 from Supabase:', err);
@@ -1295,17 +1379,26 @@ export async function fetchSatWritingChapter2FromSupabase(): Promise<{ data: Ful
     return { data: cachedWritingChapter2, error: null };
   }
 
+  const localCache = getLocalStorageCache<FullSatWritingChapter>('sat_writing_ch2_cache');
+  if (localCache) {
+    cachedWritingChapter2 = localCache;
+    return { data: localCache, error: null };
+  }
+
   try {
-    const [theoryRes, exercisesRes] = await Promise.all([
-      supabase
-        .from('sat_writing_ch2_theory')
-        .select('*')
-        .order('sort_order', { ascending: true }),
-      supabase
-        .from('sat_writing_ch2_exercises')
-        .select('*')
-        .order('sort_order', { ascending: true })
-    ]);
+    const [theoryRes, exercisesRes] = await withTimeout(
+      Promise.all([
+        supabase
+          .from('sat_writing_ch2_theory')
+          .select('*')
+          .order('sort_order', { ascending: true }),
+        supabase
+          .from('sat_writing_ch2_exercises')
+          .select('*')
+          .order('sort_order', { ascending: true })
+      ]),
+      3500
+    ) as any[];
 
     if (theoryRes.error) throw theoryRes.error;
     if (exercisesRes.error) throw exercisesRes.error;
@@ -1384,6 +1477,7 @@ export async function fetchSatWritingChapter2FromSupabase(): Promise<{ data: Ful
     const exerciseBlocks = Array.from(exerciseBlocksMap.values()).sort((a, b) => a.blockNumber - b.blockNumber);
 
     const result: FullSatWritingChapter = {
+      id: 'ch2',
       chapterNumber: 2,
       chapterTitle: 'Punctuation, Structural Boundaries & Typographic Logic',
       subtitle: 'The Systematic Rules of Comma Restraints, Colons, Dashes, and Possessive Inflections',
@@ -1411,6 +1505,7 @@ With 18 theory blocks and 100 targeted practice questions completed, your punctu
     };
 
     cachedWritingChapter2 = result;
+    setLocalStorageCache('sat_writing_ch2_cache', result);
     return { data: result, error: null };
   } catch (err: any) {
     console.error('Error fetching SAT Writing Chapter 2 from Supabase:', err);
@@ -1429,17 +1524,26 @@ export async function fetchSatWritingChapter3FromSupabase(): Promise<{ data: Ful
     return { data: cachedWritingChapter3, error: null };
   }
 
+  const localCache = getLocalStorageCache<FullSatWritingChapter>('sat_writing_ch3_cache');
+  if (localCache) {
+    cachedWritingChapter3 = localCache;
+    return { data: localCache, error: null };
+  }
+
   try {
-    const [theoryRes, exercisesRes] = await Promise.all([
-      supabase
-        .from('sat_writing_ch3_theory')
-        .select('*')
-        .order('sort_order', { ascending: true }),
-      supabase
-        .from('sat_writing_ch3_exercises')
-        .select('*')
-        .order('sort_order', { ascending: true })
-    ]);
+    const [theoryRes, exercisesRes] = await withTimeout(
+      Promise.all([
+        supabase
+          .from('sat_writing_ch3_theory')
+          .select('*')
+          .order('sort_order', { ascending: true }),
+        supabase
+          .from('sat_writing_ch3_exercises')
+          .select('*')
+          .order('sort_order', { ascending: true })
+      ]),
+      3500
+    ) as any[];
 
     if (theoryRes.error) throw theoryRes.error;
     if (exercisesRes.error) throw exercisesRes.error;
@@ -1518,6 +1622,7 @@ export async function fetchSatWritingChapter3FromSupabase(): Promise<{ data: Ful
     const exerciseBlocks = Array.from(exerciseBlocksMap.values()).sort((a, b) => a.blockNumber - b.blockNumber);
 
     const result: FullSatWritingChapter = {
+      id: 'ch3',
       chapterNumber: 3,
       chapterTitle: 'Grammar & Agreement',
       subtitle: 'The Complete Grammar and Agreement System',
@@ -1545,6 +1650,7 @@ export async function fetchSatWritingChapter3FromSupabase(): Promise<{ data: Ful
     };
 
     cachedWritingChapter3 = result;
+    setLocalStorageCache('sat_writing_ch3_cache', result);
     return { data: result, error: null };
   } catch (err: any) {
     console.error('Error fetching SAT Writing Chapter 3 from Supabase:', err);
@@ -1561,6 +1667,12 @@ export async function fetchSatWritingChapter4FromSupabase(): Promise<{ data: Ful
 
   if (cachedWritingChapter4) {
     return { data: cachedWritingChapter4, error: null };
+  }
+
+  const localCache = getLocalStorageCache<FullSatWritingChapter>('sat_writing_ch4_cache');
+  if (localCache) {
+    cachedWritingChapter4 = localCache;
+    return { data: localCache, error: null };
   }
 
   try {
@@ -1652,6 +1764,7 @@ export async function fetchSatWritingChapter4FromSupabase(): Promise<{ data: Ful
     const exerciseBlocks = Array.from(exerciseBlocksMap.values()).sort((a, b) => a.blockNumber - b.blockNumber);
 
     const result: FullSatWritingChapter = {
+      id: 'ch4',
       chapterNumber: 4,
       chapterTitle: 'Modifiers, Comparisons & Parallelism',
       subtitle: 'The Complete System for Modifiers, Comparisons, and Structural Parallelism',
@@ -1669,6 +1782,7 @@ export async function fetchSatWritingChapter4FromSupabase(): Promise<{ data: Ful
     };
 
     cachedWritingChapter4 = result;
+    setLocalStorageCache('sat_writing_ch4_cache', result);
     return { data: result, error: null };
   } catch (err: any) {
     console.error('Error fetching SAT Writing Chapter 4 from Supabase:', err);
@@ -1687,17 +1801,26 @@ export async function fetchSatWritingChapter5FromSupabase(): Promise<{ data: Ful
     return { data: cachedWritingChapter5, error: null };
   }
 
+  const localCache = getLocalStorageCache<FullSatWritingChapter>('sat_writing_ch5_cache');
+  if (localCache) {
+    cachedWritingChapter5 = localCache;
+    return { data: localCache, error: null };
+  }
+
   try {
-    const [theoryRes, exercisesRes] = await Promise.all([
-      supabase
-        .from('sat_writing_ch5_theory')
-        .select('*')
-        .order('sort_order', { ascending: true }),
-      supabase
-        .from('sat_writing_ch5_exercises')
-        .select('*')
-        .order('sort_order', { ascending: true })
-    ]);
+    const [theoryRes, exercisesRes] = await withTimeout(
+      Promise.all([
+        supabase
+          .from('sat_writing_ch5_theory')
+          .select('*')
+          .order('sort_order', { ascending: true }),
+        supabase
+          .from('sat_writing_ch5_exercises')
+          .select('*')
+          .order('sort_order', { ascending: true })
+      ]),
+      3500
+    ) as any[];
 
     if (theoryRes.error) throw theoryRes.error;
     if (exercisesRes.error) throw exercisesRes.error;
@@ -1776,6 +1899,7 @@ export async function fetchSatWritingChapter5FromSupabase(): Promise<{ data: Ful
     const exerciseBlocks = Array.from(exerciseBlocksMap.values()).sort((a, b) => a.blockNumber - b.blockNumber);
 
     const result: FullSatWritingChapter = {
+      id: 'ch5',
       chapterNumber: 5,
       chapterTitle: 'Advanced Grammar Diagnostics & Error Prioritization',
       subtitle: 'Advanced Diagnostics, Error Prioritization, and Structural Repair',
@@ -1793,6 +1917,7 @@ export async function fetchSatWritingChapter5FromSupabase(): Promise<{ data: Ful
     };
 
     cachedWritingChapter5 = result;
+    setLocalStorageCache('sat_writing_ch5_cache', result);
     return { data: result, error: null };
   } catch (err: any) {
     console.error('Error fetching SAT Writing Chapter 5 from Supabase:', err);
@@ -1811,17 +1936,26 @@ export async function fetchSatWritingChapter6FromSupabase(): Promise<{ data: Ful
     return { data: cachedWritingChapter6, error: null };
   }
 
+  const localCache = getLocalStorageCache<FullSatWritingChapter>('sat_writing_ch6_cache');
+  if (localCache) {
+    cachedWritingChapter6 = localCache;
+    return { data: localCache, error: null };
+  }
+
   try {
-    const [theoryRes, exercisesRes] = await Promise.all([
-      supabase
-        .from('sat_writing_ch6_theory')
-        .select('*')
-        .order('sort_order', { ascending: true }),
-      supabase
-        .from('sat_writing_ch6_exercises')
-        .select('*')
-        .order('sort_order', { ascending: true })
-    ]);
+    const [theoryRes, exercisesRes] = await withTimeout(
+      Promise.all([
+        supabase
+          .from('sat_writing_ch6_theory')
+          .select('*')
+          .order('sort_order', { ascending: true }),
+        supabase
+          .from('sat_writing_ch6_exercises')
+          .select('*')
+          .order('sort_order', { ascending: true })
+      ]),
+      3500
+    ) as any[];
 
     if (theoryRes.error) throw theoryRes.error;
     if (exercisesRes.error) throw exercisesRes.error;
@@ -1900,6 +2034,7 @@ export async function fetchSatWritingChapter6FromSupabase(): Promise<{ data: Ful
     const exerciseBlocks = Array.from(exerciseBlocksMap.values()).sort((a, b) => a.blockNumber - b.blockNumber);
 
     const result: FullSatWritingChapter = {
+      id: 'ch6',
       chapterNumber: 6,
       chapterTitle: 'Transitions, Sentence Placement & Rhetorical Synthesis',
       subtitle: 'The Complete Master Class for Logical Transitions, Sentence Placement, and Rhetorical Synthesis',
@@ -1917,6 +2052,7 @@ export async function fetchSatWritingChapter6FromSupabase(): Promise<{ data: Ful
     };
 
     cachedWritingChapter6 = result;
+    setLocalStorageCache('sat_writing_ch6_cache', result);
     return { data: result, error: null };
   } catch (err: any) {
     console.error('Error fetching SAT Writing Chapter 6 from Supabase:', err);
@@ -1935,17 +2071,26 @@ export async function fetchSatWritingChapter7FromSupabase(): Promise<{ data: Ful
     return { data: cachedWritingChapter7, error: null };
   }
 
+  const localCache = getLocalStorageCache<FullSatWritingChapter>('sat_writing_ch7_cache');
+  if (localCache) {
+    cachedWritingChapter7 = localCache;
+    return { data: localCache, error: null };
+  }
+
   try {
-    const [theoryRes, exercisesRes] = await Promise.all([
-      supabase
-        .from('sat_writing_ch7_theory')
-        .select('*')
-        .order('sort_order', { ascending: true }),
-      supabase
-        .from('sat_writing_ch7_exercises')
-        .select('*')
-        .order('sort_order', { ascending: true })
-    ]);
+    const [theoryRes, exercisesRes] = await withTimeout(
+      Promise.all([
+        supabase
+          .from('sat_writing_ch7_theory')
+          .select('*')
+          .order('sort_order', { ascending: true }),
+        supabase
+          .from('sat_writing_ch7_exercises')
+          .select('*')
+          .order('sort_order', { ascending: true })
+      ]),
+      8000
+    ) as any[];
 
     if (theoryRes.error) throw theoryRes.error;
     if (exercisesRes.error) throw exercisesRes.error;
@@ -2024,6 +2169,7 @@ export async function fetchSatWritingChapter7FromSupabase(): Promise<{ data: Ful
     const exerciseBlocks = Array.from(exerciseBlocksMap.values()).sort((a, b) => a.blockNumber - b.blockNumber);
 
     const result: FullSatWritingChapter = {
+      id: 'ch7',
       chapterNumber: 7,
       chapterTitle: 'Elite Writing: Complete Integration of All SAT Writing Skills',
       subtitle: 'The Ultimate Master Class for 750+ SAT Writing Scores',
@@ -2041,6 +2187,7 @@ export async function fetchSatWritingChapter7FromSupabase(): Promise<{ data: Ful
     };
 
     cachedWritingChapter7 = result;
+    setLocalStorageCache('sat_writing_ch7_cache', result);
     return { data: result, error: null };
   } catch (err: any) {
     console.error('Error fetching SAT Writing Chapter 7 from Supabase:', err);
@@ -2206,3 +2353,999 @@ CREATE TABLE IF NOT EXISTS profile_analyses (
 ALTER TABLE university_scholarships ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Public Read Access" ON university_scholarships FOR SELECT USING (true);
 `;
+
+// ============================================================================
+// SAT MATH SECTION SUPABASE INTEGRATION
+// ============================================================================
+import { FullSatMathChapter } from '../data/satMathConcepts';
+
+let cachedMathChapter1: FullSatMathChapter | null = null;
+
+export async function fetchSatMathChapter1FromSupabase(): Promise<{ data: FullSatMathChapter | null; error: any }> {
+  if (!isSupabaseConfigured() || !supabase) {
+    return { data: null, error: new Error('Supabase is not configured') };
+  }
+
+  if (cachedMathChapter1) {
+    return { data: cachedMathChapter1, error: null };
+  }
+
+  const localCache = getLocalStorageCache<FullSatMathChapter>('sat_math_ch1_cache');
+  if (localCache) {
+    cachedMathChapter1 = localCache;
+    return { data: localCache, error: null };
+  }
+
+  try {
+    const [theoryRes, exercisesRes] = await withTimeout(
+      Promise.all([
+        supabase
+          .from('sat_math_ch1_theory')
+          .select('*')
+          .eq('chapter_id', 'exponents-and-radicals')
+          .single(),
+        supabase
+          .from('sat_math_ch1_exercises')
+          .select('*')
+          .order('question_number', { ascending: true })
+      ]),
+      3500
+    ) as any[];
+
+    if (theoryRes.error) throw theoryRes.error;
+    if (exercisesRes.error) throw exercisesRes.error;
+
+    const rawTheory = theoryRes.data;
+    const rawExercises = exercisesRes.data || [];
+
+    if (!rawTheory) {
+      return { data: null, error: new Error('No theory found in Supabase for Math Ch1') };
+    }
+
+    const exerciseGroup1Questions = rawExercises
+      .filter((row: any) => row.exercise_number === 1)
+      .map((row: any) => ({
+        id: row.id,
+        number: row.question_number,
+        exerciseNumber: row.exercise_number,
+        exerciseTitle: row.exercise_title,
+        question: row.question,
+        expression: row.expression || undefined,
+        diagram: row.diagram || undefined,
+        diagrams: row.diagrams || undefined,
+        tableData: row.table_data || undefined,
+        table: row.table_data || undefined,
+        tablesData: row.tables_data || undefined,
+        optionTables: row.option_tables || undefined,
+        options: row.options || [],
+        correctIndex: row.correct_index,
+        correctAnswerText: row.correct_answer_text,
+        explanation: row.explanation,
+        distractorExplanations: row.distractor_explanations || {}
+      }));
+
+    const exerciseGroup2Questions = rawExercises
+      .filter((row: any) => row.exercise_number === 2)
+      .map((row: any) => ({
+        id: row.id,
+        number: row.question_number,
+        exerciseNumber: row.exercise_number,
+        exerciseTitle: row.exercise_title,
+        question: row.question,
+        expression: row.expression || undefined,
+        diagram: row.diagram || undefined,
+        diagrams: row.diagrams || undefined,
+        tableData: row.table_data || undefined,
+        table: row.table_data || undefined,
+        tablesData: row.tables_data || undefined,
+        optionTables: row.option_tables || undefined,
+        options: row.options || [],
+        correctIndex: row.correct_index,
+        correctAnswerText: row.correct_answer_text,
+        explanation: row.explanation,
+        distractorExplanations: row.distractor_explanations || {}
+      }));
+
+    const result: FullSatMathChapter = {
+      id: rawTheory.chapter_id,
+      chapterNumber: rawTheory.chapter_number,
+      chapterTitle: rawTheory.chapter_title,
+      pageNumber: rawTheory.page_number,
+      quote: rawTheory.quote || '',
+      introduction: rawTheory.introduction,
+      sections: rawTheory.sections || [],
+      exerciseGroups: [
+        {
+          exerciseNumber: 1,
+          title: 'Exercise Set 1: Radical Isolation & Exponent Fundamentals',
+          description: '25 high-precision questions covering foundational exponent operations, rational radical conversions, negative powers, and equation solving.',
+          questions: exerciseGroup1Questions
+        },
+        {
+          exerciseNumber: 2,
+          title: 'Exercise Set 2: Advanced Exponent Equations & Desmos Power Tactics',
+          description: '25 challenge questions covering multi-variable exponential systems, quadratic-exponential substitutions, fractional radical roots, and high-speed calculator shortcuts.',
+          questions: exerciseGroup2Questions
+        }
+      ]
+    };
+
+    cachedMathChapter1 = result;
+    setLocalStorageCache('sat_math_ch1_cache', result);
+    return { data: result, error: null };
+  } catch (err) {
+    return { data: null, error: err };
+  }
+}
+
+let cachedMathChapter2: FullSatMathChapter | null = null;
+
+export async function fetchSatMathChapter2FromSupabase(): Promise<{ data: FullSatMathChapter | null; error: any }> {
+  if (!isSupabaseConfigured() || !supabase) {
+    return { data: null, error: new Error('Supabase is not configured') };
+  }
+
+  if (cachedMathChapter2) {
+    return { data: cachedMathChapter2, error: null };
+  }
+
+  const localCache = getLocalStorageCache<FullSatMathChapter>('sat_math_ch2_cache');
+  if (localCache) {
+    cachedMathChapter2 = localCache;
+    return { data: localCache, error: null };
+  }
+
+  try {
+    const [theoryRes, exercisesRes] = await withTimeout(
+      Promise.all([
+        supabase
+          .from('sat_math_ch2_theory')
+          .select('*')
+          .eq('chapter_id', 'linear-expressions')
+          .single(),
+        supabase
+          .from('sat_math_ch2_exercises')
+          .select('*')
+          .order('question_number', { ascending: true })
+      ]),
+      4000
+    ) as any[];
+
+    if (theoryRes.error) throw theoryRes.error;
+    if (exercisesRes.error) throw exercisesRes.error;
+
+    const rawTheory = theoryRes.data;
+    const rawExercises = exercisesRes.data || [];
+
+    if (!rawTheory) {
+      return { data: null, error: new Error('No theory found in Supabase for Math Ch2') };
+    }
+
+    const mapQuestions = (rows: any[]) => rows.map((row: any) => ({
+      id: row.id,
+      number: row.question_number,
+      exerciseNumber: row.exercise_number,
+      exerciseTitle: row.exercise_title,
+      question: row.question,
+      expression: row.expression || undefined,
+      diagram: row.diagram || undefined,
+      diagrams: row.diagrams || undefined,
+      tableData: row.table_data || undefined,
+      table: row.table_data || undefined,
+      tablesData: row.tables_data || undefined,
+      optionTables: row.option_tables || undefined,
+      options: row.options || [],
+      correctIndex: row.correct_index,
+      correctAnswerText: row.correct_answer_text,
+      explanation: row.explanation,
+      distractorExplanations: row.distractor_explanations || {}
+    }));
+
+    const result: FullSatMathChapter = {
+      id: rawTheory.chapter_id,
+      chapterNumber: rawTheory.chapter_number,
+      chapterTitle: rawTheory.chapter_title,
+      pageNumber: rawTheory.page_number,
+      quote: rawTheory.quote || '',
+      introduction: rawTheory.introduction,
+      sections: rawTheory.sections || [],
+      exerciseGroups: [
+        {
+          exerciseNumber: 1,
+          title: 'Exercise Set 1: Radical Isolation & Exponent Fundamentals',
+          description: '25 high-precision questions covering foundational exponent operations, rational radical conversions, negative powers, and equation solving.',
+          questions: mapQuestions(rawExercises.filter((r: any) => r.exercise_number === 1))
+        },
+        {
+          exerciseNumber: 2,
+          title: 'Exercise Set 2: Advanced Exponent Equations & Desmos Power Tactics',
+          description: '25 challenge questions covering multi-variable exponential systems, quadratic-exponential substitutions, fractional radical roots, and high-speed calculator shortcuts.',
+          questions: mapQuestions(rawExercises.filter((r: any) => r.exercise_number === 2))
+        }
+      ]
+    };
+
+    cachedMathChapter2 = result;
+    setLocalStorageCache('sat_math_ch2_cache', result);
+    return { data: result, error: null };
+  } catch (err) {
+    return { data: null, error: err };
+  }
+}
+
+let cachedMathChapter3: FullSatMathChapter | null = null;
+
+export async function fetchSatMathChapter3FromSupabase(): Promise<{ data: FullSatMathChapter | null; error: any }> {
+  if (!isSupabaseConfigured() || !supabase) {
+    return { data: null, error: new Error('Supabase is not configured') };
+  }
+
+  if (cachedMathChapter3) {
+    return { data: cachedMathChapter3, error: null };
+  }
+
+  const localCache = getLocalStorageCache<FullSatMathChapter>('sat_math_ch3_cache');
+  if (localCache) {
+    cachedMathChapter3 = localCache;
+    return { data: localCache, error: null };
+  }
+
+  try {
+    const [theoryRes, exercisesRes] = await withTimeout(
+      Promise.all([
+        supabase
+          .from('sat_math_ch3_theory')
+          .select('*')
+          .eq('chapter_id', 'equations-and-systems')
+          .single(),
+        supabase
+          .from('sat_math_ch3_exercises')
+          .select('*')
+          .order('question_number', { ascending: true })
+      ]),
+      4000
+    ) as any[];
+
+    if (theoryRes.error) throw theoryRes.error;
+    if (exercisesRes.error) throw exercisesRes.error;
+
+    const rawTheory = theoryRes.data;
+    const rawExercises = exercisesRes.data || [];
+
+    if (!rawTheory) {
+      return { data: null, error: new Error('No theory found in Supabase for Math Ch3') };
+    }
+
+    const mapQuestions = (rows: any[]) => rows.map((row: any) => ({
+      id: row.id,
+      number: row.question_number,
+      exerciseNumber: row.exercise_number,
+      exerciseTitle: row.exercise_title,
+      question: row.question,
+      expression: row.expression || undefined,
+      diagram: row.diagram || undefined,
+      diagrams: row.diagrams || undefined,
+      tableData: row.table_data || undefined,
+      table: row.table_data || undefined,
+      tablesData: row.tables_data || undefined,
+      optionTables: row.option_tables || undefined,
+      options: row.options || [],
+      correctIndex: row.correct_index,
+      correctAnswerText: row.correct_answer_text,
+      explanation: row.explanation,
+      distractorExplanations: row.distractor_explanations || {}
+    }));
+
+    const result: FullSatMathChapter = {
+      id: rawTheory.chapter_id,
+      chapterNumber: rawTheory.chapter_number,
+      chapterTitle: rawTheory.chapter_title,
+      pageNumber: rawTheory.page_number,
+      quote: rawTheory.quote || '',
+      introduction: rawTheory.introduction,
+      sections: rawTheory.sections || [],
+      exerciseGroups: rawTheory.exercise_groups.map((eg: any) => ({
+        ...eg,
+        questions: mapQuestions(rawExercises.filter((r: any) => r.exercise_number === eg.exerciseNumber))
+      }))
+    };
+
+    cachedMathChapter3 = result;
+    setLocalStorageCache('sat_math_ch3_cache', result);
+    return { data: result, error: null };
+  } catch (err) {
+    return { data: null, error: err };
+  }
+}
+
+let cachedMathChapter4: FullSatMathChapter | null = null;
+
+export async function fetchSatMathChapter4FromSupabase(): Promise<{ data: FullSatMathChapter | null; error: any }> {
+  if (!isSupabaseConfigured() || !supabase) {
+    return { data: null, error: new Error('Supabase is not configured') };
+  }
+
+  if (cachedMathChapter4) {
+    return { data: cachedMathChapter4, error: null };
+  }
+
+  const localCache = getLocalStorageCache<FullSatMathChapter>('sat_math_ch4_cache');
+  if (localCache) {
+    cachedMathChapter4 = localCache;
+    return { data: localCache, error: null };
+  }
+
+  try {
+    const [theoryRes, exercisesRes] = await withTimeout(
+      Promise.all([
+        supabase
+          .from('sat_math_ch4_theory')
+          .select('*')
+          .eq('chapter_id', 'functions-and-quadratics')
+          .single(),
+        supabase
+          .from('sat_math_ch4_exercises')
+          .select('*')
+          .order('question_number', { ascending: true })
+      ]),
+      4000
+    ) as any[];
+
+    if (theoryRes.error) throw theoryRes.error;
+    if (exercisesRes.error) throw exercisesRes.error;
+
+    const rawTheory = theoryRes.data;
+    const rawExercises = exercisesRes.data || [];
+
+    if (!rawTheory) {
+      return { data: null, error: new Error('No theory found in Supabase for Math Ch4') };
+    }
+
+    const mapQuestions = (rows: any[]) => rows.map((row: any) => ({
+      id: row.id,
+      number: row.question_number,
+      exerciseNumber: row.exercise_number,
+      exerciseTitle: row.exercise_title,
+      question: row.question,
+      expression: row.expression || undefined,
+      diagram: row.diagram || undefined,
+      diagrams: row.diagrams || undefined,
+      tableData: row.table_data || undefined,
+      table: row.table_data || undefined,
+      tablesData: row.tables_data || undefined,
+      optionTables: row.option_tables || undefined,
+      options: row.options || [],
+      correctIndex: row.correct_index,
+      correctAnswerText: row.correct_answer_text,
+      explanation: row.explanation,
+      distractorExplanations: row.distractor_explanations || {}
+    }));
+
+    const result: FullSatMathChapter = {
+      id: rawTheory.chapter_id,
+      chapterNumber: rawTheory.chapter_number,
+      chapterTitle: rawTheory.chapter_title,
+      pageNumber: rawTheory.page_number,
+      quote: rawTheory.quote || '',
+      introduction: rawTheory.introduction,
+      sections: rawTheory.sections || [],
+      exerciseGroups: rawTheory.exercise_groups.map((eg: any) => ({
+        ...eg,
+        questions: mapQuestions(rawExercises.filter((r: any) => r.exercise_number === eg.exerciseNumber))
+      }))
+    };
+
+    cachedMathChapter4 = result;
+    setLocalStorageCache('sat_math_ch4_cache', result);
+    return { data: result, error: null };
+  } catch (err) {
+    return { data: null, error: err };
+  }
+}
+
+let cachedMathChapter5: FullSatMathChapter | null = null;
+
+export async function fetchSatMathChapter5FromSupabase(): Promise<{ data: FullSatMathChapter | null; error: any }> {
+  if (!isSupabaseConfigured() || !supabase) {
+    return { data: null, error: new Error('Supabase is not configured') };
+  }
+
+  if (cachedMathChapter5) {
+    return { data: cachedMathChapter5, error: null };
+  }
+
+  const localCache = getLocalStorageCache<FullSatMathChapter>('sat_math_ch5_cache');
+  if (localCache) {
+    cachedMathChapter5 = localCache;
+    return { data: localCache, error: null };
+  }
+
+  try {
+    const [theoryRes, exercisesRes] = await withTimeout(
+      Promise.all([
+        supabase
+          .from('sat_math_ch5_theory')
+          .select('*')
+          .eq('chapter_id', 'ch5')
+          .single(),
+        supabase
+          .from('sat_math_ch5_exercises')
+          .select('*')
+          .order('question_number', { ascending: true })
+      ]),
+      4000
+    ) as any[];
+
+    if (theoryRes.error) throw theoryRes.error;
+    if (exercisesRes.error) throw exercisesRes.error;
+
+    const rawTheory = theoryRes.data;
+    const rawExercises = exercisesRes.data || [];
+
+    if (!rawTheory) {
+      return { data: null, error: new Error('No theory found in Supabase for Math Ch5') };
+    }
+
+    const mapQuestions = (rows: any[]) => rows.map((row: any) => ({
+      id: row.id,
+      number: row.question_number,
+      exerciseNumber: row.exercise_number,
+      exerciseTitle: row.exercise_title,
+      question: row.question,
+      expression: row.expression || undefined,
+      diagram: row.diagram || undefined,
+      diagrams: row.diagrams || undefined,
+      tableData: row.table_data || undefined,
+      table: row.table_data || undefined,
+      tablesData: row.tables_data || undefined,
+      optionTables: row.option_tables || undefined,
+      options: row.options || [],
+      correctIndex: row.correct_index,
+      correctAnswerText: row.correct_answer_text,
+      explanation: row.explanation,
+      distractorExplanations: row.distractor_explanations || {}
+    }));
+
+    const result: FullSatMathChapter = {
+      id: rawTheory.chapter_id,
+      chapterNumber: rawTheory.chapter_number,
+      chapterTitle: rawTheory.chapter_title,
+      pageNumber: rawTheory.page_number,
+      quote: rawTheory.quote || '',
+      introduction: rawTheory.introduction,
+      sections: rawTheory.sections || [],
+      exerciseGroups: rawTheory.exercise_groups.map((eg: any) => ({
+        ...eg,
+        questions: mapQuestions(rawExercises.filter((r: any) => r.exercise_number === eg.exerciseNumber))
+      }))
+    };
+
+    cachedMathChapter5 = result;
+    setLocalStorageCache('sat_math_ch5_cache', result);
+    return { data: result, error: null };
+  } catch (err) {
+    return { data: null, error: err };
+  }
+}
+
+let cachedMathChapter6: FullSatMathChapter | null = null;
+
+export async function fetchSatMathChapter6FromSupabase(): Promise<{ data: FullSatMathChapter | null; error: any }> {
+  if (!isSupabaseConfigured() || !supabase) {
+    return { data: null, error: new Error('Supabase is not configured') };
+  }
+
+  if (cachedMathChapter6) {
+    return { data: cachedMathChapter6, error: null };
+  }
+
+  const localCache = getLocalStorageCache<FullSatMathChapter>('sat_math_ch6_cache');
+  if (localCache) {
+    cachedMathChapter6 = localCache;
+    return { data: localCache, error: null };
+  }
+
+  try {
+    const [theoryRes, exercisesRes] = await withTimeout(
+      Promise.all([
+        supabase
+          .from('sat_math_ch6_theory')
+          .select('*')
+          .eq('chapter_id', 'inequalities')
+          .single(),
+        supabase
+          .from('sat_math_ch6_exercises')
+          .select('*')
+          .eq('chapter_number', 6)
+          .order('exercise_number', { ascending: true })
+          .order('question_number', { ascending: true })
+      ]),
+      5000
+    ) as any[];
+
+    if (theoryRes.error) throw theoryRes.error;
+    if (exercisesRes.error) throw exercisesRes.error;
+
+    const rawTheory = theoryRes.data;
+    const rawExercises = exercisesRes.data || [];
+
+    if (!rawTheory) {
+      return { data: null, error: new Error('No theory found in Supabase for Math Ch6') };
+    }
+
+    const mapQuestions = (rows: any[]) => rows.map((row: any) => ({
+      id: row.id,
+      number: row.question_number,
+      exerciseNumber: row.exercise_number,
+      exerciseTitle: row.exercise_title,
+      question: row.question,
+      expression: row.expression || undefined,
+      diagram: row.diagram || undefined,
+      diagrams: row.diagrams || undefined,
+      tableData: row.table_data || undefined,
+      table: row.table_data || undefined,
+      tablesData: row.tables_data || undefined,
+      optionTables: row.option_tables || undefined,
+      options: row.options || [],
+      correctIndex: row.correct_index,
+      correctAnswerText: row.correct_answer_text,
+      explanation: row.explanation,
+      distractorExplanations: row.distractor_explanations || {}
+    }));
+
+    const result: FullSatMathChapter = {
+      id: rawTheory.chapter_id,
+      chapterNumber: rawTheory.chapter_number,
+      chapterTitle: rawTheory.chapter_title,
+      pageNumber: rawTheory.page_number,
+      quote: rawTheory.quote || '',
+      introduction: rawTheory.introduction,
+      sections: rawTheory.sections || [],
+      exerciseGroups: rawTheory.exercise_groups.map((eg: any) => ({
+        ...eg,
+        questions: mapQuestions(rawExercises.filter((r: any) => r.exercise_number === eg.exerciseNumber))
+      }))
+    };
+
+    cachedMathChapter6 = result;
+    setLocalStorageCache('sat_math_ch6_cache', result);
+    return { data: result, error: null };
+  } catch (err) {
+    return { data: null, error: err };
+  }
+}
+
+let cachedMathChapter7: FullSatMathChapter | null = null;
+
+export async function fetchSatMathChapter7FromSupabase(): Promise<{ data: FullSatMathChapter | null; error: any }> {
+  if (!isSupabaseConfigured() || !supabase) {
+    return { data: null, error: new Error('Supabase is not configured') };
+  }
+
+  if (cachedMathChapter7) {
+    return { data: cachedMathChapter7, error: null };
+  }
+
+  const localCache = getLocalStorageCache<FullSatMathChapter>('sat_math_ch7_cache');
+  if (localCache) {
+    cachedMathChapter7 = localCache;
+    return { data: localCache, error: null };
+  }
+
+  try {
+    const [theoryRes, exercisesRes] = await withTimeout(
+      Promise.all([
+        supabase
+          .from('sat_math_ch7_theory')
+          .select('*')
+          .eq('chapter_id', 'geometry-and-trigonometry')
+          .single(),
+        supabase
+          .from('sat_math_ch7_exercises')
+          .select('*')
+          .eq('chapter_number', 7)
+          .order('exercise_number', { ascending: true })
+          .order('question_number', { ascending: true })
+      ]),
+      8000 // Increased timeout for 125 questions
+    ) as any[];
+
+    if (theoryRes.error) throw theoryRes.error;
+    if (exercisesRes.error) throw exercisesRes.error;
+
+    const rawTheory = theoryRes.data;
+    const rawExercises = exercisesRes.data || [];
+
+    if (!rawTheory) {
+      return { data: null, error: new Error('No theory found in Supabase for Math Ch7') };
+    }
+
+    const mapQuestions = (rows: any[]) => rows.map((row: any) => ({
+      id: row.id,
+      number: row.question_number,
+      exerciseNumber: row.exercise_number,
+      exerciseTitle: row.exercise_title,
+      question: row.question,
+      expression: row.expression || undefined,
+      diagram: row.diagram || undefined,
+      diagrams: row.diagrams || undefined,
+      tableData: row.table_data || undefined,
+      table: row.table_data || undefined,
+      tablesData: row.tables_data || undefined,
+      optionTables: row.option_tables || undefined,
+      options: row.options || [],
+      correctIndex: row.correct_index,
+      correctAnswerText: row.correct_answer_text,
+      explanation: row.explanation,
+      distractorExplanations: row.distractor_explanations || {}
+    }));
+
+    const result: FullSatMathChapter = {
+      id: rawTheory.chapter_id,
+      chapterNumber: rawTheory.chapter_number,
+      chapterTitle: rawTheory.chapter_title,
+      pageNumber: rawTheory.page_number,
+      quote: rawTheory.quote || '',
+      introduction: rawTheory.introduction,
+      sections: rawTheory.sections || [],
+      exerciseGroups: rawTheory.exercise_groups.map((eg: any) => ({
+        ...eg,
+        questions: mapQuestions(rawExercises.filter((r: any) => r.exercise_number === eg.exerciseNumber))
+      }))
+    };
+
+    cachedMathChapter7 = result;
+    setLocalStorageCache('sat_math_ch7_cache', result);
+    return { data: result, error: null };
+  } catch (err) {
+    return { data: null, error: err };
+  }
+}
+
+let cachedMathChapter8: FullSatMathChapter | null = null;
+
+export async function fetchSatMathChapter8FromSupabase(): Promise<{ data: FullSatMathChapter | null; error: any }> {
+  if (!isSupabaseConfigured() || !supabase) {
+    return { data: null, error: new Error('Supabase is not configured') };
+  }
+
+  if (cachedMathChapter8) {
+    return { data: cachedMathChapter8, error: null };
+  }
+
+  const localCache = getLocalStorageCache<FullSatMathChapter>('sat_math_ch8_cache');
+  if (localCache) {
+    cachedMathChapter8 = localCache;
+    return { data: localCache, error: null };
+  }
+
+  try {
+    const [theoryRes, exercisesRes] = await withTimeout(
+      Promise.all([
+        supabase
+          .from('sat_math_ch8_theory')
+          .select('*')
+          .eq('chapter_id', 'linear-and-exponential-growth')
+          .single(),
+        supabase
+          .from('sat_math_ch8_exercises')
+          .select('*')
+          .eq('chapter_number', 8)
+          .order('exercise_number', { ascending: true })
+          .order('question_number', { ascending: true })
+      ]),
+      5000
+    ) as any[];
+
+    if (theoryRes.error) throw theoryRes.error;
+    if (exercisesRes.error) throw exercisesRes.error;
+
+    const rawTheory = theoryRes.data;
+    const rawExercises = exercisesRes.data || [];
+
+    if (!rawTheory) {
+      return { data: null, error: new Error('No theory found in Supabase for Math Ch8') };
+    }
+
+    const mapQuestions = (rows: any[]) => rows.map((row: any) => ({
+      id: row.id,
+      number: row.question_number,
+      exerciseNumber: row.exercise_number,
+      exerciseTitle: row.exercise_title,
+      question: row.question,
+      expression: row.expression || undefined,
+      diagram: row.diagram || undefined,
+      diagrams: row.diagrams || undefined,
+      tableData: row.table_data || undefined,
+      table: row.table_data || undefined,
+      tablesData: row.tables_data || undefined,
+      optionTables: row.option_tables || undefined,
+      options: row.options || [],
+      correctIndex: row.correct_index,
+      correctAnswerText: row.correct_answer_text,
+      explanation: row.explanation,
+      distractorExplanations: row.distractor_explanations || {}
+    }));
+
+    const result: FullSatMathChapter = {
+      id: rawTheory.chapter_id,
+      chapterNumber: rawTheory.chapter_number,
+      chapterTitle: rawTheory.chapter_title,
+      pageNumber: rawTheory.page_number,
+      quote: rawTheory.quote || '',
+      introduction: rawTheory.introduction,
+      sections: rawTheory.sections || [],
+      exerciseGroups: rawTheory.exercise_groups.map((eg: any) => ({
+        ...eg,
+        questions: mapQuestions(rawExercises.filter((r: any) => r.exercise_number === eg.exerciseNumber))
+      }))
+    };
+
+    cachedMathChapter8 = result;
+    setLocalStorageCache('sat_math_ch8_cache', result);
+    return { data: result, error: null };
+  } catch (err) {
+    return { data: null, error: err };
+  }
+}
+
+let cachedMathChapter9: FullSatMathChapter | null = null;
+
+export async function fetchSatMathChapter9FromSupabase(): Promise<{ data: FullSatMathChapter | null; error: any }> {
+  if (!isSupabaseConfigured() || !supabase) {
+    return { data: null, error: new Error('Supabase is not configured') };
+  }
+
+  if (cachedMathChapter9) {
+    return { data: cachedMathChapter9, error: null };
+  }
+
+  const localCache = getLocalStorageCache<FullSatMathChapter>('sat_math_ch9_cache');
+  if (localCache) {
+    cachedMathChapter9 = localCache;
+    return { data: localCache, error: null };
+  }
+
+  try {
+    const [theoryRes, exercisesRes] = await withTimeout(
+      Promise.all([
+        supabase
+          .from('sat_math_ch9_theory')
+          .select('*')
+          .eq('chapter_id', 'ch9')
+          .single(),
+        supabase
+          .from('sat_math_ch9_exercises')
+          .select('*')
+          .eq('chapter_number', 9)
+          .order('exercise_number', { ascending: true })
+          .order('question_number', { ascending: true })
+      ]),
+      5000
+    ) as any[];
+
+    if (theoryRes.error) throw theoryRes.error;
+    if (exercisesRes.error) throw exercisesRes.error;
+
+    const rawTheory = theoryRes.data;
+    const rawExercises = exercisesRes.data || [];
+
+    if (!rawTheory) {
+      return { data: null, error: new Error('No theory found in Supabase for Math Ch9') };
+    }
+
+    const mapQuestions = (rows: any[]) => rows.map((row: any) => ({
+      id: row.id,
+      number: row.question_number,
+      exerciseNumber: row.exercise_number,
+      exerciseTitle: row.exercise_title,
+      question: row.question,
+      expression: row.expression || undefined,
+      diagram: row.diagram || undefined,
+      diagrams: row.diagrams || undefined,
+      tableData: row.table_data || undefined,
+      table: row.table_data || undefined,
+      tablesData: row.tables_data || undefined,
+      optionTables: row.option_tables || undefined,
+      options: row.options || [],
+      correctIndex: row.correct_index,
+      correctAnswerText: row.correct_answer_text,
+      explanation: row.explanation,
+      distractorExplanations: row.distractor_explanations || {}
+    }));
+
+    const result: FullSatMathChapter = {
+      id: rawTheory.chapter_id,
+      chapterNumber: rawTheory.chapter_number,
+      chapterTitle: rawTheory.chapter_title,
+      pageNumber: rawTheory.page_number,
+      quote: rawTheory.quote || '',
+      introduction: rawTheory.introduction,
+      sections: rawTheory.sections || [],
+      exerciseGroups: rawTheory.exercise_groups.map((eg: any) => ({
+        ...eg,
+        questions: mapQuestions(rawExercises.filter((r: any) => r.exercise_number === eg.exerciseNumber))
+      }))
+    };
+
+    cachedMathChapter9 = result;
+    setLocalStorageCache('sat_math_ch9_cache', result);
+    return { data: result, error: null };
+  } catch (err) {
+    return { data: null, error: err };
+  }
+}
+
+let cachedMathChapter10: FullSatMathChapter | null = null;
+
+export async function fetchSatMathChapter10FromSupabase(): Promise<{ data: FullSatMathChapter | null; error: any }> {
+  if (!isSupabaseConfigured() || !supabase) {
+    return { data: null, error: new Error('Supabase is not configured') };
+  }
+
+  if (cachedMathChapter10) {
+    return { data: cachedMathChapter10, error: null };
+  }
+
+  const localCache = getLocalStorageCache<FullSatMathChapter>('sat_math_ch10_cache');
+  if (localCache) {
+    cachedMathChapter10 = localCache;
+    return { data: localCache, error: null };
+  }
+
+  try {
+    const [theoryRes, exercisesRes] = await withTimeout(
+      Promise.all([
+        supabase
+          .from('sat_math_ch10_theory')
+          .select('*')
+          .eq('chapter_id', 'sat-ch10-statistics')
+          .single(),
+        supabase
+          .from('sat_math_ch10_exercises')
+          .select('*')
+          .eq('chapter_number', 10)
+          .order('exercise_number', { ascending: true })
+          .order('question_number', { ascending: true })
+      ]),
+      8000 // Increased timeout for Mega Chapter
+    ) as any[];
+
+    if (theoryRes.error) throw theoryRes.error;
+    if (exercisesRes.error) throw exercisesRes.error;
+
+    const rawTheory = theoryRes.data;
+    const rawExercises = exercisesRes.data || [];
+
+    if (!rawTheory) {
+      return { data: null, error: new Error('No theory found in Supabase for Math Ch10') };
+    }
+
+    const mapQuestions = (rows: any[]) => rows.map((row: any) => ({
+      id: row.id,
+      number: row.question_number,
+      exerciseNumber: row.exercise_number,
+      exerciseTitle: row.exercise_title,
+      question: row.question,
+      expression: row.expression || undefined,
+      diagram: row.diagram || undefined,
+      diagrams: row.diagrams || undefined,
+      tableData: row.table_data || undefined,
+      table: row.table_data || undefined,
+      tablesData: row.tables_data || undefined,
+      optionTables: row.option_tables || undefined,
+      options: row.options || [],
+      correctIndex: row.correct_index,
+      correctAnswerText: row.correct_answer_text,
+      explanation: row.explanation,
+      distractorExplanations: row.distractor_explanations || {}
+    }));
+
+    const result: FullSatMathChapter = {
+      id: rawTheory.chapter_id,
+      chapterNumber: rawTheory.chapter_number,
+      chapterTitle: rawTheory.chapter_title,
+      pageNumber: rawTheory.page_number,
+      quote: rawTheory.quote || '',
+      introduction: rawTheory.introduction,
+      sections: rawTheory.sections || [],
+      exerciseGroups: rawTheory.exercise_groups.map((eg: any) => ({
+        ...eg,
+        questions: mapQuestions(rawExercises.filter((r: any) => r.exercise_number === eg.exerciseNumber))
+      }))
+    };
+
+    cachedMathChapter10 = result;
+    setLocalStorageCache('sat_math_ch10_cache', result);
+    return { data: result, error: null };
+  } catch (err) {
+    return { data: null, error: err };
+  }
+}
+
+let cachedMathChapter11: FullSatMathChapter | null = null;
+
+export async function fetchSatMathChapter11FromSupabase(): Promise<{ data: FullSatMathChapter | null; error: any }> {
+  if (!isSupabaseConfigured() || !supabase) {
+    return { data: null, error: new Error('Supabase is not configured') };
+  }
+
+  if (cachedMathChapter11) {
+    return { data: cachedMathChapter11, error: null };
+  }
+
+  const localCache = getLocalStorageCache<FullSatMathChapter>('sat_math_ch11_cache');
+  if (localCache) {
+    cachedMathChapter11 = localCache;
+    return { data: localCache, error: null };
+  }
+
+  try {
+    const [theoryRes, exercisesRes] = await withTimeout(
+      Promise.all([
+        supabase
+          .from('sat_math_ch11_theory')
+          .select('*')
+          .eq('chapter_id', 'sat-math-ch11-reading-data')
+          .single(),
+        supabase
+          .from('sat_math_ch11_exercises')
+          .select('*')
+          .eq('chapter_number', 11)
+          .order('exercise_number', { ascending: true })
+          .order('question_number', { ascending: true })
+      ]),
+      8000
+    ) as any[];
+
+    if (theoryRes.error) throw theoryRes.error;
+    if (exercisesRes.error) throw exercisesRes.error;
+
+    const rawTheory = theoryRes.data;
+    const rawExercises = exercisesRes.data || [];
+
+    if (!rawTheory) {
+      return { data: null, error: new Error('No theory found in Supabase for Math Ch11') };
+    }
+
+    const mapQuestions = (rows: any[]) => rows.map((row: any) => ({
+      id: row.id,
+      number: row.question_number,
+      exerciseNumber: row.exercise_number,
+      exerciseTitle: row.exercise_title,
+      question: row.question,
+      expression: row.expression || undefined,
+      diagram: row.diagram || undefined,
+      diagrams: row.diagrams || undefined,
+      tableData: row.table_data || undefined,
+      table: row.table_data || undefined,
+      tablesData: row.tables_data || undefined,
+      optionTables: row.option_tables || undefined,
+      options: row.options || [],
+      correctIndex: row.correct_index,
+      correctAnswerText: row.correct_answer_text,
+      explanation: row.explanation,
+      distractorExplanations: row.distractor_explanations || {}
+    }));
+
+    const result: FullSatMathChapter = {
+      id: rawTheory.chapter_id,
+      chapterNumber: rawTheory.chapter_number,
+      chapterTitle: rawTheory.chapter_title,
+      pageNumber: rawTheory.page_number,
+      quote: rawTheory.quote || '',
+      introduction: rawTheory.introduction,
+      sections: rawTheory.sections || [],
+      exerciseGroups: rawTheory.exercise_groups.map((eg: any) => ({
+        ...eg,
+        questions: mapQuestions(rawExercises.filter((r: any) => r.exercise_number === eg.exerciseNumber))
+      }))
+    };
+
+    cachedMathChapter11 = result;
+    setLocalStorageCache('sat_math_ch11_cache', result);
+    return { data: result, error: null };
+  } catch (err) {
+    return { data: null, error: err };
+  }
+}

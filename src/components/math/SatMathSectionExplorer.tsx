@@ -2,6 +2,8 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { saveSatPracticeProgress } from '../../lib/userStorage';
 import { shuffleExerciseGroupQuestions } from '../../utils/questionShuffler';
+import { fetchSatMathChapter1FromSupabase, fetchSatMathChapter2FromSupabase, fetchSatMathChapter3FromSupabase, fetchSatMathChapter4FromSupabase, fetchSatMathChapter5FromSupabase, fetchSatMathChapter6FromSupabase, fetchSatMathChapter7FromSupabase, fetchSatMathChapter8FromSupabase, fetchSatMathChapter9FromSupabase, fetchSatMathChapter10FromSupabase, fetchSatMathChapter11FromSupabase, isSupabaseConfigured } from '../../lib/supabase';
+import { InteractivePageLoader } from '../InteractivePageLoader';
 import {
   Calculator,
   BookOpen,
@@ -85,8 +87,71 @@ export const SatMathSectionExplorer: React.FC<SatMathSectionExplorerProps> = ({ 
   const [showOnlyIncorrect, setShowOnlyIncorrect] = useState<boolean>(false);
   const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
 
-  const currentChapter: FullSatMathChapter | undefined =
-    FULL_SAT_MATH_BOOK.find((ch) => ch.id === selectedChapterId);
+  const [currentChapterData, setCurrentChapterData] = useState<FullSatMathChapter | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (!selectedChapterId) return;
+
+    let isMounted = true;
+    setIsLoading(true);
+    setCurrentChapterData(null);
+
+    const timer = setTimeout(() => {
+      if (isMounted && !isSupabaseConfigured()) {
+        setIsLoading(false);
+      }
+    }, 600);
+
+    if (!isSupabaseConfigured()) {
+      return () => {
+        isMounted = false;
+        clearTimeout(timer);
+      };
+    }
+
+    const chapterFetchMap: Record<string, () => Promise<{ data: FullSatMathChapter | null; error: any }>> = {
+      'exponents-and-radicals': fetchSatMathChapter1FromSupabase,
+      'linear-expressions': fetchSatMathChapter2FromSupabase,
+      'equations-and-systems': fetchSatMathChapter3FromSupabase,
+      'functions-and-quadratics': fetchSatMathChapter4FromSupabase,
+      'ch5': fetchSatMathChapter5FromSupabase,
+      'inequalities': fetchSatMathChapter6FromSupabase,
+      'geometry-and-trigonometry': fetchSatMathChapter7FromSupabase,
+      'linear-and-exponential-growth': fetchSatMathChapter8FromSupabase,
+      'ch9': fetchSatMathChapter9FromSupabase,
+      'sat-ch10-statistics': fetchSatMathChapter10FromSupabase,
+      'sat-math-ch11-advanced': fetchSatMathChapter11FromSupabase,
+    };
+
+    const fetchFunc = chapterFetchMap[selectedChapterId];
+    if (!fetchFunc) {
+      clearTimeout(timer);
+      if (isMounted) setIsLoading(false);
+      return () => { isMounted = false; };
+    }
+
+    fetchFunc()
+      .then(({ data }) => {
+        if (isMounted) {
+          setCurrentChapterData(data);
+          setIsLoading(false);
+        }
+      })
+      .catch((err) => {
+        console.error(`Failed to fetch ${selectedChapterId} from Supabase:`, err);
+        if (isMounted) setIsLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+      clearTimeout(timer);
+    };
+  }, [selectedChapterId]);
+
+  const currentChapter: FullSatMathChapter | undefined = useMemo(() => {
+    return currentChapterData || FULL_SAT_MATH_BOOK.find((ch) => ch.id === selectedChapterId);
+  }, [selectedChapterId, currentChapterData]);
 
   const currentExerciseGroupRaw: MathExerciseGroup | undefined = currentChapter?.exerciseGroups.find(
     (eg) => eg.exerciseNumber === selectedExerciseTab
@@ -131,43 +196,51 @@ export const SatMathSectionExplorer: React.FC<SatMathSectionExplorerProps> = ({ 
   };
 
   // Calculate overall and exercise statistics
-  const totalChapterQuestions = currentChapter
-    ? (currentChapter.exerciseGroups || []).reduce((acc, eg) => acc + (eg.questions || []).length, 0)
-    : 0;
+  const stats = useMemo(() => {
+    const totalChapterQuestions = currentChapter
+      ? (currentChapter.exerciseGroups || []).reduce((acc, eg) => acc + (eg.questions || []).length, 0)
+      : 0;
 
-  const totalAnswered = currentChapter
-    ? Object.keys(userSelectedAnswers).filter((k) =>
-        (currentChapter.exerciseGroups || []).some((eg) => (eg.questions || []).some((q) => q.id === k))
-      ).length
-    : 0;
+    const totalAnswered = currentChapter
+      ? Object.keys(userSelectedAnswers).filter((k) =>
+          (currentChapter.exerciseGroups || []).some((eg) => (eg.questions || []).some((q) => q.id === k))
+        ).length
+      : 0;
 
-  const totalCorrect = currentChapter
-    ? Object.entries(userSelectedAnswers).filter(([k, val]) => {
-        const q = (currentChapter.exerciseGroups || []).flatMap((eg) => eg.questions || []).find((item) => item.id === k);
-        return q && q.correctIndex === val;
-      }).length
-    : 0;
+    const totalCorrect = currentChapter
+      ? Object.entries(userSelectedAnswers).filter(([k, val]) => {
+          const q = (currentChapter.exerciseGroups || []).flatMap((eg) => eg.questions || []).find((item) => item.id === k);
+          return q && q.correctIndex === val;
+        }).length
+      : 0;
 
-  const groupAnswered = currentExerciseGroup
-    ? (currentExerciseGroup.questions || []).filter((q) => userSelectedAnswers[q.id] !== undefined).length
-    : 0;
+    const groupAnswered = currentExerciseGroup
+      ? (currentExerciseGroup.questions || []).filter((q) => userSelectedAnswers[q.id] !== undefined).length
+      : 0;
 
-  const groupCorrect = currentExerciseGroup
-    ? currentExerciseGroup.questions.filter((q) => userSelectedAnswers[q.id] === q.correctIndex).length
-    : 0;
+    const groupCorrect = currentExerciseGroup
+      ? currentExerciseGroup.questions.filter((q) => userSelectedAnswers[q.id] === q.correctIndex).length
+      : 0;
+
+    return { totalChapterQuestions, totalAnswered, totalCorrect, groupAnswered, groupCorrect };
+  }, [currentChapter, currentExerciseGroup, userSelectedAnswers]);
+  
+  const { totalChapterQuestions, totalAnswered, totalCorrect, groupAnswered, groupCorrect } = stats;
+
+  const isCurrentlyLoading = isLoading || (selectedChapterId !== null && !currentChapterData);
 
   return (
     <div id="sat-math-section-explorer" className="space-y-6 text-slate-900 min-h-[600px] relative overflow-x-hidden w-full">
       <AnimatePresence mode="wait">
-        {!selectedChapterId || !currentChapter ? (
+        {!selectedChapterId ? (
           <motion.div
             key="list"
-            initial={{ opacity: 0, x: 12 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -12 }}
-            transition={{ duration: 0.1, ease: "easeOut" }}
-            className="space-y-6"
-          >
+              initial={{ opacity: 0, x: 12 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -12 }}
+              transition={{ duration: 0.1, ease: "easeOut" }}
+              className="space-y-6"
+            >
             {/* Simple Clean Header */}
             <div className="border-b border-slate-200 pb-2.5">
               <h2 className="text-xl sm:text-2xl font-black text-slate-950 tracking-tight">
@@ -223,6 +296,8 @@ export const SatMathSectionExplorer: React.FC<SatMathSectionExplorerProps> = ({ 
             })}
           </div>
         </motion.div>
+        ) : isCurrentlyLoading || !currentChapter ? (
+          <InteractivePageLoader key="loader" />
         ) : (
           <motion.div
             key={`chapter-${selectedChapterId}`}
@@ -363,9 +438,11 @@ export const SatMathSectionExplorer: React.FC<SatMathSectionExplorerProps> = ({ 
       <div className="relative overflow-x-hidden w-full">
         <div className={activeMainTab === 'theory' ? 'block' : 'hidden'}>
           <motion.div
-            initial={{ opacity: 0, x: 12 }}
-            animate={activeMainTab === 'theory' ? { opacity: 1, x: 0 } : { opacity: 0, x: 12 }}
-            transition={{ duration: 0.1, ease: "easeOut" }}
+            key="theory"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.15, ease: "easeOut" }}
             className="space-y-6"
           >
           {/* Quick Jump to Exercises Action Card */}
@@ -666,9 +743,11 @@ export const SatMathSectionExplorer: React.FC<SatMathSectionExplorerProps> = ({ 
 
         <div className={activeMainTab === 'exercises' ? 'block' : 'hidden'}>
           <motion.div
-            initial={{ opacity: 0, x: 12 }}
-            animate={activeMainTab === 'exercises' ? { opacity: 1, x: 0 } : { opacity: 0, x: 12 }}
-            transition={{ duration: 0.1, ease: "easeOut" }}
+            key="exercises"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.15, ease: "easeOut" }}
             className="space-y-6"
           >
           {/* EXERCISE GROUP TABS */}
@@ -806,7 +885,8 @@ export const SatMathSectionExplorer: React.FC<SatMathSectionExplorerProps> = ({ 
 
                 {/* SINGLE ACTIVE QUESTION CONTAINER */}
                 <div
-                  className={`bg-white border-2 rounded-2xl p-4 sm:p-6 transition-all space-y-4 shadow-xs ${
+                  key="active-question-container"
+                  className={`bg-white border-2 rounded-2xl p-4 sm:p-6 transition-colors duration-150 space-y-4 shadow-xs ${
                     isSubmitted
                       ? isCorrect
                         ? 'border-emerald-300 bg-emerald-50/20'
@@ -1048,30 +1128,30 @@ export const SatMathSectionExplorer: React.FC<SatMathSectionExplorerProps> = ({ 
                       <ArrowRight className="w-4 h-4" />
                     </button>
                   </div>
-                </div>
               </div>
+            </div>
             );
           })()}
+        </motion.div>
 
-          {/* SUB-VIEW 2: TABLE MATRIX MODE */}
-          {exerciseViewMode === 'table' && currentExerciseGroup && (
-            <SatMathExerciseTableMatrix
-              chapter={currentChapter}
-              selectedExerciseNumber={selectedExerciseTab}
-              userSelectedAnswers={userSelectedAnswers}
-              onSelectAnswer={handleSelectAnswer}
-            />
-          )}
-          </motion.div>
-        </div>
+        {/* SUB-VIEW 2: TABLE MATRIX MODE */}
+        {exerciseViewMode === 'table' && currentExerciseGroup && (
+          <SatMathExerciseTableMatrix
+            chapter={currentChapter}
+            selectedExerciseNumber={selectedExerciseTab}
+            userSelectedAnswers={userSelectedAnswers}
+            onSelectAnswer={handleSelectAnswer}
+          />
+        )}
+      </div>
 
-        <div className={activeMainTab === 'visual-studio' ? 'block' : 'hidden'}>
-          <motion.div
-            initial={{ opacity: 0, x: 12 }}
-            animate={activeMainTab === 'visual-studio' ? { opacity: 1, x: 0 } : { opacity: 0, x: 12 }}
-            transition={{ duration: 0.1, ease: "easeOut" }}
-            className="space-y-6"
-          >
+      <div className={activeMainTab === 'visual-studio' ? 'block' : 'hidden'}>
+        <motion.div
+          initial={{ opacity: 0, x: 12 }}
+          animate={activeMainTab === 'visual-studio' ? { opacity: 1, x: 0 } : { opacity: 0, x: 12 }}
+          transition={{ duration: 0.1, ease: "easeOut" }}
+          className="space-y-6"
+        >
           {/* SUB-VIEW TOGGLE SWITCHER */}
           <div className="bg-white border border-slate-200 rounded-2xl p-2.5 shadow-2xs flex flex-wrap items-center justify-between gap-3">
             <div className="flex flex-wrap items-center gap-2">
@@ -1129,16 +1209,17 @@ export const SatMathSectionExplorer: React.FC<SatMathSectionExplorerProps> = ({ 
           </motion.div>
         </div>
       </div>
+      </motion.div>
+      )
+      }
+      </AnimatePresence>
 
       <AnimatePresence>
         {isCalculatorOpen && (
           <SatCalculatorView onClose={() => setIsCalculatorOpen(false)} />
         )}
       </AnimatePresence>
-    </motion.div>
-  )}
-  </AnimatePresence>
-</div>
+    </div>
   );
 };
 

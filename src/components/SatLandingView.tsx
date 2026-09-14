@@ -171,56 +171,51 @@ export const SatLandingView: React.FC<SatLandingViewProps> = ({
       if (mSaved) mathAnswers = JSON.parse(mSaved);
     } catch {}
 
-    const readingAnswered = readingQs.filter(q => readingAnswers[q.id] !== undefined);
-    const readingCorrect = readingAnswered.filter(q => readingAnswers[q.id] === q.correct);
+    // Hardcode totals since data is now in Supabase
+    const readingTotal = 345;
+    const writingTotal = 670;
+    const mathTotal = 705;
+    const totalQsCount = readingTotal + writingTotal + mathTotal;
 
-    const writingAnswered = writingQs.filter(q => writingAnswers[q.id] !== undefined);
-    const writingCorrect = writingAnswered.filter(q => writingAnswers[q.id] === q.correct);
-
-    const mathAnswered = mathQs.filter(q => mathAnswers[q.id] !== undefined);
-    const mathCorrect = mathAnswered.filter(q => mathAnswers[q.id] === q.correct);
-
-    const totalQsCount = readingQs.length + writingQs.length + mathQs.length;
-    const totalAnsweredCount = readingAnswered.length + writingAnswered.length + mathAnswered.length;
-    const totalCorrectCount = readingCorrect.length + writingCorrect.length + mathCorrect.length;
+    const readingAnsweredCount = Object.keys(readingAnswers).length;
+    const writingAnsweredCount = Object.keys(writingAnswers).length;
+    const mathAnsweredCount = Object.keys(mathAnswers).length;
+    const totalAnsweredCount = readingAnsweredCount + writingAnsweredCount + mathAnsweredCount;
 
     const overallPct = totalQsCount > 0 ? Math.round((totalAnsweredCount / totalQsCount) * 100) : 0;
-    const overallAccuracy = totalAnsweredCount > 0 ? Math.round((totalCorrectCount / totalAnsweredCount) * 100) : 0;
 
     return {
       reading: {
-        total: readingQs.length,
-        answered: readingAnswered.length,
-        correct: readingCorrect.length,
-        pct: readingQs.length > 0 ? Math.round((readingAnswered.length / readingQs.length) * 100) : 0,
+        total: readingTotal,
+        answered: readingAnsweredCount,
+        correct: 0,
+        pct: readingTotal > 0 ? Math.round((readingAnsweredCount / readingTotal) * 100) : 0,
       },
       writing: {
-        total: writingQs.length,
-        answered: writingAnswered.length,
-        correct: writingCorrect.length,
-        pct: writingQs.length > 0 ? Math.round((writingAnswered.length / writingQs.length) * 100) : 0,
+        total: writingTotal,
+        answered: writingAnsweredCount,
+        correct: 0,
+        pct: writingTotal > 0 ? Math.round((writingAnsweredCount / writingTotal) * 100) : 0,
       },
       math: {
-        total: mathQs.length,
-        answered: mathAnswered.length,
-        correct: mathCorrect.length,
-        pct: mathQs.length > 0 ? Math.round((mathAnswered.length / mathQs.length) * 100) : 0,
+        total: mathTotal,
+        answered: mathAnsweredCount,
+        correct: 0,
+        pct: mathTotal > 0 ? Math.round((mathAnsweredCount / mathTotal) * 100) : 0,
       },
       overall: {
         total: totalQsCount,
         answered: totalAnsweredCount,
-        correct: totalCorrectCount,
+        correct: 0,
         pct: overallPct,
-        accuracy: overallAccuracy,
+        accuracy: 0,
       }
     };
   }, [resetCounter]);
 
   const handleResetProgress = async () => {
-    if (window.confirm("Are you sure you want to reset all your SAT practice history and start fresh?")) {
-      await resetAllSatProgress();
-      setResetCounter(prev => prev + 1);
-    }
+    await resetAllSatProgress();
+    setResetCounter(prev => prev + 1);
   };
 
   return (
@@ -332,7 +327,7 @@ export const SatLandingView: React.FC<SatLandingViewProps> = ({
                   {progressStats.overall.answered > 0 ? (
                     <>
                       <Award className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-                      <span>Accuracy: <span className="text-indigo-600 font-black">{progressStats.overall.accuracy}%</span></span>
+                      <span className="text-indigo-600 font-black">Keep it up!</span>
                     </>
                   ) : (
                     <span className="text-slate-400 font-medium">No drills started</span>
@@ -461,22 +456,22 @@ export const SatLandingView: React.FC<SatLandingViewProps> = ({
       {/* POPUP MODAL WITH ONLY 4 OPTIONS */}
       <AnimatePresence>
         {isPopupOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-900/60">
-            {/* Backdrop click to close */}
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6">
+            {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsPopupOpen(false)}
-              className="absolute inset-0"
+              className="absolute inset-0 bg-slate-900/60"
             />
 
             {/* Modal Dialog */}
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
               className="bg-white border border-slate-200 rounded-2xl sm:rounded-[32px] max-w-2xl w-full p-4 sm:p-8 shadow-2xl relative z-10 space-y-4 sm:space-y-6 overflow-hidden max-h-[85vh] overflow-y-auto"
             >
               {/* Close Icon */}

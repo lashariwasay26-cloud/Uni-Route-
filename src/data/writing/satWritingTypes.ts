@@ -85,6 +85,7 @@ export interface WritingExerciseBlock {
 }
 
 export interface FullSatWritingChapter {
+  id?: string;
   chapterNumber: number;
   chapterTitle: string;
   subtitle: string;
