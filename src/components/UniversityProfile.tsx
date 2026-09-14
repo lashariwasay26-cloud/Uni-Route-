@@ -16,8 +16,8 @@ import {
   RefreshCw,
   AlertCircle
 } from 'lucide-react';
-import { UniversityTrackItem } from '../data/scholarshipTracksData';
-import { getUniversityLogo } from '../utils/universityUtils';
+import { UniversityTrackItem } from '../types';
+import { getUniversityLogo, getSatSummary } from '../utils/universityUtils';
 import { getLocalBookmarkedIds, toggleUniversityBookmark } from '../lib/userStorage';
 
 export interface UniversityProfileProps {
@@ -153,8 +153,11 @@ export const UniversityProfile: React.FC<UniversityProfileProps> = ({ university
               {(() => {
                 const logoInfo = getUniversityLogo(university);
                 return (
-                  <div className={`w-20 h-20 sm:w-24 sm:h-24 rounded-3xl flex items-center justify-center font-black shadow-md shrink-0 bg-gradient-to-br text-white select-none ${logoInfo.logoBg}`}>
-                    <span className={`${logoInfo.logoText.length > 4 ? 'text-sm sm:text-base tracking-normal' : logoInfo.logoText.length === 4 ? 'text-base sm:text-lg tracking-tight' : 'text-xl sm:text-2xl tracking-wider'} font-black leading-none`}>
+                  <div
+                    className="w-20 h-20 sm:w-24 sm:h-24 rounded-3xl flex items-center justify-center font-black shadow-md shrink-0 text-white select-none overflow-hidden"
+                    style={logoInfo.logoStyle}
+                  >
+                    <span className={`${logoInfo.logoText.length > 4 ? 'text-sm sm:text-base tracking-normal' : logoInfo.logoText.length === 4 ? 'text-base sm:text-lg tracking-tight' : 'text-xl sm:text-2xl tracking-wider'} font-black leading-none text-white drop-shadow-xs`}>
                       {logoInfo.logoText}
                     </span>
                   </div>
@@ -268,13 +271,15 @@ export const UniversityProfile: React.FC<UniversityProfileProps> = ({ university
           </div>
 
           <div className="pt-2 sm:pt-0 px-1">
-            <span className="text-[10px] font-extrabold uppercase text-slate-400 block tracking-wider">SAT Target</span>
-            <strong className="text-xs sm:text-sm font-black text-slate-900 block mt-0.5 break-words">{university.minSat}</strong>
+            <span className="text-[10px] font-extrabold uppercase text-slate-400 block tracking-wider">
+              {university.minSat?.toLowerCase().includes('optional') || university.minSat?.toLowerCase().includes('test') ? 'SAT / ACT' : 'SAT Target'}
+            </span>
+            <strong className="text-xs sm:text-sm font-black text-slate-900 block mt-0.5 break-words">{university.minSat || 'Optional'}</strong>
           </div>
 
           <div className="pt-2 sm:pt-0 px-1">
             <span className="text-[10px] font-extrabold uppercase text-slate-400 block tracking-wider">IELTS Score</span>
-            <strong className="text-xs sm:text-sm font-black text-slate-900 block mt-0.5 break-words">{university.minIelts}</strong>
+            <strong className="text-xs sm:text-sm font-black text-slate-900 block mt-0.5 break-words">{university.minIelts || '6.5+'}</strong>
           </div>
 
           <div className="pt-2 sm:pt-0 px-1">
@@ -604,8 +609,19 @@ export const UniversityProfile: React.FC<UniversityProfileProps> = ({ university
 
                 <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80">
                   <span className="text-[11px] font-bold text-slate-400 block uppercase">SAT / ACT Requirement & Policy</span>
-                  <strong className="text-lg font-black text-slate-900 block mt-1">{university.minSat}</strong>
-                  <p className="text-xs text-slate-500 mt-1">{university.satPolicyDetails || 'Check official testing policy details.'}</p>
+                  {(() => {
+                    const satInfo = getSatSummary(university);
+                    return (
+                      <>
+                        <strong className="text-lg font-black text-slate-950 block mt-1">
+                          {satInfo.headline}
+                        </strong>
+                        <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                          {satInfo.details}
+                        </p>
+                      </>
+                    );
+                  })()}
                 </div>
 
                 <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80">
@@ -614,10 +630,10 @@ export const UniversityProfile: React.FC<UniversityProfileProps> = ({ university
                     {university.minIelts?.toLowerCase().includes('exempt') || university.toeflRequirement?.toLowerCase().includes('exempt') || university.toeflRequirement?.toLowerCase().includes('waived')
                       ? 'Exempt for National Stream Applicants'
                       : university.toeflRequirement
-                      ? `${university.minIelts} | TOEFL: ${university.toeflRequirement}`
-                      : university.minIelts?.toLowerCase().includes('waived')
-                        ? university.minIelts
-                        : `IELTS: ${university.minIelts} | TOEFL: ${university.toeflRequirement || '100+'}`}
+                        ? `${university.minIelts || '6.5+'} | TOEFL: ${university.toeflRequirement}`
+                        : university.minIelts?.toLowerCase().includes('waived')
+                          ? university.minIelts
+                          : `IELTS: ${university.minIelts || '6.5+'} | TOEFL: ${university.toeflRequirement || '80+'}`}
                   </strong>
                   <p className="text-xs text-slate-500 mt-1">
                     {university.minIelts?.toLowerCase().includes('exempt') || university.minIelts?.toLowerCase().includes('waived') || university.toeflRequirement?.toLowerCase().includes('waived') || university.toeflRequirement?.toLowerCase().includes('exempt')

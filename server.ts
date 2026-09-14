@@ -1,5 +1,6 @@
 import express from "express";
 import path from "path";
+import fs from "fs";
 import { GoogleGenAI, Type } from "@google/genai";
 import dotenv from "dotenv";
 
@@ -687,10 +688,12 @@ async function startServer() {
     });
     app.use(vite.middlewares);
   } else {
-    const distPath = path.join(process.cwd(), "dist");
-    app.use(express.static(distPath));
+    const candidateDist = path.join(process.cwd(), "dist");
+    const candidateBuild = path.join(process.cwd(), "build");
+    const staticPath = fs.existsSync(candidateDist) ? candidateDist : candidateBuild;
+    app.use(express.static(staticPath));
     app.get("*", (req, res) => {
-      res.sendFile(path.join(distPath, "index.html"));
+      res.sendFile(path.join(staticPath, "index.html"));
     });
   }
 

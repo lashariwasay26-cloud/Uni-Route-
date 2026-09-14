@@ -22,14 +22,15 @@ import {
   Copy,
   Info
 } from 'lucide-react';
-import { FEATURED_UNIVERSITIES, UniversityTrackItem } from '../data/scholarshipTracksData';
+import { UniversityTrackItem } from '../types';
 import { UniversityProfile } from './UniversityProfile';
 import { isPublicInternationalUniversity } from '../config/previewAccess';
-import { getUniversityLogo } from '../utils/universityUtils';
+import { getUniversityLogo, getSatSummary } from '../utils/universityUtils';
 import {
   fetchUniversityScholarshipsFromSupabase,
   isSupabaseConfigured,
-  SUPABASE_SQL_SCHEMA
+  SUPABASE_SQL_SCHEMA,
+  getCachedUniversityScholarships
 } from '../lib/supabase';
 import {
   getLocalBookmarkedIds,
@@ -37,6 +38,8 @@ import {
   toggleUniversityBookmark
 } from '../lib/userStorage';
 import { SavedUniversitiesModal } from './SavedUniversitiesModal';
+
+import { InteractivePageLoader } from './InteractivePageLoader';
 
 interface UniversityListViewProps {
   onBackToTracks: () => void;
@@ -50,17 +53,21 @@ interface UniversityListViewProps {
 
 export const UniversityListView: React.FC<UniversityListViewProps> = ({ 
   onBackToTracks,
-  initialUniversities,
   title = "University Track Directory",
   description = "Explore world-renowned institutions, admission acceptance rates, financial aid policies, and test requirements.",
   user = null,
   onRequestAuth,
   pendingUniId,
 }) => {
-  // Master universities state (defaults to initialUniversities or featured, updated dynamically from Supabase if connected)
-  const [universities, setUniversities] = useState<UniversityTrackItem[]>(initialUniversities || FEATURED_UNIVERSITIES);
+  // Master universities state (Synchronously read from memory cache or empty fallback)
+  const [universities, setUniversities] = useState<UniversityTrackItem[]>(() => {
+    return getCachedUniversityScholarships() || [];
+  });
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
-  const [isSupabaseLive, setIsSupabaseLive] = useState<boolean>(false);
+  const [isSupabaseLive, setIsSupabaseLive] = useState<boolean>(() => {
+    const cached = getCachedUniversityScholarships();
+    return Boolean(cached && cached.length > 0);
+  });
   const [showSqlModal, setShowSqlModal] = useState<boolean>(false);
   const [copiedSql, setCopiedSql] = useState<boolean>(false);
 
@@ -164,11 +171,6 @@ export const UniversityListView: React.FC<UniversityListViewProps> = ({
 
   // Fetch real-time / dynamic data from Supabase on mount
   useEffect(() => {
-    if (initialUniversities) {
-      setIsSupabaseLive(false);
-      return;
-    }
-
     let isMounted = true;
     async function loadSupabaseData() {
       if (!isSupabaseConfigured()) {
@@ -176,8 +178,14 @@ export const UniversityListView: React.FC<UniversityListViewProps> = ({
         return;
       }
 
-      setIsSyncing(true);
-      const { data, error } = await fetchUniversityScholarshipsFromSupabase();
+      // Determine track type based on title
+      const trackType = title.toLowerCase().includes('pakistani') ? 'pakistani' : 'international';
+
+      // Only show syncing spinner if we don't already have universities in state/cache
+      if (universities.length === 0) {
+        setIsSyncing(true);
+      }
+      const { data, error } = await fetchUniversityScholarshipsFromSupabase(trackType);
       if (isMounted) {
         setIsSyncing(false);
         if (!error && data && data.length > 0) {
@@ -193,7 +201,7 @@ export const UniversityListView: React.FC<UniversityListViewProps> = ({
     return () => {
       isMounted = false;
     };
-  }, [initialUniversities]);
+  }, [title]);
 
   const handleManualSync = async () => {
     if (!isSupabaseConfigured()) {
@@ -201,7 +209,8 @@ export const UniversityListView: React.FC<UniversityListViewProps> = ({
       return;
     }
     setIsSyncing(true);
-    const { data, error } = await fetchUniversityScholarshipsFromSupabase();
+    const trackType = title.toLowerCase().includes('pakistani') ? 'pakistani' : 'international';
+    const { data, error } = await fetchUniversityScholarshipsFromSupabase(trackType);
     setIsSyncing(false);
     if (!error && data && data.length > 0) {
       setUniversities(data);
@@ -356,6 +365,10 @@ export const UniversityListView: React.FC<UniversityListViewProps> = ({
     toggleUniversityBookmark(uniId).catch(() => {});
   };
 
+  if (isSyncing && (universities.length === 0)) {
+    return <InteractivePageLoader />;
+  }
+
   return (
     <div className="relative overflow-x-hidden w-full">
       <AnimatePresence mode="wait">
@@ -377,7 +390,7 @@ export const UniversityListView: React.FC<UniversityListViewProps> = ({
               onClick={onBackToTracks}
               className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all cursor-pointer"
             >
-              {initialUniversities ? '← Back to Homepage' : '← Back to Track Options'}
+              {title.includes("Pakistani") ? '← Back to Homepage' : '← Back to Track Options'}
             </button>
           </div>
 
@@ -563,9 +576,12 @@ export const UniversityListView: React.FC<UniversityListViewProps> = ({
                     <div className="flex items-start justify-between gap-4 mb-4">
                       <div className="flex items-center gap-3.5">
                         {/* Logo Badge */}
-                        <div className={`w-14 h-14 rounded-2xl flex items-center justify-center font-black shadow-sm shrink-0 bg-gradient-to-br text-white select-none ${logoInfo.logoBg}`}>
-                          <span className={`${logoInfo.logoText.length > 4 ? 'text-[11px] tracking-normal' : logoInfo.logoText.length === 4 ? 'text-xs tracking-tight' : 'text-sm sm:text-base tracking-wider'} font-black leading-none`}>
-                            {logoInfo.logoText}
+                        <div
+                          className="w-14 h-14 rounded-2xl flex items-center justify-center font-black shadow-sm shrink-0 text-white select-none overflow-hidden"
+                          style={logoInfo.logoStyle}
+                        >
+                          <span className={`${logoInfo.logoText.length > 4 ? 'text-[11px] tracking-normal' : logoInfo.logoText.length === 4 ? 'text-xs tracking-tight' : 'text-sm sm:text-base tracking-wider'} font-black leading-none text-white drop-shadow-xs`}>
+                            {logoInfo.logoText || 'UNI'}
                           </span>
                         </div>
 
@@ -658,9 +674,27 @@ export const UniversityListView: React.FC<UniversityListViewProps> = ({
 
                     {/* Requirements Quick Summary */}
                     <div className="text-xs text-slate-600 space-y-1 mb-4">
-                      <div className="flex items-center justify-between py-1 border-b border-slate-100">
-                        <span className="text-slate-400">SAT Requirement:</span>
-                        <span className="font-bold text-slate-800">{uni.minSat}</span>
+                      <div className="py-1 border-b border-slate-100">
+                        <div className="flex items-center justify-between">
+                          <span className="text-slate-400">SAT Requirement:</span>
+                          <span className="font-black text-black">
+                            {(() => {
+                              const satSummary = getSatSummary(uni);
+                              return satSummary.headline;
+                            })()}
+                          </span>
+                        </div>
+                        {(() => {
+                          const satSummary = getSatSummary(uni);
+                          if (satSummary.details && satSummary.details !== satSummary.headline) {
+                            return (
+                              <p className="text-[11px] text-slate-500 mt-1 leading-snug font-normal line-clamp-2">
+                                {satSummary.details}
+                              </p>
+                            );
+                          }
+                          return null;
+                        })()}
                       </div>
                       <div className="flex items-center justify-between py-1 border-b border-slate-100">
                         <span className="text-slate-400">IELTS Requirement:</span>
@@ -723,7 +757,7 @@ export const UniversityListView: React.FC<UniversityListViewProps> = ({
             transition={{ duration: 0.1, ease: "easeOut" }}
           >
             <UniversityProfile
-              university={activeModalUni}
+              university={activeModalUni!}
               onBack={() => setActiveModalUni(null)}
             />
           </motion.div>

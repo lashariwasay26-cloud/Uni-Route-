@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Building2, Landmark, ArrowLeft, ArrowRight } from 'lucide-react';
 import { UniversityListView } from './UniversityListView';
 import { GovernmentTrackView } from './GovernmentTrackView';
+import { prefetchScholarshipData } from '../lib/supabase';
 
 interface ScholarshipPageProps {
   onBackToHome: () => void;
@@ -26,6 +27,11 @@ export const ScholarshipPage: React.FC<ScholarshipPageProps> = ({
   useEffect(() => {
     if (initialSubView) setSubView(initialSubView);
   }, [initialSubView]);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    prefetchScholarshipData().catch(() => {});
+  }, []);
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' });

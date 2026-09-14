@@ -16,7 +16,7 @@ import {
   Calendar,
   AlertCircle
 } from 'lucide-react';
-import { GovernmentTrackItem } from '../data/scholarshipTracksData';
+import { GovernmentTrackItem } from '../types';
 import { ExecutiveSectionRenderer } from './government/ExecutiveSectionRenderer';
 
 export interface GovernmentProfileProps {

@@ -1,10 +1,25 @@
 /// <reference types="vite/client" />
 import { createClient } from '@supabase/supabase-js';
-import { UniversityTrackItem } from '../data/scholarshipTracksData';
+import { UniversityTrackItem, GovernmentTrackItem } from '../types';
+import { getSatSummary } from '../utils/universityUtils';
+import { FullSatWritingChapter, WritingTheoryBlock, WritingExerciseBlock } from '../data/writing/satWritingTypes';
 
 // Read Supabase environment variables
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+const getEnvVar = (key: string): string => {
+  if (typeof import.meta !== 'undefined' && import.meta && import.meta.env) {
+    return import.meta.env[key] || '';
+  }
+  if (typeof process !== 'undefined' && process && process.env) {
+    return process.env[key] || '';
+  }
+  return '';
+};
+
+const DEFAULT_SUPABASE_URL = 'https://abyvzlrkskqnpzsvoaym.supabase.co';
+const DEFAULT_SUPABASE_ANON_KEY = 'sb_publishable_xapYrcmAZ6fITqMd4bK1ag_w_A6UVBB';
+
+const supabaseUrl = getEnvVar('VITE_SUPABASE_URL') || DEFAULT_SUPABASE_URL;
+const supabaseAnonKey = getEnvVar('VITE_SUPABASE_ANON_KEY') || DEFAULT_SUPABASE_ANON_KEY;
 
 export const isSupabaseConfigured = (): boolean => {
   return Boolean(
@@ -20,9 +35,57 @@ export const supabase = isSupabaseConfigured()
   : null;
 
 /**
+ * Wraps a promise with a timeout. If the promise does not resolve/reject within ms milliseconds,
+ * it rejects with a timeout error so callers don't hang indefinitely.
+ */
+export function withTimeout<T>(promise: Promise<T>, ms: number = 3500): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      reject(new Error(`Supabase operation timed out after ${ms}ms`));
+    }, ms);
+
+    promise.then(
+      (res) => {
+        clearTimeout(timer);
+        resolve(res);
+      },
+      (err) => {
+        clearTimeout(timer);
+        reject(err);
+      }
+    );
+  });
+}
+
+/**
+ * Gets cached data from localStorage safely.
+ */
+export function getLocalStorageCache<T>(key: string): T | null {
+  try {
+    if (typeof localStorage === 'undefined') return null;
+    const item = localStorage.getItem(key);
+    return item ? JSON.parse(item) : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Sets cached data into localStorage safely.
+ */
+export function setLocalStorageCache<T>(key: string, data: T): void {
+  try {
+    if (typeof localStorage === 'undefined') return;
+    localStorage.setItem(key, JSON.stringify(data));
+  } catch (e) {
+    // Ignore storage quota errors
+  }
+}
+
+/**
  * Maps a raw Supabase database row (snake_case or camelCase) to a UniversityTrackItem
  */
-export function mapRowToUniversity(row: any, index: number): UniversityTrackItem {
+export function mapLegacyRowToUniversity(row: any, index: number): UniversityTrackItem {
   const uniName = row.university_name || row.universityName || row.name || `University ${index + 1}`;
   const firstLetter = uniName.charAt(0).toUpperCase();
 
@@ -60,44 +123,1964 @@ export function mapRowToUniversity(row: any, index: number): UniversityTrackItem
     requiresSeparateApp: Boolean(row.requires_separate_app ?? row.requiresSeparateApp ?? false),
     logoText: row.logo_text || row.logoText || uniName.split(' ')[0].toUpperCase(),
     logoBg: row.logo_bg || row.logoBg || 'bg-slate-900 text-white',
-    supabaseDbId: row.id
+    supabaseDbId: row.id,
+    track_category: 'global'
   };
+}
+
+/**
+ * Maps the new 3-table International university structure to UniversityTrackItem
+ */
+export function mapInternationalRowToUniversity(row: any): UniversityTrackItem {
+  return {
+    id: row.uni_id,
+    universityName: row.university_name,
+    location: row.location,
+    country: row.country,
+    flag: row.flag,
+    foundingYear: row.founding_year,
+    scholarshipTitle: row.scholarship_title,
+    ranking: row.ranking,
+    qsSubjectRankings: row.qs_subject_rankings,
+    rankingSource: row.ranking_source,
+    coverage: row.coverage,
+    amountValue: row.amount_value,
+    tuitionFee: row.tuition_fee,
+    tuitionAmountNumeric: Number(row.tuition_amount_numeric || 0),
+    hasFullRide: Boolean(row.has_full_ride),
+    hasPartialAid: Boolean(row.has_partial_aid),
+    hasFinancialAid: Boolean(row.has_financial_aid),
+    financialAidType: row.financial_aid_type,
+    financialAidDetails: row.financial_aid_details,
+    minGpa: row.min_gpa || '3.5 / 4.0',
+    minSat: getSatSummary({
+      satRequirementCategory: row.sat_requirement_category,
+      minSat: row.min_sat,
+      satPolicyDetails: row.sat_policy_details
+    }).headline,
+    satRequirementCategory: row.sat_requirement_category || 'Optional',
+    satPolicyDetails: row.sat_policy_details,
+    minIelts: row.min_ielts || (row.ielts_category ? `${row.ielts_category}+` : '6.5+'),
+    ieltsCategory: row.ielts_category || '6.5',
+    toeflRequirement: row.toefl_requirement,
+    acceptanceRate: row.acceptance_rate,
+    deadline: row.deadline,
+    description: row.description,
+    overviewLong: row.overview_long,
+    topProgramsList: (row.international_university_programs || []).map((p: any) => ({
+      name: p.name,
+      ranking: p.ranking,
+      description: p.description
+    })),
+    allScholarshipsList: (row.international_university_scholarships || []).map((s: any) => ({
+      id: s.scholarship_code,
+      title: s.title,
+      amount: s.amount,
+      coverage: s.coverage,
+      eligibility: s.eligibility,
+      description: s.description,
+      deadline: s.deadline,
+      requiresSeparateApp: Boolean(s.requires_separate_app)
+    })),
+    degreesOffered: Array.isArray(row.degrees_offered) ? row.degrees_offered : [],
+    tags: Array.isArray(row.tags) ? row.tags : [],
+    requiresSeparateApp: Boolean(row.requires_separate_app),
+    logoText: row.logo_text,
+    logoBg: row.logo_bg,
+    supabaseDbId: row.id,
+    track_category: 'international',
+    commonAppAccepted: Boolean(row.common_app_accepted),
+    applicationPortalDetails: row.application_portal_details
+  };
+}
+
+/**
+ * Maps the new 3-table Pakistani university structure to UniversityTrackItem
+ */
+export function mapPakistaniRowToUniversity(row: any): UniversityTrackItem {
+  return {
+    id: row.uni_id,
+    universityName: row.university_name,
+    location: row.location,
+    country: row.country,
+    flag: row.flag,
+    foundingYear: row.founding_year,
+    scholarshipTitle: row.scholarship_title,
+    ranking: row.ranking,
+    qsSubjectRankings: row.qs_subject_rankings,
+    rankingSource: row.ranking_source,
+    coverage: row.coverage,
+    amountValue: row.amount_value,
+    tuitionFee: row.tuition_fee,
+    tuitionAmountNumeric: Number(row.tuition_amount_numeric || 0),
+    hasFullRide: Boolean(row.has_full_ride),
+    hasPartialAid: Boolean(row.has_partial_aid),
+    hasFinancialAid: Boolean(row.has_financial_aid),
+    financialAidType: row.financial_aid_type,
+    financialAidDetails: row.financial_aid_details,
+    minGpa: row.min_gpa || '3.5 / 4.0',
+    minSat: getSatSummary({
+      satRequirementCategory: row.sat_requirement_category,
+      minSat: row.min_sat,
+      satPolicyDetails: row.sat_policy_details
+    }).headline,
+    satRequirementCategory: row.sat_requirement_category || 'Optional',
+    satPolicyDetails: row.sat_policy_details,
+    minIelts: row.min_ielts || (row.ielts_category ? `${row.ielts_category}+` : '6.5+'),
+    ieltsCategory: row.ielts_category || '6.5',
+    toeflRequirement: row.toefl_requirement,
+    acceptanceRate: row.acceptance_rate,
+    deadline: row.deadline,
+    description: row.description,
+    overviewLong: row.overview_long,
+    topProgramsList: (row.pakistani_university_programs || []).map((p: any) => ({
+      name: p.name,
+      ranking: p.ranking,
+      description: p.description
+    })),
+    allScholarshipsList: (row.pakistani_university_scholarships || []).map((s: any) => ({
+      id: s.scholarship_code,
+      title: s.title,
+      amount: s.amount,
+      coverage: s.coverage,
+      eligibility: s.eligibility,
+      description: s.description,
+      deadline: s.deadline,
+      requiresSeparateApp: Boolean(s.requires_separate_app)
+    })),
+    degreesOffered: Array.isArray(row.degrees_offered) ? row.degrees_offered : [],
+    tags: Array.isArray(row.tags) ? row.tags : [],
+    requiresSeparateApp: Boolean(row.requires_separate_app),
+    logoText: row.logo_text,
+    logoBg: row.logo_bg,
+    supabaseDbId: row.id,
+    track_category: 'pakistani',
+    commonAppAccepted: Boolean(row.common_app_accepted),
+    applicationPortalDetails: row.application_portal_details
+  };
+}
+
+let cachedUniversityScholarships: UniversityTrackItem[] | null = null;
+let cachedGovernmentScholarships: GovernmentTrackItem[] | null = null;
+
+export function getCachedUniversityScholarships(): UniversityTrackItem[] | null {
+  return cachedUniversityScholarships;
+}
+
+export function getCachedGovernmentScholarships(): GovernmentTrackItem[] | null {
+  return cachedGovernmentScholarships;
+}
+
+export async function prefetchScholarshipData() {
+  if (!isSupabaseConfigured()) return;
+  
+  // Fire both in parallel and cache them
+  await Promise.allSettled([
+    fetchUniversityScholarshipsFromSupabaseBackground(),
+    fetchGovernmentScholarshipsFromSupabaseBackground()
+  ]);
 }
 
 /**
  * Helper to fetch University Track records from Supabase
  * Queries 'university_scholarships' table or 'universities' table
  */
-export async function fetchUniversityScholarshipsFromSupabase() {
+export async function fetchUniversityScholarshipsFromSupabase(trackType?: 'international' | 'pakistani') {
   if (!isSupabaseConfigured() || !supabase) {
     return { data: null, error: new Error('Supabase environment variables not configured') };
   }
 
+  // Return filtered cache if available
+  if (cachedUniversityScholarships && cachedUniversityScholarships.length > 0) {
+    let filtered = cachedUniversityScholarships;
+    if (trackType === 'international') {
+      filtered = cachedUniversityScholarships.filter(u => u.track_category === 'international' || u.track_category === 'global');
+    } else if (trackType === 'pakistani') {
+      filtered = cachedUniversityScholarships.filter(u => u.track_category === 'pakistani');
+    }
+    
+    // Background refresh
+    fetchUniversityScholarshipsFromSupabaseBackground();
+    return { data: filtered, error: null };
+  }
+
   try {
-    // Try primary table 'university_scholarships'
-    let { data, error } = await supabase
-      .from('university_scholarships')
-      .select('*')
-      .limit(300);
-
-    // Fallback to 'universities' if first table doesn't exist or is empty
-    if (error || !data || data.length === 0) {
-      const res = await supabase.from('universities').select('*').limit(300);
-      if (!res.error && res.data && res.data.length > 0) {
-        data = res.data;
-        error = null;
-      }
+    const allData = await fetchUniversityScholarshipsFromSupabaseBackground();
+    let filtered = allData;
+    if (trackType === 'international') {
+      filtered = allData.filter(u => u.track_category === 'international' || u.track_category === 'global');
+    } else if (trackType === 'pakistani') {
+      filtered = allData.filter(u => u.track_category === 'pakistani');
     }
-
-    if (error) {
-      return { data: null, error };
-    }
-
-    const formattedList: UniversityTrackItem[] = (data || []).map((row, idx) => mapRowToUniversity(row, idx));
-    return { data: formattedList, error: null };
+    return { data: filtered, error: null };
   } catch (err: any) {
     return { data: null, error: err };
   }
+}
+
+async function fetchUniversityScholarshipsFromSupabaseBackground(): Promise<UniversityTrackItem[]> {
+  if (!supabase) return [];
+  
+  try {
+    // Run all fetches in parallel for maximum speed
+    const [pakRes, intRes, globalRes] = await Promise.all([
+      supabase
+        .from('pakistani_universities')
+        .select('*, pakistani_university_programs(*), pakistani_university_scholarships(*)')
+        .order('university_name', { ascending: true }),
+      supabase
+        .from('international_universities')
+        .select('*, international_university_programs(*), international_university_scholarships(*)')
+        .order('university_name', { ascending: true }),
+      supabase
+        .from('university_scholarships')
+        .select('*')
+        .limit(100)
+    ]);
+
+    const allFormatted: UniversityTrackItem[] = [];
+
+    // 1. Process Pakistani
+    if (!pakRes.error && pakRes.data) {
+      pakRes.data.forEach(row => {
+        allFormatted.push(mapPakistaniRowToUniversity(row));
+      });
+    }
+
+    // 2. Process International
+    if (!intRes.error && intRes.data) {
+      intRes.data.forEach(row => {
+        if (!allFormatted.some(u => u.id === row.uni_id)) {
+          allFormatted.push(mapInternationalRowToUniversity(row));
+        }
+      });
+    }
+
+    // 3. Process Global / Legacy
+    let globalData = globalRes.data;
+    if (globalRes.error || !globalData || globalData.length === 0) {
+      const res = await supabase.from('universities').select('*').limit(200);
+      if (!res.error && res.data) {
+        globalData = res.data;
+      }
+    }
+
+    if (globalData) {
+      globalData.forEach((row, idx) => {
+        const id = row.uni_id || row.id;
+        if (!allFormatted.some(u => u.id === id)) {
+          allFormatted.push(mapLegacyRowToUniversity(row, idx));
+        }
+      });
+    }
+
+    cachedUniversityScholarships = allFormatted;
+    return allFormatted;
+  } catch (err) {
+    console.error('Error fetching university scholarships:', err);
+    return cachedUniversityScholarships || [];
+  }
+}
+
+const safeParseJson = (str: string, fallback: any = []): any => {
+  try {
+    return JSON.parse(str);
+  } catch (e) {
+    console.error('Error parsing JSON:', e);
+    return fallback;
+  }
+};
+
+/**
+ * Maps a raw Supabase database row to a GovernmentTrackItem
+ */
+export function mapRowToGovernmentTrack(row: any, index: number): GovernmentTrackItem {
+  return {
+    id: String(row.id || `gov-track-${index + 1}`),
+    programTitle: row.program_title || row.programTitle || 'Government Scholarship',
+    sponsorGovernment: row.sponsor_government || row.sponsorGovernment || 'Host Government',
+    country: row.country || 'Global',
+    flag: row.flag || '🌍',
+    degreeLevels: Array.isArray(row.degree_levels) ? row.degree_levels : (Array.isArray(row.degreeLevels) ? row.degreeLevels : ['Masters']),
+    stipendMonthly: row.stipend_monthly || row.stipendMonthly || '',
+    airfareCovered: Boolean(row.airfare_covered ?? row.airfareCovered ?? false),
+    healthInsuranceCovered: Boolean(row.health_insurance_covered ?? row.healthInsuranceCovered ?? false),
+    tuitionCovered: Boolean(row.tuition_covered ?? row.tuitionCovered ?? false),
+    deadline: row.deadline || '',
+    bondRequirement: row.bond_requirement || row.bondRequirement || '',
+    description: row.description || '',
+    keyEligibility: Array.isArray(row.key_eligibility) ? row.key_eligibility : (Array.isArray(row.keyEligibility) ? row.keyEligibility : []),
+    supabaseDbId: Number(row.supabase_db_id || row.id || index + 1),
+    overviewLong: row.overview_long || row.overviewLong || '',
+    fundingType: row.funding_type || row.fundingType || 'Fully Funded',
+    workExperienceRequired: row.work_experience_required || row.workExperienceRequired || '',
+    ageLimit: row.age_limit || row.ageLimit || '',
+    hecNominationRequired: Boolean(row.hec_nomination_required ?? row.hecNominationRequired ?? false),
+    embassyNominationRequired: Boolean(row.embassy_nomination_required ?? row.embassyNominationRequired ?? false),
+    applicationRoute: row.application_route || row.applicationRoute || '',
+    officialSources: Array.isArray(row.official_sources) ? row.official_sources : (Array.isArray(row.officialSources) ? row.officialSources : []),
+    stepByStepProcess: Array.isArray(row.step_by_step_process) ? row.step_by_step_process : (Array.isArray(row.stepByStepProcess) ? row.stepByStepProcess : []),
+    fundingBreakdown: Array.isArray(row.funding_breakdown) ? row.funding_breakdown : (typeof row.funding_breakdown === 'string' ? safeParseJson(row.funding_breakdown) : []),
+    restrictions: Array.isArray(row.restrictions) ? row.restrictions : [],
+    logoText: row.logo_text || row.logoText || '',
+    logoBg: row.logo_bg || row.logoBg || '',
+    eligibleNationalities: row.eligible_nationalities || row.eligibleNationalities || '',
+    gpaRequirement: row.gpa_requirement || row.gpaRequirement || '',
+    ieltsRequirement: row.ielts_requirement || row.ieltsRequirement || '',
+    isEligibleForPakistan: Boolean(row.is_eligible_for_pakistan ?? row.isEligibleForPakistan ?? true),
+    warningNotice: row.warning_notice || row.warningNotice || undefined,
+    currentStatus: row.current_status || row.currentStatus || undefined,
+    currentCycle: row.current_cycle || row.currentCycle || undefined,
+    lastVerifiedDate: row.last_verified_date || row.lastVerifiedDate || undefined,
+    fullSections: Array.isArray(row.full_sections) ? row.full_sections : (typeof row.full_sections === 'string' ? safeParseJson(row.full_sections) : (Array.isArray(row.fullSections) ? row.fullSections : []))
+  };
+}
+
+/**
+ * Helper to fetch Government Scholarship records from Supabase
+ */
+// ============================================================================
+// SAT READING SECTION SUPABASE INTEGRATION
+// ============================================================================
+export interface SatReadingChapter1Data {
+  modules: any[];
+  practiceQuestions: any[];
+}
+
+let cachedReadingChapter1: SatReadingChapter1Data | null = null;
+
+export async function fetchSatReadingChapter1FromSupabase(): Promise<{ data: SatReadingChapter1Data | null; error: any }> {
+  if (!isSupabaseConfigured() || !supabase) {
+    return { data: null, error: new Error('Supabase is not configured') };
+  }
+
+  if (cachedReadingChapter1) {
+    return { data: cachedReadingChapter1, error: null };
+  }
+
+  try {
+    const [theoryRes, exercisesRes] = await Promise.all([
+      supabase
+        .from('sat_reading_ch1_theory')
+        .select('*')
+        .order('module_number', { ascending: true }),
+      supabase
+        .from('sat_reading_ch1_exercises')
+        .select('*')
+        .order('question_number', { ascending: true })
+    ]);
+
+    if (theoryRes.error) throw theoryRes.error;
+    if (exercisesRes.error) throw exercisesRes.error;
+
+    const rawModules = theoryRes.data || [];
+    const rawExercises = exercisesRes.data || [];
+
+    if (!rawModules || rawModules.length === 0) {
+      return { data: null, error: new Error('No modules found in Supabase (check RLS)') };
+    }
+
+    // Map exercises to frontend format grouped by module
+    const exercisesByModule: Record<number, any[]> = {};
+    rawExercises.forEach((row: any) => {
+      const modNum = row.module_number || 1;
+      if (!exercisesByModule[modNum]) {
+        exercisesByModule[modNum] = [];
+      }
+      exercisesByModule[modNum].push({
+        id: row.id,
+        questionNumber: row.question_number,
+        label: row.label,
+        prompt: row.prompt,
+        passage: row.passage_text ? {
+          title: row.passage_title || undefined,
+          text: row.passage_text
+        } : undefined,
+        options: row.options || [],
+        correctAnswer: row.correct_answer,
+        correctAnswerIndex: row.correct_answer_index,
+        whyCorrectTitle: row.why_correct_title,
+        whyCorrect: row.why_correct,
+        distractorExplanations: row.distractor_explanations || [],
+        passageSupport: row.passage_support || undefined,
+        eliminationShortcut: row.elimination_shortcut || undefined,
+        educationalObjective: row.educational_objective || undefined,
+        tableData: row.table_data || undefined
+      });
+    });
+
+    // Map theory modules and attach practiceQuestions
+    const mappedModules = rawModules.map((m: any) => {
+      const modNum = m.module_number;
+      return {
+        id: m.id,
+        moduleNumber: m.module_number,
+        title: m.module_title,
+        centralQuestion: m.central_question || undefined,
+        endLabel: m.end_label || undefined,
+        sections: m.sections || [],
+        practiceQuestions: exercisesByModule[modNum] || []
+      };
+    });
+
+    const result: SatReadingChapter1Data = {
+      modules: mappedModules,
+      practiceQuestions: rawExercises.map((row: any) => ({
+        id: row.id,
+        questionNumber: row.question_number,
+        globalQuestionNumber: row.question_number,
+        moduleNumber: row.module_number,
+        label: row.label,
+        prompt: row.prompt,
+        passageTitle: row.passage_title || undefined,
+        passageText: row.passage_text || undefined,
+        passage: row.passage_text ? {
+          title: row.passage_title || undefined,
+          text: row.passage_text
+        } : undefined,
+        options: row.options || [],
+        correctAnswer: row.correct_answer,
+        correctAnswerIndex: row.correct_answer_index,
+        whyCorrectTitle: row.why_correct_title,
+        whyCorrect: row.why_correct,
+        distractorExplanations: row.distractor_explanations || [],
+        passageSupport: row.passage_support || undefined,
+        eliminationShortcut: row.elimination_shortcut || undefined,
+        educationalObjective: row.educational_objective || undefined,
+        tableData: row.table_data || undefined
+      }))
+    };
+
+    cachedReadingChapter1 = result;
+    return { data: result, error: null };
+  } catch (err: any) {
+    console.error('Error fetching SAT Reading Chapter 1 from Supabase:', err);
+    return { data: null, error: err };
+  }
+}
+
+export interface SatReadingChapter2Data {
+  modules: any[];
+  practiceQuestions: any[];
+}
+
+let cachedReadingChapter2: SatReadingChapter2Data | null = null;
+
+export async function fetchSatReadingChapter2FromSupabase(): Promise<{ data: SatReadingChapter2Data | null; error: any }> {
+  if (!isSupabaseConfigured() || !supabase) {
+    return { data: null, error: new Error('Supabase is not configured') };
+  }
+
+  if (cachedReadingChapter2) {
+    return { data: cachedReadingChapter2, error: null };
+  }
+
+  try {
+    const [theoryRes, exercisesRes] = await Promise.all([
+      supabase
+        .from('sat_reading_ch2_theory')
+        .select('*')
+        .order('module_number', { ascending: true }),
+      supabase
+        .from('sat_reading_ch2_exercises')
+        .select('*')
+        .order('question_number', { ascending: true })
+    ]);
+
+    if (theoryRes.error) throw theoryRes.error;
+    if (exercisesRes.error) throw exercisesRes.error;
+
+    const rawModules = theoryRes.data || [];
+    const rawExercises = exercisesRes.data || [];
+
+    if (!rawModules || rawModules.length === 0) {
+      return { data: null, error: new Error('No modules found in Supabase (check RLS)') };
+    }
+
+    // Map exercises to frontend format grouped by module
+    const exercisesByModule: Record<number, any[]> = {};
+    rawExercises.forEach((row: any) => {
+      const modNum = row.module_number || 1;
+      if (!exercisesByModule[modNum]) {
+        exercisesByModule[modNum] = [];
+      }
+      exercisesByModule[modNum].push({
+        id: row.id,
+        questionNumber: row.question_number,
+        globalQuestionNumber: row.question_number,
+        moduleNumber: row.module_number,
+        label: row.label,
+        prompt: row.prompt,
+        passageTitle: row.passage_title || undefined,
+        passageText: row.passage_text || undefined,
+        passage: row.passage_text ? {
+          title: row.passage_title || undefined,
+          text: row.passage_text
+        } : undefined,
+        options: row.options || [],
+        correctAnswer: row.correct_answer,
+        correctAnswerIndex: row.correct_answer_index,
+        whyCorrectTitle: row.why_correct_title,
+        whyCorrect: row.why_correct,
+        distractorExplanations: row.distractor_explanations || [],
+        passageSupport: row.passage_support || undefined,
+        eliminationShortcut: row.elimination_shortcut || undefined,
+        educationalObjective: row.educational_objective || undefined,
+        tableData: row.table_data || undefined
+      });
+    });
+
+    // Map theory modules and attach practiceQuestions
+    const mappedModules = rawModules.map((m: any) => {
+      const modNum = m.module_number;
+      return {
+        id: m.id,
+        moduleNumber: m.module_number,
+        title: m.module_title,
+        centralQuestion: m.central_question || undefined,
+        endLabel: m.end_label || undefined,
+        sections: m.sections || [],
+        practiceQuestions: exercisesByModule[modNum] || []
+      };
+    });
+
+    const result: SatReadingChapter2Data = {
+      modules: mappedModules,
+      practiceQuestions: rawExercises.map((row: any) => ({
+        id: row.id,
+        questionNumber: row.question_number,
+        globalQuestionNumber: row.question_number,
+        moduleNumber: row.module_number,
+        label: row.label,
+        prompt: row.prompt,
+        passageTitle: row.passage_title || undefined,
+        passageText: row.passage_text || undefined,
+        passage: row.passage_text ? {
+          title: row.passage_title || undefined,
+          text: row.passage_text
+        } : undefined,
+        options: row.options || [],
+        correctAnswer: row.correct_answer,
+        correctAnswerIndex: row.correct_answer_index,
+        whyCorrectTitle: row.why_correct_title,
+        whyCorrect: row.why_correct,
+        distractorExplanations: row.distractor_explanations || [],
+        passageSupport: row.passage_support || undefined,
+        eliminationShortcut: row.elimination_shortcut || undefined,
+        educationalObjective: row.educational_objective || undefined,
+        tableData: row.table_data || undefined
+      }))
+    };
+
+    cachedReadingChapter2 = result;
+    return { data: result, error: null };
+  } catch (err: any) {
+    console.error('Error fetching SAT Reading Chapter 2 from Supabase:', err);
+    return { data: null, error: err };
+  }
+}
+
+export interface SatReadingChapter3Data {
+  modules: any[];
+  practiceQuestions: any[];
+}
+
+let cachedReadingChapter3: SatReadingChapter3Data | null = null;
+
+export async function fetchSatReadingChapter3FromSupabase(): Promise<{ data: SatReadingChapter3Data | null; error: any }> {
+  if (!isSupabaseConfigured() || !supabase) {
+    return { data: null, error: new Error('Supabase is not configured') };
+  }
+
+  if (cachedReadingChapter3) {
+    return { data: cachedReadingChapter3, error: null };
+  }
+
+  try {
+    const [theoryRes, exercisesRes] = await Promise.all([
+      supabase
+        .from('sat_reading_ch3_theory')
+        .select('*')
+        .order('module_number', { ascending: true }),
+      supabase
+        .from('sat_reading_ch3_exercises')
+        .select('*')
+        .order('question_number', { ascending: true })
+    ]);
+
+    if (theoryRes.error) throw theoryRes.error;
+    if (exercisesRes.error) throw exercisesRes.error;
+
+    const rawModules = theoryRes.data || [];
+    const rawExercises = exercisesRes.data || [];
+
+    if (!rawModules || rawModules.length === 0) {
+      return { data: null, error: new Error('No modules found in Supabase (check RLS)') };
+    }
+
+    // Map exercises to frontend format grouped by module
+    const exercisesByModule: Record<number, any[]> = {};
+    rawExercises.forEach((row: any) => {
+      const modNum = row.module_number || 1;
+      if (!exercisesByModule[modNum]) {
+        exercisesByModule[modNum] = [];
+      }
+      exercisesByModule[modNum].push({
+        id: row.id,
+        questionNumber: row.question_number,
+        globalQuestionNumber: row.question_number,
+        moduleNumber: row.module_number,
+        label: row.label,
+        prompt: row.prompt,
+        passageTitle: row.passage_title || undefined,
+        passageText: row.passage_text || undefined,
+        passage: row.passage_text ? {
+          title: row.passage_title || undefined,
+          text: row.passage_text
+        } : undefined,
+        options: row.options || [],
+        correctAnswer: row.correct_answer,
+        correctAnswerIndex: row.correct_answer_index,
+        whyCorrectTitle: row.why_correct_title,
+        whyCorrect: row.why_correct,
+        distractorExplanations: row.distractor_explanations || [],
+        passageSupport: row.passage_support || undefined,
+        eliminationShortcut: row.elimination_shortcut || undefined,
+        educationalObjective: row.educational_objective || undefined,
+        tableData: row.table_data || undefined
+      });
+    });
+
+    // Map theory modules and attach practiceQuestions
+    const mappedModules = rawModules.map((m: any) => {
+      const modNum = m.module_number;
+      return {
+        id: m.id,
+        moduleNumber: m.module_number,
+        title: m.module_title,
+        centralQuestion: m.central_question || undefined,
+        endLabel: m.end_label || undefined,
+        sections: m.sections || [],
+        practiceQuestions: exercisesByModule[modNum] || []
+      };
+    });
+
+    const result: SatReadingChapter3Data = {
+      modules: mappedModules,
+      practiceQuestions: rawExercises.map((row: any) => ({
+        id: row.id,
+        questionNumber: row.question_number,
+        globalQuestionNumber: row.question_number,
+        moduleNumber: row.module_number,
+        label: row.label,
+        prompt: row.prompt,
+        passageTitle: row.passage_title || undefined,
+        passageText: row.passage_text || undefined,
+        passage: row.passage_text ? {
+          title: row.passage_title || undefined,
+          text: row.passage_text
+        } : undefined,
+        options: row.options || [],
+        correctAnswer: row.correct_answer,
+        correctAnswerIndex: row.correct_answer_index,
+        whyCorrectTitle: row.why_correct_title,
+        whyCorrect: row.why_correct,
+        distractorExplanations: row.distractor_explanations || [],
+        passageSupport: row.passage_support || undefined,
+        eliminationShortcut: row.elimination_shortcut || undefined,
+        educationalObjective: row.educational_objective || undefined,
+        tableData: row.table_data || undefined
+      }))
+    };
+
+    cachedReadingChapter3 = result;
+    return { data: result, error: null };
+  } catch (err: any) {
+    console.error('Error fetching SAT Reading Chapter 3 from Supabase:', err);
+    return { data: null, error: err };
+  }
+}
+
+export interface SatReadingChapter4Data {
+  modules: any[];
+  practiceQuestions: any[];
+}
+
+let cachedReadingChapter4: SatReadingChapter4Data | null = null;
+
+export async function fetchSatReadingChapter4FromSupabase(): Promise<{ data: SatReadingChapter4Data | null; error: any }> {
+  if (!isSupabaseConfigured() || !supabase) {
+    return { data: null, error: new Error('Supabase is not configured') };
+  }
+
+  if (cachedReadingChapter4) {
+    return { data: cachedReadingChapter4, error: null };
+  }
+
+  try {
+    const [theoryRes, exercisesRes] = await Promise.all([
+      supabase
+        .from('sat_reading_ch4_theory')
+        .select('*')
+        .order('module_number', { ascending: true }),
+      supabase
+        .from('sat_reading_ch4_exercises')
+        .select('*')
+        .order('question_number', { ascending: true })
+    ]);
+
+    if (theoryRes.error) throw theoryRes.error;
+    if (exercisesRes.error) throw exercisesRes.error;
+
+    const rawModules = theoryRes.data || [];
+    const rawExercises = exercisesRes.data || [];
+
+    if (!rawModules || rawModules.length === 0) {
+      return { data: null, error: new Error('No modules found in Supabase (check RLS)') };
+    }
+
+    // Map exercises to frontend format grouped by module
+    const exercisesByModule: Record<number, any[]> = {};
+    rawExercises.forEach((row: any) => {
+      const modNum = row.module_number || 1;
+      if (!exercisesByModule[modNum]) {
+        exercisesByModule[modNum] = [];
+      }
+      exercisesByModule[modNum].push({
+        id: row.id,
+        questionNumber: row.question_number,
+        globalQuestionNumber: row.question_number,
+        moduleNumber: row.module_number,
+        label: row.label,
+        prompt: row.prompt,
+        passageTitle: row.passage_title || undefined,
+        passageText: row.passage_text || undefined,
+        passage: row.passage_text ? {
+          title: row.passage_title || undefined,
+          text: row.passage_text
+        } : undefined,
+        options: row.options || [],
+        correctAnswer: row.correct_answer,
+        correctAnswerIndex: row.correct_answer_index,
+        whyCorrectTitle: row.why_correct_title,
+        whyCorrect: row.why_correct,
+        distractorExplanations: row.distractor_explanations || [],
+        passageSupport: row.passage_support || undefined,
+        eliminationShortcut: row.elimination_shortcut || undefined,
+        educationalObjective: row.educational_objective || undefined,
+        tableData: row.table_data || undefined
+      });
+    });
+
+    // Map theory modules and attach practiceQuestions
+    const mappedModules = rawModules.map((m: any) => {
+      const modNum = m.module_number;
+      return {
+        id: m.id,
+        moduleNumber: m.module_number,
+        title: m.module_title,
+        centralQuestion: m.central_question || undefined,
+        endLabel: m.end_label || undefined,
+        sections: m.sections || [],
+        practiceQuestions: exercisesByModule[modNum] || []
+      };
+    });
+
+    const result: SatReadingChapter4Data = {
+      modules: mappedModules,
+      practiceQuestions: rawExercises.map((row: any) => ({
+        id: row.id,
+        questionNumber: row.question_number,
+        globalQuestionNumber: row.question_number,
+        moduleNumber: row.module_number,
+        label: row.label,
+        prompt: row.prompt,
+        passageTitle: row.passage_title || undefined,
+        passageText: row.passage_text || undefined,
+        passage: row.passage_text ? {
+          title: row.passage_title || undefined,
+          text: row.passage_text
+        } : undefined,
+        options: row.options || [],
+        correctAnswer: row.correct_answer,
+        correctAnswerIndex: row.correct_answer_index,
+        whyCorrectTitle: row.why_correct_title,
+        whyCorrect: row.why_correct,
+        distractorExplanations: row.distractor_explanations || [],
+        passageSupport: row.passage_support || undefined,
+        eliminationShortcut: row.elimination_shortcut || undefined,
+        educationalObjective: row.educational_objective || undefined,
+        tableData: row.table_data || undefined
+      }))
+    };
+
+    cachedReadingChapter4 = result;
+    return { data: result, error: null };
+  } catch (err: any) {
+    console.error('Error fetching SAT Reading Chapter 4 from Supabase:', err);
+    return { data: null, error: err };
+  }
+}
+
+export interface SatReadingChapter5Data {
+  modules: any[];
+  practiceQuestions: any[];
+}
+
+let cachedReadingChapter5: SatReadingChapter5Data | null = null;
+
+export async function fetchSatReadingChapter5FromSupabase(): Promise<{ data: SatReadingChapter5Data | null; error: any }> {
+  if (!isSupabaseConfigured() || !supabase) {
+    return { data: null, error: new Error('Supabase is not configured') };
+  }
+
+  if (cachedReadingChapter5) {
+    return { data: cachedReadingChapter5, error: null };
+  }
+
+  try {
+    const [theoryRes, exercisesRes] = await Promise.all([
+      supabase
+        .from('sat_reading_ch5_theory')
+        .select('*')
+        .order('module_number', { ascending: true }),
+      supabase
+        .from('sat_reading_ch5_exercises')
+        .select('*')
+        .order('question_number', { ascending: true })
+    ]);
+
+    if (theoryRes.error) throw theoryRes.error;
+    if (exercisesRes.error) throw exercisesRes.error;
+
+    const rawModules = theoryRes.data || [];
+    const rawExercises = exercisesRes.data || [];
+
+    if (!rawModules || rawModules.length === 0) {
+      return { data: null, error: new Error('No modules found in Supabase (check RLS)') };
+    }
+
+    // Map exercises to frontend format grouped by module
+    const exercisesByModule: Record<number, any[]> = {};
+    rawExercises.forEach((row: any) => {
+      const modNum = row.module_number || 1;
+      if (!exercisesByModule[modNum]) {
+        exercisesByModule[modNum] = [];
+      }
+      exercisesByModule[modNum].push({
+        id: row.id,
+        questionNumber: row.question_number,
+        globalQuestionNumber: row.question_number,
+        moduleNumber: row.module_number,
+        label: row.label,
+        prompt: row.prompt,
+        passageTitle: row.passage_title || undefined,
+        passageText: row.passage_text || undefined,
+        passage: row.passage_text ? {
+          title: row.passage_title || undefined,
+          text: row.passage_text
+        } : undefined,
+        options: row.options || [],
+        correctAnswer: row.correct_answer,
+        correctAnswerIndex: row.correct_answer_index,
+        whyCorrectTitle: row.why_correct_title,
+        whyCorrect: row.why_correct,
+        distractorExplanations: row.distractor_explanations || [],
+        passageSupport: row.passage_support || undefined,
+        eliminationShortcut: row.elimination_shortcut || undefined,
+        educationalObjective: row.educational_objective || undefined,
+        tableData: row.table_data || undefined
+      });
+    });
+
+    // Map theory modules and attach practiceQuestions
+    const mappedModules = rawModules.map((m: any) => {
+      const modNum = m.module_number;
+      return {
+        id: m.id,
+        moduleNumber: m.module_number,
+        title: m.module_title,
+        centralQuestion: m.central_question || undefined,
+        endLabel: m.end_label || undefined,
+        sections: m.sections || [],
+        practiceQuestions: exercisesByModule[modNum] || []
+      };
+    });
+
+    const result: SatReadingChapter5Data = {
+      modules: mappedModules,
+      practiceQuestions: rawExercises.map((row: any) => ({
+        id: row.id,
+        questionNumber: row.question_number,
+        globalQuestionNumber: row.question_number,
+        moduleNumber: row.module_number,
+        label: row.label,
+        prompt: row.prompt,
+        passageTitle: row.passage_title || undefined,
+        passageText: row.passage_text || undefined,
+        passage: row.passage_text ? {
+          title: row.passage_title || undefined,
+          text: row.passage_text
+        } : undefined,
+        options: row.options || [],
+        correctAnswer: row.correct_answer,
+        correctAnswerIndex: row.correct_answer_index,
+        whyCorrectTitle: row.why_correct_title,
+        whyCorrect: row.why_correct,
+        distractorExplanations: row.distractor_explanations || [],
+        passageSupport: row.passage_support || undefined,
+        eliminationShortcut: row.elimination_shortcut || undefined,
+        educationalObjective: row.educational_objective || undefined,
+        tableData: row.table_data || undefined
+      }))
+    };
+
+    cachedReadingChapter5 = result;
+    return { data: result, error: null };
+  } catch (err: any) {
+    console.error('Error fetching SAT Reading Chapter 5 from Supabase:', err);
+    return { data: null, error: err };
+  }
+}
+
+export interface SatReadingChapter6Data {
+  modules: any[];
+  practiceQuestions: any[];
+}
+
+let cachedReadingChapter6: SatReadingChapter6Data | null = null;
+
+export async function fetchSatReadingChapter6FromSupabase(): Promise<{ data: SatReadingChapter6Data | null; error: any }> {
+  if (!isSupabaseConfigured() || !supabase) {
+    return { data: null, error: new Error('Supabase is not configured') };
+  }
+
+  if (cachedReadingChapter6) {
+    return { data: cachedReadingChapter6, error: null };
+  }
+
+  try {
+    const [theoryRes, exercisesRes] = await Promise.all([
+      supabase
+        .from('sat_reading_ch6_theory')
+        .select('*')
+        .order('module_number', { ascending: true }),
+      supabase
+        .from('sat_reading_ch6_exercises')
+        .select('*')
+        .order('question_number', { ascending: true })
+    ]);
+
+    if (theoryRes.error) throw theoryRes.error;
+    if (exercisesRes.error) throw exercisesRes.error;
+
+    const rawModules = theoryRes.data || [];
+    const rawExercises = exercisesRes.data || [];
+
+    if (!rawModules || rawModules.length === 0) {
+      return { data: null, error: new Error('No modules found in Supabase (check RLS)') };
+    }
+
+    // Map exercises to frontend format grouped by module
+    const exercisesByModule: Record<number, any[]> = {};
+    rawExercises.forEach((row: any) => {
+      const modNum = row.module_number || 1;
+      if (!exercisesByModule[modNum]) {
+        exercisesByModule[modNum] = [];
+      }
+      exercisesByModule[modNum].push({
+        id: row.id,
+        questionNumber: row.question_number,
+        globalQuestionNumber: row.question_number,
+        moduleNumber: row.module_number,
+        label: row.label,
+        prompt: row.prompt,
+        passageTitle: row.passage_title || undefined,
+        passageText: row.passage_text || undefined,
+        passage: row.passage_text ? {
+          title: row.passage_title || undefined,
+          text: row.passage_text
+        } : undefined,
+        options: row.options || [],
+        correctAnswer: row.correct_answer,
+        correctAnswerIndex: row.correct_answer_index,
+        whyCorrectTitle: row.why_correct_title,
+        whyCorrect: row.why_correct,
+        distractorExplanations: row.distractor_explanations || [],
+        passageSupport: row.passage_support || undefined,
+        eliminationShortcut: row.elimination_shortcut || undefined,
+        educationalObjective: row.educational_objective || undefined,
+        tableData: row.table_data || undefined,
+        dataFigure: row.table_data || undefined
+      });
+    });
+
+    // Map theory modules and attach practiceQuestions
+    const mappedModules = rawModules.map((m: any) => {
+      const modNum = m.module_number;
+      return {
+        id: m.id,
+        moduleNumber: m.module_number,
+        title: m.module_title,
+        centralQuestion: m.central_question || undefined,
+        endLabel: m.end_label || undefined,
+        sections: m.sections || [],
+        practiceQuestions: exercisesByModule[modNum] || []
+      };
+    });
+
+    const result: SatReadingChapter6Data = {
+      modules: mappedModules,
+      practiceQuestions: rawExercises.map((row: any) => ({
+        id: row.id,
+        questionNumber: row.question_number,
+        globalQuestionNumber: row.question_number,
+        moduleNumber: row.module_number,
+        label: row.label,
+        prompt: row.prompt,
+        passageTitle: row.passage_title || undefined,
+        passageText: row.passage_text || undefined,
+        passage: row.passage_text ? {
+          title: row.passage_title || undefined,
+          text: row.passage_text
+        } : undefined,
+        options: row.options || [],
+        correctAnswer: row.correct_answer,
+        correctAnswerIndex: row.correct_answer_index,
+        whyCorrectTitle: row.why_correct_title,
+        whyCorrect: row.why_correct,
+        distractorExplanations: row.distractor_explanations || [],
+        passageSupport: row.passage_support || undefined,
+        eliminationShortcut: row.elimination_shortcut || undefined,
+        educationalObjective: row.educational_objective || undefined,
+        tableData: row.table_data || undefined,
+        dataFigure: row.table_data || undefined
+      }))
+    };
+
+    cachedReadingChapter6 = result;
+    return { data: result, error: null };
+  } catch (err: any) {
+    console.error('Error fetching SAT Reading Chapter 6 from Supabase:', err);
+    return { data: null, error: err };
+  }
+}
+
+let cachedWritingChapter1: FullSatWritingChapter | null = null;
+
+export async function fetchSatWritingChapter1FromSupabase(): Promise<{ data: FullSatWritingChapter | null; error: any }> {
+  if (!isSupabaseConfigured() || !supabase) {
+    return { data: null, error: new Error('Supabase is not configured') };
+  }
+
+  if (cachedWritingChapter1) {
+    return { data: cachedWritingChapter1, error: null };
+  }
+
+  try {
+    const [theoryRes, exercisesRes] = await Promise.all([
+      supabase
+        .from('sat_writing_ch1_theory')
+        .select('*')
+        .order('sort_order', { ascending: true }),
+      supabase
+        .from('sat_writing_ch1_exercises')
+        .select('*')
+        .order('sort_order', { ascending: true })
+    ]);
+
+    if (theoryRes.error) throw theoryRes.error;
+    if (exercisesRes.error) throw exercisesRes.error;
+
+    const dbTheory = theoryRes.data || [];
+    const dbExercises = exercisesRes.data || [];
+
+    if (!dbTheory || dbTheory.length === 0) {
+      return { data: null, error: new Error('No theory blocks found in Supabase (check RLS)') };
+    }
+
+    // Group and map theory blocks
+    const theoryBlocksMap = new Map<number, WritingTheoryBlock>();
+    for (const row of dbTheory) {
+      if (!theoryBlocksMap.has(row.block_number)) {
+        theoryBlocksMap.set(row.block_number, {
+          blockNumber: row.block_number,
+          title: row.block_title,
+          description: row.block_description || undefined,
+          concepts: []
+        });
+      }
+      const block = theoryBlocksMap.get(row.block_number)!;
+      block.concepts.push({
+        id: row.id,
+        title: row.concept_title,
+        sectionNumber: row.section_number || undefined,
+        fullText: row.full_text,
+        bulletPoints: row.bullet_points && row.bullet_points.length > 0 ? row.bullet_points : undefined,
+        rules: row.rules && row.rules.length > 0 ? row.rules : undefined,
+        examples: row.examples && row.examples.length > 0 ? row.examples : undefined,
+        tables: row.tables && row.tables.length > 0 ? row.tables : undefined,
+        checklist: row.checklist && row.checklist.length > 0 ? row.checklist : undefined,
+        traps: row.traps && row.traps.length > 0 ? row.traps : undefined,
+        shortcuts: row.shortcuts && row.shortcuts.length > 0 ? row.shortcuts : undefined
+      });
+    }
+    const theoryBlocks = Array.from(theoryBlocksMap.values()).sort((a, b) => a.blockNumber - b.blockNumber);
+
+    // Group and map exercise blocks
+    const exerciseBlocksMap = new Map<number, WritingExerciseBlock>();
+    for (const row of dbExercises) {
+      if (!exerciseBlocksMap.has(row.block_number)) {
+        exerciseBlocksMap.set(row.block_number, {
+          blockNumber: row.block_number,
+          title: row.block_title,
+          description: row.block_description || undefined,
+          questions: [],
+          scoreGuide: row.score_guide && row.score_guide.length > 0 ? row.score_guide : undefined,
+          checklists: row.block_checklists && row.block_checklists.length > 0 ? row.block_checklists : undefined
+        });
+      }
+      const block = exerciseBlocksMap.get(row.block_number)!;
+      block.questions.push({
+        questionNumber: row.question_number,
+        id: row.id,
+        difficulty: row.difficulty,
+        skillTag: row.skill_tag,
+        prompt: row.prompt,
+        underlinedText: row.underlined_text || undefined,
+        contextSentence: row.context_sentence || undefined,
+        dataFigure: row.data_figure || undefined,
+        options: row.options || [],
+        correctAnswer: row.correct_answer,
+        explanation: {
+          coreReasoning: row.core_reasoning,
+          educationalObjective: row.educational_objective || undefined,
+          beforeAndAfterAnalysis: row.before_and_after_analysis || undefined,
+          whyCorrect: row.why_correct,
+          distractorAnalysis: row.distractor_analysis || [],
+          eliminationShortcut: row.elimination_shortcut || undefined,
+          trapToAvoid: row.trap_to_avoid || undefined
+        }
+      });
+    }
+    const exerciseBlocks = Array.from(exerciseBlocksMap.values()).sort((a, b) => a.blockNumber - b.blockNumber);
+
+    const result: FullSatWritingChapter = {
+      chapterNumber: 1,
+      chapterTitle: 'Sentence Structure, Clausal Boundaries & Transitions',
+      subtitle: 'The Mechanics of Clausal Integration and Boundary Diagnostics',
+      introduction: "Sentence construction on the SAT is fundamentally a test of clausal mechanics. To achieve absolute precision, students must look past a sentence's topical content and isolate its underlying syntactic skeleton. Mastery in this domain requires diagnosing the boundary between clauses, understanding the legal operators available to link ideas, and selecting transitions that precisely articulate logical progression.",
+      purpose: 'To provide authoritative, exhaustive instruction and 100 practice questions on SAT sentence structure, clauses, punctuation boundaries, transitions, and modifier placement without any omissions or shortcuts.',
+      masterPrinciple: 'Before choosing an answer, identify the structures on BOTH sides of the tested location. Ask: "What is immediately before the blank?" "What is immediately after the blank?" Then determine whether each side is capable of standing as a complete sentence.',
+      theoryBlocks,
+      exerciseBlocks
+    };
+
+    cachedWritingChapter1 = result;
+    return { data: result, error: null };
+  } catch (err: any) {
+    console.error('Error fetching SAT Writing Chapter 1 from Supabase:', err);
+    return { data: null, error: err };
+  }
+}
+
+let cachedWritingChapter2: FullSatWritingChapter | null = null;
+
+export async function fetchSatWritingChapter2FromSupabase(): Promise<{ data: FullSatWritingChapter | null; error: any }> {
+  if (!isSupabaseConfigured() || !supabase) {
+    return { data: null, error: new Error('Supabase is not configured') };
+  }
+
+  if (cachedWritingChapter2) {
+    return { data: cachedWritingChapter2, error: null };
+  }
+
+  try {
+    const [theoryRes, exercisesRes] = await Promise.all([
+      supabase
+        .from('sat_writing_ch2_theory')
+        .select('*')
+        .order('sort_order', { ascending: true }),
+      supabase
+        .from('sat_writing_ch2_exercises')
+        .select('*')
+        .order('sort_order', { ascending: true })
+    ]);
+
+    if (theoryRes.error) throw theoryRes.error;
+    if (exercisesRes.error) throw exercisesRes.error;
+
+    const dbTheory = theoryRes.data || [];
+    const dbExercises = exercisesRes.data || [];
+
+    if (!dbTheory || dbTheory.length === 0) {
+      return { data: null, error: new Error('No theory blocks found in Supabase (check RLS)') };
+    }
+
+    // Group and map theory blocks
+    const theoryBlocksMap = new Map<number, WritingTheoryBlock>();
+    for (const row of dbTheory) {
+      if (!theoryBlocksMap.has(row.block_number)) {
+        theoryBlocksMap.set(row.block_number, {
+          blockNumber: row.block_number,
+          title: row.block_title,
+          description: row.block_description || undefined,
+          concepts: []
+        });
+      }
+      const block = theoryBlocksMap.get(row.block_number)!;
+      block.concepts.push({
+        id: row.id,
+        title: row.concept_title,
+        sectionNumber: row.section_number || undefined,
+        fullText: row.full_text,
+        bulletPoints: row.bullet_points && row.bullet_points.length > 0 ? row.bullet_points : undefined,
+        rules: row.rules && row.rules.length > 0 ? row.rules : undefined,
+        examples: row.examples && row.examples.length > 0 ? row.examples : undefined,
+        tables: row.tables && row.tables.length > 0 ? row.tables : undefined,
+        checklist: row.checklist && row.checklist.length > 0 ? row.checklist : undefined,
+        traps: row.traps && row.traps.length > 0 ? row.traps : undefined,
+        shortcuts: row.shortcuts && row.shortcuts.length > 0 ? row.shortcuts : undefined
+      });
+    }
+    const theoryBlocks = Array.from(theoryBlocksMap.values()).sort((a, b) => a.blockNumber - b.blockNumber);
+
+    // Group and map exercise blocks
+    const exerciseBlocksMap = new Map<number, WritingExerciseBlock>();
+    for (const row of dbExercises) {
+      if (!exerciseBlocksMap.has(row.block_number)) {
+        exerciseBlocksMap.set(row.block_number, {
+          blockNumber: row.block_number,
+          title: row.block_title,
+          description: row.block_description || undefined,
+          questions: [],
+          scoreGuide: row.score_guide && row.score_guide.length > 0 ? row.score_guide : undefined,
+          checklists: row.block_checklists && row.block_checklists.length > 0 ? row.block_checklists : undefined
+        });
+      }
+      const block = exerciseBlocksMap.get(row.block_number)!;
+      block.questions.push({
+        questionNumber: row.question_number,
+        id: row.id,
+        difficulty: row.difficulty,
+        skillTag: row.skill_tag,
+        prompt: row.prompt,
+        underlinedText: row.underlined_text || undefined,
+        contextSentence: row.context_sentence || undefined,
+        dataFigure: row.data_figure || undefined,
+        options: row.options || [],
+        correctAnswer: row.correct_answer,
+        explanation: {
+          coreReasoning: row.core_reasoning,
+          educationalObjective: row.educational_objective || undefined,
+          beforeAndAfterAnalysis: row.before_and_after_analysis || undefined,
+          whyCorrect: row.why_correct,
+          distractorAnalysis: row.distractor_analysis || [],
+          eliminationShortcut: row.elimination_shortcut || undefined,
+          trapToAvoid: row.trap_to_avoid || undefined
+        }
+      });
+    }
+    const exerciseBlocks = Array.from(exerciseBlocksMap.values()).sort((a, b) => a.blockNumber - b.blockNumber);
+
+    const result: FullSatWritingChapter = {
+      chapterNumber: 2,
+      chapterTitle: 'Punctuation, Structural Boundaries & Typographic Logic',
+      subtitle: 'The Systematic Rules of Comma Restraints, Colons, Dashes, and Possessive Inflections',
+      introduction: 'Punctuation is not a transcription of audible breaths; it is a system of architectural boundaries that defines the structural relationship between sentence elements. This chapter establishes a complete logical matrix to govern comma insertion, coordinate lists, emphatic appositives, and possessive inflections.',
+      purpose: 'To provide absolute mastery over every SAT punctuation boundary and relationship.',
+      masterPrinciple: 'Punctuation marks are not decorative pauses; they establish strict grammatical boundaries and logical relationships between clauses, phrases, and modifiers.',
+      theoryBlocks,
+      exerciseBlocks,
+      masterChecklist: [
+        'I can perform the Independent-Clause Test rapidly on any sentence boundary.',
+        'I recognize comma splices immediately and know the four valid solutions.',
+        'I know how to punctuate introductory dependent clauses, phrases, and transitions.',
+        'I can distinguish essential (restrictive) from nonessential (nonrestrictive) modifiers.',
+        'I use the "Remove-It Test" to verify paired punctuation (commas, dashes, parentheses).',
+        'I know the complete-thought rule for colons and when to use colons for lists/explanations.',
+        'I use semicolons only between independent clauses or in complex series with internal commas.',
+        'I can distinguish possessive singular (noun\'s), possessive plural (nouns\'), and ordinary plural (nouns).',
+        'I know that possessive pronouns (its, whose, theirs, yours) NEVER take apostrophes.',
+        'I never insert a comma between a subject and verb, or a verb and its direct object.'
+      ],
+      completionSummary: `CHAPTER 2 COMPLETION SUMMARY:
+Congratulations! You have completed Chapter 2 — Punctuation.
+You have mastered the complete structural punctuation decision system, including sentence boundary rules, comma usage and restrictions, colons, semicolons, dashes, apostrophes, and complex punctuation interaction.
+With 18 theory blocks and 100 targeted practice questions completed, your punctuation execution is now primed for high precision on the Digital SAT.`
+    };
+
+    cachedWritingChapter2 = result;
+    return { data: result, error: null };
+  } catch (err: any) {
+    console.error('Error fetching SAT Writing Chapter 2 from Supabase:', err);
+    return { data: null, error: err };
+  }
+}
+
+let cachedWritingChapter3: FullSatWritingChapter | null = null;
+
+export async function fetchSatWritingChapter3FromSupabase(): Promise<{ data: FullSatWritingChapter | null; error: any }> {
+  if (!isSupabaseConfigured() || !supabase) {
+    return { data: null, error: new Error('Supabase is not configured') };
+  }
+
+  if (cachedWritingChapter3) {
+    return { data: cachedWritingChapter3, error: null };
+  }
+
+  try {
+    const [theoryRes, exercisesRes] = await Promise.all([
+      supabase
+        .from('sat_writing_ch3_theory')
+        .select('*')
+        .order('sort_order', { ascending: true }),
+      supabase
+        .from('sat_writing_ch3_exercises')
+        .select('*')
+        .order('sort_order', { ascending: true })
+    ]);
+
+    if (theoryRes.error) throw theoryRes.error;
+    if (exercisesRes.error) throw exercisesRes.error;
+
+    const dbTheory = theoryRes.data || [];
+    const dbExercises = exercisesRes.data || [];
+
+    if (!dbTheory || dbTheory.length === 0) {
+      return { data: null, error: new Error('No theory blocks found in Supabase (check RLS)') };
+    }
+
+    // Group and map theory blocks
+    const theoryBlocksMap = new Map<number, WritingTheoryBlock>();
+    for (const row of dbTheory) {
+      if (!theoryBlocksMap.has(row.block_number)) {
+        theoryBlocksMap.set(row.block_number, {
+          blockNumber: row.block_number,
+          title: row.block_title,
+          description: row.block_description || undefined,
+          concepts: []
+        });
+      }
+      const block = theoryBlocksMap.get(row.block_number)!;
+      block.concepts.push({
+        id: row.id,
+        title: row.concept_title,
+        sectionNumber: row.section_number || undefined,
+        fullText: row.full_text,
+        bulletPoints: row.bullet_points && row.bullet_points.length > 0 ? row.bullet_points : undefined,
+        rules: row.rules && row.rules.length > 0 ? row.rules : undefined,
+        examples: row.examples && row.examples.length > 0 ? row.examples : undefined,
+        tables: row.tables && row.tables.length > 0 ? row.tables : undefined,
+        checklist: row.checklist && row.checklist.length > 0 ? row.checklist : undefined,
+        traps: row.traps && row.traps.length > 0 ? row.traps : undefined,
+        shortcuts: row.shortcuts && row.shortcuts.length > 0 ? row.shortcuts : undefined
+      });
+    }
+    const theoryBlocks = Array.from(theoryBlocksMap.values()).sort((a, b) => a.blockNumber - b.blockNumber);
+
+    // Group and map exercise blocks
+    const exerciseBlocksMap = new Map<number, WritingExerciseBlock>();
+    for (const row of dbExercises) {
+      if (!exerciseBlocksMap.has(row.block_number)) {
+        exerciseBlocksMap.set(row.block_number, {
+          blockNumber: row.block_number,
+          title: row.block_title,
+          description: row.block_description || undefined,
+          questions: [],
+          scoreGuide: row.score_guide && row.score_guide.length > 0 ? row.score_guide : undefined,
+          checklists: row.block_checklists && row.block_checklists.length > 0 ? row.block_checklists : undefined
+        });
+      }
+      const block = exerciseBlocksMap.get(row.block_number)!;
+      block.questions.push({
+        questionNumber: row.question_number,
+        id: row.id,
+        difficulty: row.difficulty,
+        skillTag: row.skill_tag,
+        prompt: row.prompt,
+        underlinedText: row.underlined_text || undefined,
+        contextSentence: row.context_sentence || undefined,
+        dataFigure: row.data_figure || undefined,
+        options: row.options || [],
+        correctAnswer: row.correct_answer,
+        explanation: {
+          coreReasoning: row.core_reasoning,
+          educationalObjective: row.educational_objective || undefined,
+          beforeAndAfterAnalysis: row.before_and_after_analysis || undefined,
+          whyCorrect: row.why_correct,
+          distractorAnalysis: row.distractor_analysis || [],
+          eliminationShortcut: row.elimination_shortcut || undefined,
+          trapToAvoid: row.trap_to_avoid || undefined
+        }
+      });
+    }
+    const exerciseBlocks = Array.from(exerciseBlocksMap.values()).sort((a, b) => a.blockNumber - b.blockNumber);
+
+    const result: FullSatWritingChapter = {
+      chapterNumber: 3,
+      chapterTitle: 'Grammar & Agreement',
+      subtitle: 'The Complete Grammar and Agreement System',
+      introduction: 'Chapter 3 develops the master-level grammar skills needed to recognize and correct sentence-level errors, particularly errors involving subjects, verbs, agreement, verb tense, sequence, mood, pronouns, modifiers, clause boundaries, parallelism, and comparisons.',
+      purpose: 'To provide absolute mastery over every Digital SAT grammar rule, agreement trap, modifier relation, and sentence structure.',
+      masterPrinciple: 'Find the grammatical subject first. Then determine what the verb must agree with. Never allow nearby nouns or interrupting phrases to distract you from the true head noun.',
+      theoryBlocks,
+      exerciseBlocks,
+      masterChecklist: [
+        'I can strip away interrupting phrases and identify the true head noun immediately.',
+        'I know the agreement rules for additive phrases (along with, as well as) versus compound subjects (and).',
+        'I can apply the Rule of Proximity for either...or and neither...nor constructions.',
+        'I know that each, every, and indefinite pronouns are strictly singular.',
+        'I know when quantity expressions (some of, all of, half of, %) take singular vs. plural verbs.',
+        'I can distinguish "one of the people who [plural]" from "the only one who [singular]".',
+        'I know that noncount nouns (information, research, equipment, evidence) always take singular verbs.',
+        'I know that future time clauses (when, after, before) use present tense instead of "will".',
+        'I know that mandative subjunctive verbs (recommend that, require that) use bare base verbs.',
+        'I use the "Remove-It Test" to solve compound pronoun case questions (between you and me).',
+        'I can identify dangling modifiers and verify that introductory participial phrases modify the immediate subject.',
+        'I know how to fix comma splices and run-ons using the four valid boundary solutions.',
+        'I ensure parallelism across lists, correlative conjunctions, and logical comparisons (that of / those of).'
+      ],
+      completionSummary: 'Chapter 3 is fully integrated with 13 comprehensive theory blocks covering all concepts and 70 SAT-style practice questions.'
+    };
+
+    cachedWritingChapter3 = result;
+    return { data: result, error: null };
+  } catch (err: any) {
+    console.error('Error fetching SAT Writing Chapter 3 from Supabase:', err);
+    return { data: null, error: err };
+  }
+}
+
+let cachedWritingChapter4: FullSatWritingChapter | null = null;
+
+export async function fetchSatWritingChapter4FromSupabase(): Promise<{ data: FullSatWritingChapter | null; error: any }> {
+  if (!isSupabaseConfigured() || !supabase) {
+    return { data: null, error: new Error('Supabase is not configured') };
+  }
+
+  if (cachedWritingChapter4) {
+    return { data: cachedWritingChapter4, error: null };
+  }
+
+  try {
+    const [theoryRes, exercisesRes] = await Promise.all([
+      supabase
+        .from('sat_writing_ch4_theory')
+        .select('*')
+        .order('sort_order', { ascending: true }),
+      supabase
+        .from('sat_writing_ch4_exercises')
+        .select('*')
+        .order('sort_order', { ascending: true })
+    ]);
+
+    if (theoryRes.error) throw theoryRes.error;
+    if (exercisesRes.error) throw exercisesRes.error;
+
+    const dbTheory = theoryRes.data || [];
+    const dbExercises = exercisesRes.data || [];
+
+    if (!dbTheory || dbTheory.length === 0) {
+      return { data: null, error: new Error('No theory blocks found in Supabase (check RLS)') };
+    }
+
+    // Group and map theory blocks
+    const theoryBlocksMap = new Map<number, WritingTheoryBlock>();
+    for (const row of dbTheory) {
+      if (!theoryBlocksMap.has(row.block_number)) {
+        theoryBlocksMap.set(row.block_number, {
+          blockNumber: row.block_number,
+          title: row.block_title,
+          description: row.block_description || undefined,
+          concepts: []
+        });
+      }
+      const block = theoryBlocksMap.get(row.block_number)!;
+      block.concepts.push({
+        id: row.id,
+        title: row.concept_title,
+        sectionNumber: row.section_number || undefined,
+        fullText: row.full_text,
+        bulletPoints: row.bullet_points && row.bullet_points.length > 0 ? row.bullet_points : undefined,
+        rules: row.rules && row.rules.length > 0 ? row.rules : undefined,
+        examples: row.examples && row.examples.length > 0 ? row.examples : undefined,
+        tables: row.tables && row.tables.length > 0 ? row.tables : undefined,
+        checklist: row.checklist && row.checklist.length > 0 ? row.checklist : undefined,
+        traps: row.traps && row.traps.length > 0 ? row.traps : undefined,
+        shortcuts: row.shortcuts && row.shortcuts.length > 0 ? row.shortcuts : undefined
+      });
+    }
+    const theoryBlocks = Array.from(theoryBlocksMap.values()).sort((a, b) => a.blockNumber - b.blockNumber);
+
+    // Group and map exercise blocks
+    const exerciseBlocksMap = new Map<number, WritingExerciseBlock>();
+    for (const row of dbExercises) {
+      if (!exerciseBlocksMap.has(row.block_number)) {
+        exerciseBlocksMap.set(row.block_number, {
+          blockNumber: row.block_number,
+          title: row.block_title,
+          description: row.block_description || undefined,
+          questions: [],
+          scoreGuide: row.score_guide && row.score_guide.length > 0 ? row.score_guide : undefined,
+          checklists: row.block_checklists && row.block_checklists.length > 0 ? row.block_checklists : undefined
+        });
+      }
+      const block = exerciseBlocksMap.get(row.block_number)!;
+      block.questions.push({
+        questionNumber: row.question_number,
+        id: row.id,
+        difficulty: row.difficulty,
+        skillTag: row.skill_tag,
+        prompt: row.prompt,
+        underlinedText: row.underlined_text || undefined,
+        contextSentence: row.context_sentence || undefined,
+        dataFigure: row.data_figure || undefined,
+        options: row.options || [],
+        correctAnswer: row.correct_answer,
+        explanation: {
+          coreReasoning: row.core_reasoning,
+          educationalObjective: row.educational_objective || undefined,
+          beforeAndAfterAnalysis: row.before_and_after_analysis || undefined,
+          whyCorrect: row.why_correct,
+          distractorAnalysis: row.distractor_analysis || [],
+          eliminationShortcut: row.elimination_shortcut || undefined,
+          trapToAvoid: row.trap_to_avoid || undefined
+        }
+      });
+    }
+    const exerciseBlocks = Array.from(exerciseBlocksMap.values()).sort((a, b) => a.blockNumber - b.blockNumber);
+
+    const result: FullSatWritingChapter = {
+      chapterNumber: 4,
+      chapterTitle: 'Modifiers, Comparisons & Parallelism',
+      subtitle: 'The Complete System for Modifiers, Comparisons, and Structural Parallelism',
+      introduction: 'Chapter 4 establishes absolute mastery over sentence modifier alignment, logical comparison balance, category equivalence, and coordinate/correlative parallelism across all Digital SAT question formats.',
+      purpose: 'To ensure perfect precision on introductory participial modifiers, logical comparisons, demonstrative pronouns (that of / those of), and balanced parallel structures.',
+      masterPrinciple: 'An introductory modifier MUST immediately touch the noun it describes. Logical comparisons MUST compare like things with like things. Parallel items in a series or correlative construction MUST share matching grammatical forms.',
+      theoryBlocks,
+      exerciseBlocks,
+      masterChecklist: [
+        'I can immediately identify dangling modifiers and verify that introductory participial phrases modify the immediate subject.',
+        'I check that logical comparisons compare equivalent categories (people to people, objects to objects, attributes to attributes using that of / those of).',
+        'I verify parallel structure across lists, coordinate conjunctions (and, or, but), and correlative conjunctions (not only...but also, either...or, neither...nor).'
+      ],
+      completionSummary: 'Chapter 4 is fully integrated with 10 comprehensive theory blocks covering all concepts and 70 SAT-style practice questions.'
+    };
+
+    cachedWritingChapter4 = result;
+    return { data: result, error: null };
+  } catch (err: any) {
+    console.error('Error fetching SAT Writing Chapter 4 from Supabase:', err);
+    return { data: null, error: err };
+  }
+}
+
+let cachedWritingChapter5: FullSatWritingChapter | null = null;
+
+export async function fetchSatWritingChapter5FromSupabase(): Promise<{ data: FullSatWritingChapter | null; error: any }> {
+  if (!isSupabaseConfigured() || !supabase) {
+    return { data: null, error: new Error('Supabase is not configured') };
+  }
+
+  if (cachedWritingChapter5) {
+    return { data: cachedWritingChapter5, error: null };
+  }
+
+  try {
+    const [theoryRes, exercisesRes] = await Promise.all([
+      supabase
+        .from('sat_writing_ch5_theory')
+        .select('*')
+        .order('sort_order', { ascending: true }),
+      supabase
+        .from('sat_writing_ch5_exercises')
+        .select('*')
+        .order('sort_order', { ascending: true })
+    ]);
+
+    if (theoryRes.error) throw theoryRes.error;
+    if (exercisesRes.error) throw exercisesRes.error;
+
+    const dbTheory = theoryRes.data || [];
+    const dbExercises = exercisesRes.data || [];
+
+    if (!dbTheory || dbTheory.length === 0) {
+      return { data: null, error: new Error('No theory blocks found in Supabase (check RLS)') };
+    }
+
+    // Group and map theory blocks
+    const theoryBlocksMap = new Map<number, WritingTheoryBlock>();
+    for (const row of dbTheory) {
+      if (!theoryBlocksMap.has(row.block_number)) {
+        theoryBlocksMap.set(row.block_number, {
+          blockNumber: row.block_number,
+          title: row.block_title,
+          description: row.block_description || undefined,
+          concepts: []
+        });
+      }
+      const block = theoryBlocksMap.get(row.block_number)!;
+      block.concepts.push({
+        id: row.id,
+        title: row.concept_title,
+        sectionNumber: row.section_number || undefined,
+        fullText: row.full_text,
+        bulletPoints: row.bullet_points && row.bullet_points.length > 0 ? row.bullet_points : undefined,
+        rules: row.rules && row.rules.length > 0 ? row.rules : undefined,
+        examples: row.examples && row.examples.length > 0 ? row.examples : undefined,
+        tables: row.tables && row.tables.length > 0 ? row.tables : undefined,
+        checklist: row.checklist && row.checklist.length > 0 ? row.checklist : undefined,
+        traps: row.traps && row.traps.length > 0 ? row.traps : undefined,
+        shortcuts: row.shortcuts && row.shortcuts.length > 0 ? row.shortcuts : undefined
+      });
+    }
+    const theoryBlocks = Array.from(theoryBlocksMap.values()).sort((a, b) => a.blockNumber - b.blockNumber);
+
+    // Group and map exercise blocks
+    const exerciseBlocksMap = new Map<number, WritingExerciseBlock>();
+    for (const row of dbExercises) {
+      if (!exerciseBlocksMap.has(row.block_number)) {
+        exerciseBlocksMap.set(row.block_number, {
+          blockNumber: row.block_number,
+          title: row.block_title,
+          description: row.block_description || undefined,
+          questions: [],
+          scoreGuide: row.score_guide && row.score_guide.length > 0 ? row.score_guide : undefined,
+          checklists: row.block_checklists && row.block_checklists.length > 0 ? row.block_checklists : undefined
+        });
+      }
+      const block = exerciseBlocksMap.get(row.block_number)!;
+      block.questions.push({
+        questionNumber: row.question_number,
+        id: row.id,
+        difficulty: row.difficulty,
+        skillTag: row.skill_tag,
+        prompt: row.prompt,
+        underlinedText: row.underlined_text || undefined,
+        contextSentence: row.context_sentence || undefined,
+        dataFigure: row.data_figure || undefined,
+        options: row.options || [],
+        correctAnswer: row.correct_answer,
+        explanation: {
+          coreReasoning: row.core_reasoning,
+          educationalObjective: row.educational_objective || undefined,
+          beforeAndAfterAnalysis: row.before_and_after_analysis || undefined,
+          whyCorrect: row.why_correct,
+          distractorAnalysis: row.distractor_analysis || [],
+          eliminationShortcut: row.elimination_shortcut || undefined,
+          trapToAvoid: row.trap_to_avoid || undefined
+        }
+      });
+    }
+    const exerciseBlocks = Array.from(exerciseBlocksMap.values()).sort((a, b) => a.blockNumber - b.blockNumber);
+
+    const result: FullSatWritingChapter = {
+      chapterNumber: 5,
+      chapterTitle: 'Advanced Grammar Diagnostics & Error Prioritization',
+      subtitle: 'Advanced Diagnostics, Error Prioritization, and Structural Repair',
+      introduction: 'Chapter 5 establishes an elite 5-layer diagnostic process for identifying, triaging, and repairing sentence-level errors under strict Digital SAT time constraints.',
+      purpose: 'To provide a systematic framework for concision, precision, modifier attachment, idea combination, parallelism, and multi-rule error hierarchy.',
+      masterPrinciple: 'Never edit blindly. Triage errors using the 5-Layer Hierarchy: Sentence Boundaries > Agreement > Modifiers & Parallelism > Concision & Precision > Style.',
+      theoryBlocks,
+      exerciseBlocks,
+      masterChecklist: [
+        'I apply the 5-Layer Error Hierarchy on every question to eliminate distractor traps rapidly.',
+        'I eliminate wordiness and redundancy without dropping necessary semantic modifiers.',
+        'I select exact diction based on tone, register uniformity, and scientific modality.'
+      ],
+      completionSummary: 'Chapter 5 is fully integrated with 15 comprehensive theory blocks covering all concepts and 100 SAT-style practice questions.'
+    };
+
+    cachedWritingChapter5 = result;
+    return { data: result, error: null };
+  } catch (err: any) {
+    console.error('Error fetching SAT Writing Chapter 5 from Supabase:', err);
+    return { data: null, error: err };
+  }
+}
+
+let cachedWritingChapter6: FullSatWritingChapter | null = null;
+
+export async function fetchSatWritingChapter6FromSupabase(): Promise<{ data: FullSatWritingChapter | null; error: any }> {
+  if (!isSupabaseConfigured() || !supabase) {
+    return { data: null, error: new Error('Supabase is not configured') };
+  }
+
+  if (cachedWritingChapter6) {
+    return { data: cachedWritingChapter6, error: null };
+  }
+
+  try {
+    const [theoryRes, exercisesRes] = await Promise.all([
+      supabase
+        .from('sat_writing_ch6_theory')
+        .select('*')
+        .order('sort_order', { ascending: true }),
+      supabase
+        .from('sat_writing_ch6_exercises')
+        .select('*')
+        .order('sort_order', { ascending: true })
+    ]);
+
+    if (theoryRes.error) throw theoryRes.error;
+    if (exercisesRes.error) throw exercisesRes.error;
+
+    const dbTheory = theoryRes.data || [];
+    const dbExercises = exercisesRes.data || [];
+
+    if (!dbTheory || dbTheory.length === 0) {
+      return { data: null, error: new Error('No theory blocks found in Supabase (check RLS)') };
+    }
+
+    // Group and map theory blocks
+    const theoryBlocksMap = new Map<number, WritingTheoryBlock>();
+    for (const row of dbTheory) {
+      if (!theoryBlocksMap.has(row.block_number)) {
+        theoryBlocksMap.set(row.block_number, {
+          blockNumber: row.block_number,
+          title: row.block_title,
+          description: row.block_description || undefined,
+          concepts: []
+        });
+      }
+      const block = theoryBlocksMap.get(row.block_number)!;
+      block.concepts.push({
+        id: row.id,
+        title: row.concept_title,
+        sectionNumber: row.section_number || undefined,
+        fullText: row.full_text,
+        bulletPoints: row.bullet_points && row.bullet_points.length > 0 ? row.bullet_points : undefined,
+        rules: row.rules && row.rules.length > 0 ? row.rules : undefined,
+        examples: row.examples && row.examples.length > 0 ? row.examples : undefined,
+        tables: row.tables && row.tables.length > 0 ? row.tables : undefined,
+        checklist: row.checklist && row.checklist.length > 0 ? row.checklist : undefined,
+        traps: row.traps && row.traps.length > 0 ? row.traps : undefined,
+        shortcuts: row.shortcuts && row.shortcuts.length > 0 ? row.shortcuts : undefined
+      });
+    }
+    const theoryBlocks = Array.from(theoryBlocksMap.values()).sort((a, b) => a.blockNumber - b.blockNumber);
+
+    // Group and map exercise blocks
+    const exerciseBlocksMap = new Map<number, WritingExerciseBlock>();
+    for (const row of dbExercises) {
+      if (!exerciseBlocksMap.has(row.block_number)) {
+        exerciseBlocksMap.set(row.block_number, {
+          blockNumber: row.block_number,
+          title: row.block_title,
+          description: row.block_description || undefined,
+          questions: [],
+          scoreGuide: row.score_guide && row.score_guide.length > 0 ? row.score_guide : undefined,
+          checklists: row.block_checklists && row.block_checklists.length > 0 ? row.block_checklists : undefined
+        });
+      }
+      const block = exerciseBlocksMap.get(row.block_number)!;
+      block.questions.push({
+        questionNumber: row.question_number,
+        id: row.id,
+        difficulty: row.difficulty,
+        skillTag: row.skill_tag,
+        prompt: row.prompt,
+        underlinedText: row.underlined_text || undefined,
+        contextSentence: row.context_sentence || undefined,
+        dataFigure: row.data_figure || undefined,
+        options: row.options || [],
+        correctAnswer: row.correct_answer,
+        explanation: {
+          coreReasoning: row.core_reasoning,
+          educationalObjective: row.educational_objective || undefined,
+          beforeAndAfterAnalysis: row.before_and_after_analysis || undefined,
+          whyCorrect: row.why_correct,
+          distractorAnalysis: row.distractor_analysis || [],
+          eliminationShortcut: row.elimination_shortcut || undefined,
+          trapToAvoid: row.trap_to_avoid || undefined
+        }
+      });
+    }
+    const exerciseBlocks = Array.from(exerciseBlocksMap.values()).sort((a, b) => a.blockNumber - b.blockNumber);
+
+    const result: FullSatWritingChapter = {
+      chapterNumber: 6,
+      chapterTitle: 'Transitions, Sentence Placement & Rhetorical Synthesis',
+      subtitle: 'The Complete Master Class for Logical Transitions, Sentence Placement, and Rhetorical Synthesis',
+      introduction: 'Chapter 6 develops absolute mastery over logical transition words, sentence placement/discourse flow, and rhetorical synthesis question formats on the Digital SAT.',
+      purpose: 'To equip students with systematic frameworks for identifying logical relationships between ideas (continuation, contrast, cause/effect) and selecting bullet-point synthesis choices that achieve specified goal prompts.',
+      masterPrinciple: 'For transitions, isolate the precise logical relation before looking at choices. For rhetorical synthesis, locate the specific goal in the prompt and match only the bullet points that fulfill that exact goal.',
+      theoryBlocks,
+      exerciseBlocks,
+      masterChecklist: [
+        'I categorize transition words into Continuation, Contrast, and Cause/Effect families.',
+        'I place sentences strategically by tracking chronological, logical, and demonstrative anchor links.',
+        'I solve Rhetorical Synthesis questions by directly targeting the prompt Goal Statement.'
+      ],
+      completionSummary: 'Chapter 6 is fully integrated with 15 comprehensive theory blocks covering all concepts and 100 SAT-style practice questions.'
+    };
+
+    cachedWritingChapter6 = result;
+    return { data: result, error: null };
+  } catch (err: any) {
+    console.error('Error fetching SAT Writing Chapter 6 from Supabase:', err);
+    return { data: null, error: err };
+  }
+}
+
+let cachedWritingChapter7: FullSatWritingChapter | null = null;
+
+export async function fetchSatWritingChapter7FromSupabase(): Promise<{ data: FullSatWritingChapter | null; error: any }> {
+  if (!isSupabaseConfigured() || !supabase) {
+    return { data: null, error: new Error('Supabase is not configured') };
+  }
+
+  if (cachedWritingChapter7) {
+    return { data: cachedWritingChapter7, error: null };
+  }
+
+  try {
+    const [theoryRes, exercisesRes] = await Promise.all([
+      supabase
+        .from('sat_writing_ch7_theory')
+        .select('*')
+        .order('sort_order', { ascending: true }),
+      supabase
+        .from('sat_writing_ch7_exercises')
+        .select('*')
+        .order('sort_order', { ascending: true })
+    ]);
+
+    if (theoryRes.error) throw theoryRes.error;
+    if (exercisesRes.error) throw exercisesRes.error;
+
+    const dbTheory = theoryRes.data || [];
+    const dbExercises = exercisesRes.data || [];
+
+    if (!dbTheory || dbTheory.length === 0) {
+      return { data: null, error: new Error('No theory blocks found in Supabase (check RLS)') };
+    }
+
+    // Group and map theory blocks
+    const theoryBlocksMap = new Map<number, WritingTheoryBlock>();
+    for (const row of dbTheory) {
+      if (!theoryBlocksMap.has(row.block_number)) {
+        theoryBlocksMap.set(row.block_number, {
+          blockNumber: row.block_number,
+          title: row.block_title,
+          description: row.block_description || undefined,
+          concepts: []
+        });
+      }
+      const block = theoryBlocksMap.get(row.block_number)!;
+      block.concepts.push({
+        id: row.id,
+        title: row.concept_title,
+        sectionNumber: row.section_number || undefined,
+        fullText: row.full_text,
+        bulletPoints: row.bullet_points && row.bullet_points.length > 0 ? row.bullet_points : undefined,
+        rules: row.rules && row.rules.length > 0 ? row.rules : undefined,
+        examples: row.examples && row.examples.length > 0 ? row.examples : undefined,
+        tables: row.tables && row.tables.length > 0 ? row.tables : undefined,
+        checklist: row.checklist && row.checklist.length > 0 ? row.checklist : undefined,
+        traps: row.traps && row.traps.length > 0 ? row.traps : undefined,
+        shortcuts: row.shortcuts && row.shortcuts.length > 0 ? row.shortcuts : undefined
+      });
+    }
+    const theoryBlocks = Array.from(theoryBlocksMap.values()).sort((a, b) => a.blockNumber - b.blockNumber);
+
+    // Group and map exercise blocks
+    const exerciseBlocksMap = new Map<number, WritingExerciseBlock>();
+    for (const row of dbExercises) {
+      if (!exerciseBlocksMap.has(row.block_number)) {
+        exerciseBlocksMap.set(row.block_number, {
+          blockNumber: row.block_number,
+          title: row.block_title,
+          description: row.block_description || undefined,
+          questions: [],
+          scoreGuide: row.score_guide && row.score_guide.length > 0 ? row.score_guide : undefined,
+          checklists: row.block_checklists && row.block_checklists.length > 0 ? row.block_checklists : undefined
+        });
+      }
+      const block = exerciseBlocksMap.get(row.block_number)!;
+      block.questions.push({
+        questionNumber: row.question_number,
+        id: row.id,
+        difficulty: row.difficulty,
+        skillTag: row.skill_tag,
+        prompt: row.prompt,
+        underlinedText: row.underlined_text || undefined,
+        contextSentence: row.context_sentence || undefined,
+        dataFigure: row.data_figure || undefined,
+        options: row.options || [],
+        correctAnswer: row.correct_answer,
+        explanation: {
+          coreReasoning: row.core_reasoning,
+          educationalObjective: row.educational_objective || undefined,
+          beforeAndAfterAnalysis: row.before_and_after_analysis || undefined,
+          whyCorrect: row.why_correct,
+          distractorAnalysis: row.distractor_analysis || [],
+          eliminationShortcut: row.elimination_shortcut || undefined,
+          trapToAvoid: row.trap_to_avoid || undefined
+        }
+      });
+    }
+    const exerciseBlocks = Array.from(exerciseBlocksMap.values()).sort((a, b) => a.blockNumber - b.blockNumber);
+
+    const result: FullSatWritingChapter = {
+      chapterNumber: 7,
+      chapterTitle: 'Elite Writing: Complete Integration of All SAT Writing Skills',
+      subtitle: 'The Ultimate Master Class for 750+ SAT Writing Scores',
+      introduction: 'Chapter 7 develops absolute elite-level mastery across multi-rule decision making, advanced distractor analysis, rhetorical purpose under competing constraints, and cross-concept integration.',
+      purpose: 'To equip students with high-order analytical frameworks to conquer the hardest 800-level Writing and Language questions on the Digital SAT with 100% precision.',
+      masterPrinciple: 'Identify the exact core constraint of each question before evaluating choices. Match scope, certainty, and logical flow precisely without falling for sophisticated distractor traps.',
+      theoryBlocks,
+      exerciseBlocks,
+      masterChecklist: [
+        'I apply multi-rule decision pathways to resolve multi-concept sentence boundaries.',
+        'I evaluate distractor choices by testing scope boundaries, epistemic modality, and logical consistency.',
+        'I master rhetorical synthesis by isolating prompt goals and matching evidence precisely.'
+      ],
+      completionSummary: 'Chapter 7 is fully integrated with 10 comprehensive theory blocks covering 51 concepts and 130 elite SAT-style practice questions.'
+    };
+
+    cachedWritingChapter7 = result;
+    return { data: result, error: null };
+  } catch (err: any) {
+    console.error('Error fetching SAT Writing Chapter 7 from Supabase:', err);
+    return { data: null, error: err };
+  }
+}
+
+export async function fetchGovernmentScholarshipsFromSupabase() {
+  if (!isSupabaseConfigured() || !supabase) {
+    return { data: null, error: new Error('Supabase environment variables not configured') };
+  }
+
+  if (cachedGovernmentScholarships && cachedGovernmentScholarships.length > 0) {
+    // Return cached immediately, and optionally refresh in the background
+    fetchGovernmentScholarshipsFromSupabaseBackground();
+    return { data: cachedGovernmentScholarships, error: null };
+  }
+
+  try {
+    const data = await fetchGovernmentScholarshipsFromSupabaseBackground();
+    return { data, error: null };
+  } catch (err: any) {
+    return { data: null, error: err };
+  }
+}
+
+async function fetchGovernmentScholarshipsFromSupabaseBackground(): Promise<GovernmentTrackItem[]> {
+  if (!supabase) return [];
+  const { data, error } = await supabase
+    .from('government_scholarships')
+    .select('*')
+    .limit(100);
+
+  if (error) {
+    throw error;
+  }
+
+  const formattedList: GovernmentTrackItem[] = (data || []).map((row, idx) => mapRowToGovernmentTrack(row, idx));
+  cachedGovernmentScholarships = formattedList;
+  return formattedList;
 }
 
 export const SUPABASE_SQL_SCHEMA = `

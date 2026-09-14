@@ -5,8 +5,10 @@ import {
   CheckCircle2, DollarSign, Plane, Heart, Award, ShieldCheck, Clock,
   ArrowRight, ExternalLink, Building2, Sparkles, Scale, ChevronDown
 } from 'lucide-react';
-import { FEATURED_GOVERNMENT_SCHOLARSHIPS, GovernmentTrackItem } from '../data/scholarshipTracksData';
+import { GovernmentTrackItem } from '../types';
 import { GovernmentProfile } from './GovernmentProfile';
+import { isSupabaseConfigured, fetchGovernmentScholarshipsFromSupabase, getCachedGovernmentScholarships } from '../lib/supabase';
+import { InteractivePageLoader } from './InteractivePageLoader';
 
 import { isPublicGovernmentScholarship } from '../config/previewAccess';
 
@@ -16,6 +18,14 @@ interface GovernmentTrackViewProps {
   onRequestAuth?: (pendingAction?: any, message?: string) => void;
   pendingScholarshipId?: string;
 }
+
+const OCEANIA_COUNTRIES = new Set(['Australia', 'New Zealand']);
+const AMERICAS_COUNTRIES = new Set(['United States', 'Canada', 'Mexico', 'Colombia']);
+const ASIAN_COUNTRIES = new Set([
+  'Japan', 'China', 'South Korea', 'Taiwan', 'Singapore', 'Indonesia',
+  'Malaysia', 'Thailand', 'Brunei Darussalam', 'Saudi Arabia', 'Qatar', 'Kuwait', 'Oman'
+]);
+const AFRICAN_COUNTRIES = new Set(['Egypt', 'Morocco', 'South Africa']);
 
 export const GovernmentTrackView: React.FC<GovernmentTrackViewProps> = ({
   onBackToTracks,
@@ -30,15 +40,56 @@ export const GovernmentTrackView: React.FC<GovernmentTrackViewProps> = ({
   const [selectedScholarship, setSelectedScholarship] = useState<GovernmentTrackItem | null>(null);
   const [visibleCount, setVisibleCount] = useState<number>(10);
 
+  // Dynamic scholarships state (Synchronously read from memory cache or empty fallback)
+  const [scholarships, setScholarships] = useState<GovernmentTrackItem[]>(() => {
+    return getCachedGovernmentScholarships() || [];
+  });
+  const [isSupabaseLive, setIsSupabaseLive] = useState(() => {
+    const cached = getCachedGovernmentScholarships();
+    return Boolean(cached && cached.length > 0);
+  });
+  const [isSyncing, setIsSyncing] = useState(false);
+
+  // Load from Supabase if configured
+  useEffect(() => {
+    let isMounted = true;
+    async function loadSupabaseGovData() {
+      if (!isSupabaseConfigured()) {
+        setIsSupabaseLive(false);
+        return;
+      }
+
+      // Only show syncing spinner if we don't already have scholarships in state/cache
+      if (scholarships.length === 0) {
+        setIsSyncing(true);
+      }
+      const { data, error } = await fetchGovernmentScholarshipsFromSupabase();
+      if (isMounted) {
+        setIsSyncing(false);
+        if (!error && data && data.length > 0) {
+          setScholarships(data);
+          setIsSupabaseLive(true);
+        } else {
+          setIsSupabaseLive(false);
+        }
+      }
+    }
+
+    loadSupabaseGovData();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   // Auto open pending scholarship after auth
   useEffect(() => {
     if (pendingScholarshipId && !selectedScholarship) {
-      const item = FEATURED_GOVERNMENT_SCHOLARSHIPS.find((s) => s.id === pendingScholarshipId);
+      const item = scholarships.find((s) => s.id === pendingScholarshipId);
       if (item) {
         setSelectedScholarship(item);
       }
     }
-  }, [pendingScholarshipId]);
+  }, [pendingScholarshipId, scholarships, selectedScholarship]);
 
   const handleSelectScholarship = (item: GovernmentTrackItem) => {
     if (!user && !isPublicGovernmentScholarship(item.id)) {
@@ -55,45 +106,28 @@ export const GovernmentTrackView: React.FC<GovernmentTrackViewProps> = ({
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
   };
 
-  const oceaniaCountries = useMemo(() => new Set([
-    'Australia', 'New Zealand'
-  ]), []);
-
-  const americasCountries = useMemo(() => new Set([
-    'United States', 'Canada', 'Mexico', 'Colombia'
-  ]), []);
-
-  const asianCountries = useMemo(() => new Set([
-    'Japan', 'China', 'South Korea', 'Taiwan', 'Singapore', 'Indonesia',
-    'Malaysia', 'Thailand', 'Brunei Darussalam', 'Saudi Arabia', 'Qatar', 'Kuwait', 'Oman'
-  ]), []);
-
-  const africanCountries = useMemo(() => new Set([
-    'Egypt', 'Morocco', 'South Africa'
-  ]), []);
-
   const regionCounts = useMemo(() => {
     let oceania = 0;
     let americas = 0;
     let asia = 0;
     let europe = 0;
     let africa = 0;
-    FEATURED_GOVERNMENT_SCHOLARSHIPS.forEach(item => {
-      if (oceaniaCountries.has(item.country)) oceania++;
-      else if (americasCountries.has(item.country)) americas++;
-      else if (asianCountries.has(item.country)) asia++;
-      else if (africanCountries.has(item.country)) africa++;
+    scholarships.forEach(item => {
+      if (OCEANIA_COUNTRIES.has(item.country)) oceania++;
+      else if (AMERICAS_COUNTRIES.has(item.country)) americas++;
+      else if (ASIAN_COUNTRIES.has(item.country)) asia++;
+      else if (AFRICAN_COUNTRIES.has(item.country)) africa++;
       else europe++;
     });
-    return { all: FEATURED_GOVERNMENT_SCHOLARSHIPS.length, oceania, americas, asia, europe, africa };
-  }, [oceaniaCountries, americasCountries, asianCountries, africanCountries]);
+    return { all: scholarships.length, oceania, americas, asia, europe, africa };
+  }, [scholarships]);
 
   // Extract unique degree levels for filtering
   const allDegrees = ['All', 'Undergraduate', 'Masters', 'PhD', 'Other / Special'];
 
   // Filter scholarships based on query, selected degree, and region
   const filteredScholarships = useMemo(() => {
-    return FEATURED_GOVERNMENT_SCHOLARSHIPS.filter(item => {
+    const result = scholarships.filter(item => {
       const matchesSearch = 
         item.programTitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
         item.sponsorGovernment.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -114,10 +148,10 @@ export const GovernmentTrackView: React.FC<GovernmentTrackViewProps> = ({
         return !isUndergrad && !isMasters && !isPhD;
       });
 
-      const isOceania = oceaniaCountries.has(item.country);
-      const isAmericas = americasCountries.has(item.country);
-      const isAsia = asianCountries.has(item.country);
-      const isAfrica = africanCountries.has(item.country);
+      const isOceania = OCEANIA_COUNTRIES.has(item.country);
+      const isAmericas = AMERICAS_COUNTRIES.has(item.country);
+      const isAsia = ASIAN_COUNTRIES.has(item.country);
+      const isAfrica = AFRICAN_COUNTRIES.has(item.country);
       const isEurope = !isOceania && !isAmericas && !isAsia && !isAfrica;
 
       const matchesRegion = 
@@ -130,7 +164,8 @@ export const GovernmentTrackView: React.FC<GovernmentTrackViewProps> = ({
 
       return matchesSearch && matchesDegree && matchesRegion;
     });
-  }, [searchQuery, selectedDegree, selectedRegion, oceaniaCountries, americasCountries, asianCountries, africanCountries]);
+    return result;
+  }, [searchQuery, selectedDegree, selectedRegion, scholarships]);
 
   // Reset pagination limit on filter change
   React.useEffect(() => {
@@ -140,6 +175,10 @@ export const GovernmentTrackView: React.FC<GovernmentTrackViewProps> = ({
   const visibleScholarships = useMemo(() => {
     return filteredScholarships.slice(0, visibleCount);
   }, [filteredScholarships, visibleCount]);
+
+  if (isSyncing && (scholarships.length === 0)) {
+    return <InteractivePageLoader />;
+  }
 
   return (
     <div className="relative overflow-x-hidden w-full">

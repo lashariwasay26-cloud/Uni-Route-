@@ -1,6 +1,6 @@
 import React from 'react';
 import { Bookmark, ExternalLink, Trash2, X, Download, Building2, Globe, Sparkles } from 'lucide-react';
-import { UniversityTrackItem } from '../data/scholarshipTracksData';
+import { UniversityTrackItem } from '../types';
 import { getUniversityLogo } from '../utils/universityUtils';
 
 interface SavedUniversitiesModalProps {
@@ -97,8 +97,11 @@ export const SavedUniversitiesModal: React.FC<SavedUniversitiesModalProps> = ({
                       }}
                     >
                       {/* Mini Logo */}
-                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black shadow-xs shrink-0 text-white select-none ${logoInfo.logoBg}`}>
-                        <span className="text-xs font-black">{logoInfo.logoText.slice(0, 4)}</span>
+                      <div
+                        className="w-10 h-10 rounded-xl flex items-center justify-center font-black shadow-xs shrink-0 text-white select-none overflow-hidden"
+                        style={logoInfo.logoStyle}
+                      >
+                        <span className="text-xs font-black text-white drop-shadow-xs">{logoInfo.logoText.slice(0, 4)}</span>
                       </div>
 
                       <div className="min-w-0 flex-1">

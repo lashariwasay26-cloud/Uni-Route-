@@ -12,17 +12,14 @@ export default defineConfig(() => {
       },
     },
     build: {
-      chunkSizeWarningLimit: 2000,
+      outDir: 'dist',
+      emptyOutDir: true,
+      chunkSizeWarningLimit: 3000,
       rollupOptions: {
         output: {
           manualChunks(id) {
             if (id.includes('node_modules')) {
               return 'vendor';
-            }
-            if (id.includes('src/data/')) {
-              const parts = id.split('/');
-              const filename = parts[parts.length - 1].replace(/\.[jt]sx?$/, '');
-              return `curriculum-data-${filename}`;
             }
           }
         }

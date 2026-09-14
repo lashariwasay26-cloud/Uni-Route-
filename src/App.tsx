@@ -11,7 +11,6 @@ import { syncDrillDataFromSupabase } from './data/satDrills/progressStorage';
 import { fetchSavedUniversityIds, loadSatPracticeProgress } from './lib/userStorage';
 import { isPublicInternationalUniversity, isPublicGovernmentScholarship } from './config/previewAccess';
 import { FloatingIconsGateway } from './components/FloatingIconsGateway';
-import { PAKISTANI_UNIVERSITIES } from './data/pakistaniUniversitiesData';
 import { SearchGroundingWidget } from './components/SearchGroundingWidget';
 import { VoiceRecorderWidget } from './components/VoiceRecorderWidget';
 import { FloatingAssistantBubble } from './components/FloatingAssistantBubble';
@@ -279,7 +278,6 @@ export default function App() {
               {currentView === 'pakistani-scholarships' && (
                 <UniversityListView
                   onBackToTracks={() => setCurrentView('home')}
-                  initialUniversities={PAKISTANI_UNIVERSITIES}
                   title="Pakistani Scholarship Directory"
                   description="Explore Pakistan's leading higher education institutions, fully funded local grants, need-based programs, and HEC/Ehsaas/PEEF funding options."
                   user={user}

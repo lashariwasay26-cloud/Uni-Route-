@@ -304,3 +304,88 @@ DO $$ BEGIN
     CREATE POLICY "Public Read Access" ON public.university_scholarships FOR SELECT USING (true);
   END IF;
 END $$;
+
+
+-- --------------------------------------------------------------------
+-- 9. GOVERNMENT SCHOLARSHIPS REGISTRY TABLE
+-- (Read-only for public; contains full detailed tracks)
+-- --------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS public.government_scholarships (
+  id TEXT PRIMARY KEY,
+  program_title TEXT NOT NULL,
+  sponsor_government TEXT,
+  country TEXT NOT NULL,
+  flag TEXT DEFAULT '🌍',
+  degree_levels TEXT[] DEFAULT ARRAY['Masters'],
+  stipend_monthly TEXT,
+  airfare_covered BOOLEAN DEFAULT false,
+  health_insurance_covered BOOLEAN DEFAULT false,
+  tuition_covered BOOLEAN DEFAULT false,
+  deadline TEXT,
+  bond_requirement TEXT,
+  description TEXT,
+  key_eligibility TEXT[] DEFAULT ARRAY[]::text[],
+  overview_long TEXT,
+  funding_type TEXT,
+  work_experience_required TEXT,
+  age_limit TEXT,
+  hec_nomination_required BOOLEAN DEFAULT false,
+  embassy_nomination_required BOOLEAN DEFAULT false,
+  application_route TEXT,
+  official_sources TEXT[] DEFAULT ARRAY[]::text[],
+  step_by_step_process TEXT[] DEFAULT ARRAY[]::text[],
+  funding_breakdown JSONB DEFAULT '[]'::jsonb,
+  restrictions TEXT[] DEFAULT ARRAY[]::text[],
+  logo_text TEXT,
+  logo_bg TEXT,
+  eligible_nationalities TEXT,
+  gpa_requirement TEXT,
+  ielts_requirement TEXT,
+  is_eligible_for_pakistan BOOLEAN DEFAULT true,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+ALTER TABLE public.government_scholarships ENABLE ROW LEVEL SECURITY;
+
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'government_scholarships' AND policyname = 'Public Read Access for Gov Scholarships') THEN
+    CREATE POLICY "Public Read Access for Gov Scholarships" ON public.government_scholarships FOR SELECT USING (true);
+  END IF;
+END $$;
+
+
+-- --------------------------------------------------------------------
+-- 10. SAT READING & WRITING CONTENT TABLES (Public Read Access)
+-- When RLS is turned ON, explicit SELECT policies are required
+-- so that web app visitors can fetch lessons and exercises.
+-- --------------------------------------------------------------------
+DO $$
+DECLARE
+  t text;
+  sat_tables text[] := ARRAY[
+    'sat_reading_ch1_theory', 'sat_reading_ch1_exercises',
+    'sat_reading_ch2_theory', 'sat_reading_ch2_exercises',
+    'sat_reading_ch3_theory', 'sat_reading_ch3_exercises',
+    'sat_reading_ch4_theory', 'sat_reading_ch4_exercises',
+    'sat_reading_ch5_theory', 'sat_reading_ch5_exercises',
+    'sat_reading_ch6_theory', 'sat_reading_ch6_exercises',
+    'sat_writing_ch1_theory', 'sat_writing_ch1_exercises',
+    'sat_writing_ch2_theory', 'sat_writing_ch2_exercises',
+    'sat_writing_ch3_theory', 'sat_writing_ch3_exercises',
+    'sat_writing_ch4_theory', 'sat_writing_ch4_exercises',
+    'sat_writing_ch5_theory', 'sat_writing_ch5_exercises',
+    'sat_writing_ch6_theory', 'sat_writing_ch6_exercises',
+    'sat_writing_ch7_theory', 'sat_writing_ch7_exercises',
+    'international_universities', 'international_university_programs', 'international_university_scholarships',
+    'pakistani_universities', 'pakistani_university_programs', 'pakistani_university_scholarships'
+  ];
+BEGIN
+  FOREACH t IN ARRAY sat_tables LOOP
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = t) THEN
+      EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY;', t);
+      EXECUTE format('DROP POLICY IF EXISTS "Public Read Access" ON public.%I;', t);
+      EXECUTE format('CREATE POLICY "Public Read Access" ON public.%I FOR SELECT TO anon, authenticated USING (true);', t);
+    END IF;
+  END LOOP;
+END $$;
+

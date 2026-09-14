@@ -249,3 +249,121 @@ export interface ChatMessage {
   text: string;
   timestamp: string;
 }
+
+export interface ProgramItem {
+  name: string;
+  ranking: string;
+  description: string;
+  logoText?: string;
+  logoBg?: string;
+  degreesOffered?: string[];
+  tags?: string[];
+  requiresSeparateApp?: boolean;
+}
+
+export interface ScholarshipItem {
+  id: string;
+  title: string;
+  amount: string;
+  coverage: string;
+  eligibility: string;
+  description: string;
+  deadline: string;
+  requiresSeparateApp: boolean;
+  tags?: string[];
+  applyUrl?: string;
+  logoText?: string;
+  logoBg?: string;
+  degreesOffered?: string[];
+}
+
+export interface UniversityTrackItem {
+  id: string;
+  universityName: string;
+  location: string;
+  country: string;
+  flag: string;
+  foundingYear?: string;
+  scholarshipTitle: string;
+  ranking: string;
+  qsSubjectRankings?: string;
+  rankingSource?: string;
+  coverage: string;
+  amountValue: string;
+  tuitionFee: string;
+  tuitionAmountNumeric: number;
+  hasFullRide: boolean;
+  hasPartialAid: boolean;
+  hasFinancialAid: boolean;
+  financialAidType: string;
+  financialAidDetails?: string;
+  minGpa: string;
+  minSat: string;
+  satRequirementCategory: string;
+  satPolicyDetails?: string;
+  minIelts: string;
+  ieltsCategory: string;
+  toeflRequirement?: string;
+  commonAppAccepted?: boolean;
+  applicationPortalDetails?: string;
+  acceptanceRate: string;
+  deadline: string;
+  description: string;
+  overviewLong?: string;
+  topProgramsList?: ProgramItem[];
+  allScholarshipsList?: ScholarshipItem[];
+  degreesOffered?: string[];
+  tags?: string[];
+  requiresSeparateApp?: boolean;
+  logoText?: string;
+  logoBg?: string;
+  supabaseDbId?: number;
+  track_category?: 'international' | 'pakistani' | 'global';
+}
+
+export interface GovernmentTrackSection {
+  number: number;
+  title: string;
+  content: string;
+}
+
+export interface GovernmentTrackItem {
+  id: string;
+  programTitle: string;
+  sponsorGovernment: string;
+  country: string;
+  flag: string;
+  degreeLevels: string[];
+  stipendMonthly: string;
+  airfareCovered: boolean;
+  healthInsuranceCovered: boolean;
+  tuitionCovered: boolean;
+  deadline: string;
+  bondRequirement: string;
+  description: string;
+  keyEligibility: string[];
+  supabaseDbId?: number;
+  overviewLong?: string;
+  fundingType?: string;
+  workExperienceRequired?: string;
+  ageLimit?: string;
+  hecNominationRequired?: boolean;
+  embassyNominationRequired?: boolean;
+  applicationRoute?: string;
+  officialSources?: string[];
+  stepByStepProcess?: string[];
+  fundingBreakdown?: { expense: string; coverage: string }[];
+  restrictions?: string[];
+  logoText?: string;
+  logoBg?: string;
+  eligibleNationalities?: string;
+  gpaRequirement?: string;
+  ieltsRequirement?: string;
+  isEligibleForPakistan?: boolean;
+  warningNotice?: string;
+  currentStatus?: string;
+  currentCycle?: string;
+  lastVerifiedDate?: string;
+  fullSections?: GovernmentTrackSection[];
+  fullSourceText?: string;
+}
