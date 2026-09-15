@@ -303,8 +303,8 @@ export function renderRichMathLines(content: string) {
         if (/^#+\s+/.test(trimmed)) {
           const title = trimmed.replace(/^#+\s+/, '');
           return (
-            <div key={idx} className="font-extrabold text-slate-950 text-xs sm:text-sm pt-2.5 pb-1 flex items-center gap-2 border-b border-slate-200">
-              <span className="w-2 h-2 rounded-full bg-slate-800 shrink-0" />
+            <div key={idx} className="font-extrabold text-slate-950 text-[12px] sm:text-sm pt-2 pb-0.5 flex items-center gap-2 border-b border-slate-200">
+              <span className="w-1.5 h-1.5 rounded-full bg-slate-800 shrink-0" />
               <span>{cleanMathInlineMarkdown(title)}</span>
             </div>
           );
@@ -317,9 +317,9 @@ export function renderRichMathLines(content: string) {
         ) {
           const headingText = trimmed.replace(/^•\s*/, '');
           return (
-            <div key={idx} className="font-black text-slate-950 text-xs sm:text-sm pt-2 pb-0.5 flex items-center gap-2">
+            <div key={idx} className="font-black text-slate-950 text-[11px] sm:text-xs pt-1.5 pb-0.5 flex items-center gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-indigo-600 shrink-0" />
-              <span className="uppercase tracking-wider text-[11px] sm:text-xs text-indigo-950 font-black">
+              <span className="uppercase tracking-wider text-[10.5px] sm:text-xs text-indigo-950 font-black">
                 {cleanMathInlineMarkdown(headingText)}
               </span>
             </div>
@@ -336,10 +336,10 @@ export function renderRichMathLines(content: string) {
           return (
             <div
               key={idx}
-              className="my-2 p-3 sm:p-3.5 rounded-xl bg-slate-900 text-slate-100 border border-slate-800 text-xs sm:text-sm font-mono font-black tracking-wide shadow-2xs flex items-center justify-between overflow-x-auto"
+              className="my-1.5 p-2.5 sm:p-3.5 rounded-lg sm:rounded-xl bg-slate-900 text-slate-100 border border-slate-800 text-[11px] sm:text-sm font-mono font-black tracking-wide shadow-2xs flex items-center justify-between overflow-x-auto"
             >
               <span>{cleanMathSymbols(trimmed)}</span>
-              <span className="text-[9px] font-black px-2 py-0.5 rounded bg-slate-800 text-indigo-300 uppercase tracking-widest ml-2 shrink-0">
+              <span className="text-[8.5px] sm:text-[9px] font-black px-1.5 sm:px-2 py-0.5 rounded bg-slate-800 text-indigo-300 uppercase tracking-widest ml-2 shrink-0">
                 Formula
               </span>
             </div>
@@ -358,14 +358,14 @@ export function renderRichMathLines(content: string) {
           return (
             <div
               key={idx}
-              className={`flex items-start gap-2.5 p-2.5 sm:p-3 rounded-xl border my-1.5 shadow-2xs ${
+              className={`flex items-start gap-2 sm:gap-2.5 p-2 sm:p-2.5 rounded-lg sm:rounded-xl border my-1 shadow-2xs ${
                 isConclusion
                   ? 'bg-emerald-50/90 border-emerald-300 text-emerald-950 font-bold'
-                  : 'bg-slate-50 border-slate-200/90 text-slate-900 font-medium'
+                  : 'bg-slate-50/80 border-slate-200/90 text-slate-900 font-medium'
               }`}
             >
               <span
-                className={`w-5 h-5 rounded-full font-black text-[10px] flex items-center justify-center shrink-0 mt-0.5 ${
+                className={`w-4.5 h-4.5 sm:w-5 sm:h-5 rounded-full font-black text-[9px] sm:text-[10px] flex items-center justify-center shrink-0 mt-0.5 ${
                   isConclusion
                     ? 'bg-emerald-700 text-white'
                     : 'bg-slate-800 text-white'
@@ -373,10 +373,10 @@ export function renderRichMathLines(content: string) {
               >
                 {stepPrefix.includes('Step') ? stepPrefix.replace('Step', '').trim() : stepPrefix}
               </span>
-              <div className="flex-1 text-xs sm:text-sm leading-relaxed">
+              <div className="flex-1 text-[11.5px] sm:text-sm leading-relaxed">
                 {isConclusion && (
-                  <span className="inline-flex items-center gap-1 font-black text-emerald-900 mr-1.5 uppercase text-[10px] tracking-wider">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 inline" />
+                  <span className="inline-flex items-center gap-1 font-black text-emerald-900 mr-1.5 uppercase text-[9.5px] sm:text-[10px] tracking-wider">
+                    <CheckCircle2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-emerald-600 inline" />
                     Conclusion:
                   </span>
                 )}
@@ -393,9 +393,9 @@ export function renderRichMathLines(content: string) {
           const optBody = trimmed.replace(/^[\*•\-]\s*([A-D])\:\s*/i, '');
 
           return (
-            <div key={idx} className="flex items-center justify-between p-2 sm:p-2.5 rounded-lg bg-white border border-slate-200 text-xs sm:text-sm my-1 pl-2.5 ml-4 shadow-2xs">
-              <div className="flex items-center gap-2 font-mono font-bold text-slate-900">
-                <span className="w-5 h-5 rounded-md bg-slate-100 text-slate-800 font-black text-[11px] flex items-center justify-center border border-slate-300 shrink-0">
+            <div key={idx} className="flex items-center justify-between p-1.5 sm:p-2.5 rounded-md sm:rounded-lg bg-white border border-slate-200 text-[11px] sm:text-xs my-0.5 pl-2 sm:pl-2.5 ml-2 sm:ml-4 shadow-2xs">
+              <div className="flex items-center gap-1.5 sm:gap-2 font-mono font-bold text-slate-900">
+                <span className="w-4.5 h-4.5 sm:w-5 sm:h-5 rounded bg-slate-100 text-slate-800 font-black text-[10px] sm:text-[11px] flex items-center justify-center border border-slate-300 shrink-0">
                   {optLetter}
                 </span>
                 <span>{cleanMathInlineMarkdown(optBody)}</span>
@@ -411,8 +411,8 @@ export function renderRichMathLines(content: string) {
           const paramBody = trimmed.replace(/^[\*\-•]\s*([a-z0-9_]+)\:\s*/i, '');
 
           return (
-            <div key={idx} className="flex items-start gap-2.5 text-xs sm:text-sm text-slate-900 font-medium leading-relaxed pl-3 my-1">
-              <span className="font-mono font-black text-indigo-900 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded text-[11px] shrink-0 mt-0.5">
+            <div key={idx} className="flex items-start gap-2 sm:gap-2.5 text-[11.5px] sm:text-sm text-slate-900 font-medium leading-relaxed pl-2 sm:pl-3 my-0.5">
+              <span className="font-mono font-black text-indigo-900 bg-indigo-50 border border-indigo-200 px-1.5 py-0.2 rounded text-[10px] sm:text-[11px] shrink-0 mt-0.5">
                 {paramName}
               </span>
               <span className="flex-1 pt-0.5">{cleanMathInlineMarkdown(paramBody)}</span>
@@ -424,8 +424,8 @@ export function renderRichMathLines(content: string) {
         if (/^[\*\-•]\s+/.test(trimmed)) {
           const listText = trimmed.replace(/^[\*\-•]\s+/, '');
           return (
-            <div key={idx} className="flex items-start gap-2 text-xs sm:text-sm text-slate-900 font-medium leading-relaxed pl-2 my-1">
-              <span className="text-slate-800 font-black text-base shrink-0 leading-none mt-0.5">•</span>
+            <div key={idx} className="flex items-start gap-1.5 sm:gap-2 text-[11.5px] sm:text-sm text-slate-900 font-medium leading-relaxed pl-1.5 sm:pl-2 my-0.5">
+              <span className="text-slate-800 font-black text-sm sm:text-base shrink-0 leading-none mt-0.5">•</span>
               <span className="flex-1">{cleanMathInlineMarkdown(listText)}</span>
             </div>
           );
@@ -433,7 +433,7 @@ export function renderRichMathLines(content: string) {
 
         // Standard text paragraph
         return (
-          <p key={idx} className="text-xs sm:text-sm font-medium text-slate-900 leading-relaxed my-0.5">
+          <p key={idx} className="text-[11.5px] sm:text-sm font-medium text-slate-900 leading-relaxed my-0.5">
             {cleanMathInlineMarkdown(trimmed)}
           </p>
         );
@@ -450,25 +450,25 @@ export const FormattedMathConceptText: React.FC<{ text: string }> = ({ text }) =
   const blocks = parseMathTheoryBlocks(text);
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2.5 sm:space-y-3">
       {blocks.map((block, idx) => {
         // Red Box: SAT Traps & Critical Rules
         if (block.type === 'trap') {
           return (
             <div
               key={idx}
-              className="bg-rose-50/90 border-2 border-rose-300 rounded-xl sm:rounded-2xl p-3 sm:p-5 space-y-2.5 shadow-2xs my-2 sm:my-3"
+              className="bg-rose-50/70 border border-rose-300 rounded-xl sm:rounded-2xl p-3 sm:p-5 space-y-2 sm:space-y-2.5 shadow-2xs my-1.5 sm:my-3"
             >
-              <div className="flex items-center justify-between flex-wrap gap-2 border-b border-rose-200/80 pb-2">
-                <span className="text-xs font-black text-rose-950 uppercase tracking-wider flex items-center gap-2">
-                  <AlertTriangle className="w-4 h-4 text-rose-700 shrink-0" />
+              <div className="flex items-center justify-between flex-wrap gap-1.5 sm:gap-2 border-b border-rose-200/80 pb-1.5 sm:pb-2">
+                <span className="text-[11px] sm:text-xs font-black text-rose-950 uppercase tracking-wider flex items-center gap-1.5 sm:gap-2">
+                  <AlertTriangle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-rose-700 shrink-0" />
                   <span>{block.title || 'CRITICAL RULE & HIGH-FREQUENCY SAT TRAP'}</span>
                 </span>
-                <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-rose-200 text-rose-950 border border-rose-300 uppercase tracking-wider">
+                <span className="text-[9px] sm:text-[10px] font-black px-2 sm:px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-950 border border-rose-300 uppercase tracking-wider">
                   Critical Rule
                 </span>
               </div>
-              <div className="text-xs sm:text-sm text-rose-950 font-medium leading-relaxed">
+              <div className="text-[11.5px] sm:text-sm text-rose-950 font-medium leading-relaxed">
                 {renderRichMathLines(block.content)}
               </div>
             </div>
@@ -480,41 +480,41 @@ export const FormattedMathConceptText: React.FC<{ text: string }> = ({ text }) =
           return (
             <div
               key={idx}
-              className="bg-sky-50/90 border-2 border-sky-400 rounded-xl sm:rounded-2xl p-3 sm:p-5 space-y-2.5 shadow-2xs my-2 sm:my-3"
+              className="bg-sky-50/70 border border-sky-300 rounded-xl sm:rounded-2xl p-3 sm:p-5 space-y-2 sm:space-y-2.5 shadow-2xs my-1.5 sm:my-3"
             >
-              <div className="flex items-center justify-between flex-wrap gap-2 border-b border-sky-200/80 pb-2">
-                <span className="text-xs font-black text-sky-950 uppercase tracking-wider flex items-center gap-2">
-                  <Zap className="w-4 h-4 text-sky-700 shrink-0" />
+              <div className="flex items-center justify-between flex-wrap gap-1.5 sm:gap-2 border-b border-sky-200/80 pb-1.5 sm:pb-2">
+                <span className="text-[11px] sm:text-xs font-black text-sky-950 uppercase tracking-wider flex items-center gap-1.5 sm:gap-2">
+                  <Zap className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-sky-700 shrink-0" />
                   <span>{block.title || 'SAT SHORTCUT & FAST METHOD'}</span>
                 </span>
-                <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-sky-200 text-sky-950 border border-sky-300 uppercase tracking-wider">
+                <span className="text-[9px] sm:text-[10px] font-black px-2 sm:px-2.5 py-0.5 rounded-full bg-sky-100 text-sky-950 border border-sky-300 uppercase tracking-wider">
                   Fast Shortcut
                 </span>
               </div>
-              <div className="text-xs sm:text-sm text-sky-950 font-medium leading-relaxed">
+              <div className="text-[11.5px] sm:text-sm text-sky-950 font-medium leading-relaxed">
                 {renderRichMathLines(block.content)}
               </div>
             </div>
           );
         }
 
-        // Amber Box: Worked Examples in Text
+        // Amber Box: Worked Examples in Text (Clean white card with yellow outline)
         if (block.type === 'example') {
           return (
             <div
               key={idx}
-              className="bg-amber-50/90 border-2 border-amber-300 rounded-xl sm:rounded-2xl p-3 sm:p-5 space-y-3 shadow-2xs my-2 sm:my-3"
+              className="bg-white border-2 border-amber-400 rounded-xl sm:rounded-2xl p-3 sm:p-5 space-y-2 sm:space-y-3 shadow-2xs my-2 sm:my-3"
             >
-              <div className="flex items-center justify-between flex-wrap gap-2 border-b border-amber-200/80 pb-2.5">
-                <span className="text-xs font-black text-amber-950 uppercase tracking-wider flex items-center gap-2">
-                  <BookOpen className="w-4 h-4 text-amber-700 shrink-0" />
+              <div className="flex items-center justify-between flex-wrap gap-1.5 sm:gap-2 border-b border-amber-200/80 pb-2 sm:pb-2.5">
+                <span className="text-[11px] sm:text-xs font-black text-amber-950 uppercase tracking-wider flex items-center gap-1.5 sm:gap-2">
+                  <BookOpen className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-700 shrink-0" />
                   <span>{block.title || 'WORKED EXAMPLE'}</span>
                 </span>
-                <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-amber-200 text-amber-950 border border-amber-300 uppercase tracking-wider">
+                <span className="text-[9px] sm:text-[10px] font-black px-2 sm:px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-950 border border-amber-300 uppercase tracking-wider">
                   Yellow Card Example
                 </span>
               </div>
-              <div className="text-xs sm:text-sm text-slate-900 leading-relaxed font-sans space-y-2">
+              <div className="text-[11.5px] sm:text-sm text-slate-900 leading-relaxed font-sans space-y-1.5 sm:space-y-2">
                 {renderRichMathLines(block.content)}
               </div>
             </div>
@@ -523,7 +523,7 @@ export const FormattedMathConceptText: React.FC<{ text: string }> = ({ text }) =
 
         // Normal content block
         return (
-          <div key={idx} className="space-y-2">
+          <div key={idx} className="space-y-1.5 sm:space-y-2">
             {renderRichMathLines(block.content)}
           </div>
         );
@@ -539,7 +539,7 @@ export const FormattedMathExplanation: React.FC<{ text: string }> = ({ text }) =
   if (!text) return null;
 
   return (
-    <div className="space-y-2 text-xs sm:text-sm leading-relaxed">
+    <div className="space-y-1.5 sm:space-y-2 text-[11.5px] sm:text-sm leading-relaxed">
       {renderRichMathLines(text)}
     </div>
   );

@@ -436,7 +436,7 @@ where t represents the time in years since the start of the study, and N(t) repr
     setIsOptionPopupOpen(false);
     setTimeout(() => {
       setIsSwitchingCategory(false);
-    }, 500);
+    }, 150);
   };
 
   const handleOptionSelect = (index: number) => {
@@ -757,34 +757,34 @@ where t represents the time in years since the start of the study, and N(t) repr
   return (
     <div id="sat-prep-hub" className="space-y-6 pb-16 max-w-4xl mx-auto">
       {/* Top Bar: Back Button & Module Selector Popup Launcher */}
-      <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+      <div className="flex items-center justify-between gap-2 pt-1">
         {onBackToHome ? (
           <button
             onClick={onBackToHome}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white border border-slate-200/90 shadow-xs text-xs font-bold text-slate-700 hover:text-indigo-600 hover:bg-slate-50 transition-all cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white border border-slate-200/90 shadow-xs text-[11px] sm:text-xs font-bold text-slate-700 hover:text-indigo-600 hover:bg-slate-50 transition-all cursor-pointer shrink-0"
           >
-            <ArrowLeft className="w-4 h-4 text-indigo-600" />
+            <ArrowLeft className="w-3.5 h-3.5 text-indigo-600" />
             <span>Back to SAT Route</span>
           </button>
         ) : <div />}
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 shrink-0">
           {/* Current Active Category Pill */}
-          <span className="px-3.5 py-2 rounded-2xl bg-indigo-50 border border-indigo-200/80 text-indigo-700 text-xs font-extrabold uppercase tracking-wider flex items-center gap-1.5 shadow-2xs">
+          <span className="px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl bg-indigo-50 border border-indigo-200/80 text-indigo-700 text-[10.5px] sm:text-xs font-extrabold uppercase tracking-wider flex items-center gap-1 shadow-2xs">
             {activeCategory === 'reading' && '📖 1. Reading'}
             {activeCategory === 'writing' && '✍️ 2. Writing'}
             {activeCategory === 'math' && '📐 3. Math'}
             {activeCategory === 'drills' && '⚡ 4. Drills'}
-            {activeCategory === 'stats' && '📊 5. Advanced Stats'}
-            {activeCategory === 'calculator' && '🧮 5. SAT Calculator'}
+            {activeCategory === 'stats' && '📊 5. Stats'}
+            {activeCategory === 'calculator' && '🧮 Calculator'}
           </span>
 
           {/* Popup Modal Launcher Button */}
           <button
             onClick={() => setIsOptionPopupOpen(true)}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white hover:bg-indigo-50 border border-slate-200/90 hover:border-indigo-300 text-slate-800 hover:text-indigo-700 text-xs font-bold transition-all cursor-pointer shadow-xs"
+            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl bg-white hover:bg-indigo-50 border border-slate-200/90 hover:border-indigo-300 text-slate-800 hover:text-indigo-700 text-[11px] sm:text-xs font-bold transition-all cursor-pointer shadow-xs"
           >
-            <Grid className="w-4 h-4 text-indigo-600" />
+            <Grid className="w-3.5 h-3.5 text-indigo-600" />
             <span>Switch Option</span>
           </button>
         </div>
@@ -849,245 +849,248 @@ where t represents the time in years since the start of the study, and N(t) repr
       {/* POPUP MODAL WITH THE 4 OPTIONS */}
       <AnimatePresence>
         {isOptionPopupOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-slate-900/60">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.12 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/30"
+          >
             {/* Backdrop */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
+            <div
               onClick={() => setIsOptionPopupOpen(false)}
-              className="absolute inset-0"
+              className="absolute inset-0 cursor-pointer"
             />
 
             {/* Dialog Content */}
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
-              className="bg-white border border-slate-200 rounded-[32px] max-w-2xl w-full p-6 sm:p-8 shadow-2xl relative z-10 space-y-6 overflow-hidden max-h-[90vh] overflow-y-auto"
+              initial={{ opacity: 0, scale: 0.96, y: 8 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.96, y: 8 }}
+              transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
+              className="bg-white border border-slate-200 rounded-3xl max-w-2xl w-full p-4 sm:p-7 shadow-2xl relative z-10 space-y-4 sm:space-y-5 overflow-hidden max-h-[95vh] flex flex-col"
             >
               {/* Close Icon */}
               <button
                 onClick={() => setIsOptionPopupOpen(false)}
-                className="absolute top-6 right-6 p-2 rounded-full bg-slate-100 text-slate-500 hover:text-slate-900 hover:bg-slate-200 transition-all cursor-pointer"
+                className="absolute top-4 right-4 p-1.5 sm:p-2 rounded-full bg-slate-100 text-slate-500 hover:text-slate-900 hover:bg-slate-200 transition-all cursor-pointer z-10"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
 
               {/* Modal Header */}
-              <div className="space-y-2 pr-8 text-left">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-[11px] font-black uppercase tracking-wider">
+              <div className="space-y-1 pr-6 text-left shrink-0">
+                <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-[10px] font-black uppercase tracking-wider">
                   <Target className="w-3.5 h-3.5 text-indigo-600" />
                   Digital SAT Core Modules
                 </div>
-                <h2 className="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight">
+                <h2 className="text-xl sm:text-2xl font-black text-slate-950 tracking-tight">
                   Select Learning Option
                 </h2>
-                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                  Choose one of the 4 official learning options below to switch your practice session.
+                <p className="text-[11px] sm:text-xs text-slate-500 leading-relaxed">
+                  Choose one of the 5 official learning options below to switch your practice session.
                 </p>
               </div>
 
               {/* OPTIONS IN A GRID */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 pt-2">
+              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-2 sm:gap-3 pt-1 overflow-y-auto">
                 {/* OPTION 1: READING */}
                 <button
                   onClick={() => handleSelectCategoryFromModal('reading')}
-                  className={`p-4 rounded-2xl border transition-all cursor-pointer text-left flex flex-col justify-between min-h-[160px] group relative overflow-hidden ${
+                  className={`p-3 sm:p-4 rounded-xl sm:rounded-2xl border transition-all cursor-pointer text-left flex flex-col justify-between min-h-[110px] sm:min-h-[160px] group relative overflow-hidden col-span-1 ${
                     activeCategory === 'reading'
                       ? 'bg-blue-50/30 border-blue-600 ring-2 ring-blue-600/20 shadow-md'
                       : 'bg-white border-slate-200/90 hover:border-blue-600 hover:bg-blue-50/20 hover:shadow-lg'
                   }`}
                 >
                   <div>
-                    <div className="flex items-center justify-between mb-2.5">
-                      <span className="text-2xl">📖</span>
-                      <span className="px-2.5 py-0.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-[10px] font-black uppercase tracking-wider">
+                    <div className="flex items-center justify-between mb-1 sm:mb-2.5">
+                      <span className="text-xl sm:text-2xl">📖</span>
+                      <span className="px-1.5 py-0.5 sm:px-2.5 sm:py-0.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-[8px] sm:text-[10px] font-black uppercase tracking-wider">
                         6 Chapters
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <h3 className="text-base font-extrabold tracking-tight text-slate-950 group-hover:text-blue-900">
+                      <h3 className="text-xs sm:text-base font-extrabold tracking-tight text-slate-950 group-hover:text-blue-900">
                         1. Reading
                       </h3>
                       {activeCategory === 'reading' && (
-                        <span className="w-3 h-3 rounded-full bg-blue-600 ring-4 ring-blue-100 flex-shrink-0 animate-pulse" title="Selected" />
+                        <span className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-blue-600 ring-2 sm:ring-4 ring-blue-100 flex-shrink-0 animate-pulse" title="Selected" />
                       )}
                     </div>
-                    <p className="text-xs mt-1 leading-relaxed text-slate-600">
+                    <p className="hidden sm:block text-xs mt-1 leading-relaxed text-slate-600">
                       Main idea, claims, structure, inference, evidence & vocabulary in context.
                     </p>
                   </div>
-                  <div className="mt-3 flex items-center justify-between text-xs font-bold text-indigo-600 group-hover:text-indigo-700">
+                  <div className="mt-1.5 sm:mt-3 flex items-center justify-between text-[10px] sm:text-xs font-bold text-indigo-600 group-hover:text-indigo-700">
                     <span className="flex items-center gap-1.5">
                       {activeCategory === 'reading' && (
-                        <span className="w-2 h-2 rounded-full bg-blue-600" />
+                        <span className="w-1.5 h-1.5 rounded-full bg-blue-600" />
                       )}
-                      {activeCategory === 'reading' ? 'Active Module' : 'Select Reading'}
+                      <span>{activeCategory === 'reading' ? 'Active' : 'Select'}</span>
                     </span>
-                    <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                    <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 transition-transform group-hover:translate-x-1" />
                   </div>
                 </button>
 
                 {/* OPTION 2: WRITING */}
                 <button
                   onClick={() => handleSelectCategoryFromModal('writing')}
-                  className={`p-4 rounded-2xl border transition-all cursor-pointer text-left flex flex-col justify-between min-h-[160px] group relative overflow-hidden ${
+                  className={`p-3 sm:p-4 rounded-xl sm:rounded-2xl border transition-all cursor-pointer text-left flex flex-col justify-between min-h-[110px] sm:min-h-[160px] group relative overflow-hidden col-span-1 ${
                     activeCategory === 'writing'
                       ? 'bg-blue-50/30 border-blue-600 ring-2 ring-blue-600/20 shadow-md'
                       : 'bg-white border-slate-200/90 hover:border-blue-600 hover:bg-blue-50/20 hover:shadow-lg'
                   }`}
                 >
                   <div>
-                    <div className="flex items-center justify-between mb-2.5">
-                      <span className="text-2xl">✍️</span>
-                      <span className="px-2.5 py-0.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-[10px] font-black uppercase tracking-wider">
+                    <div className="flex items-center justify-between mb-1 sm:mb-2.5">
+                      <span className="text-xl sm:text-2xl">✍️</span>
+                      <span className="px-1.5 py-0.5 sm:px-2.5 sm:py-0.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-[8px] sm:text-[10px] font-black uppercase tracking-wider">
                         7 Chapters
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <h3 className="text-base font-extrabold tracking-tight text-slate-950 group-hover:text-blue-900">
+                      <h3 className="text-xs sm:text-base font-extrabold tracking-tight text-slate-950 group-hover:text-blue-900">
                         2. Writing
                       </h3>
                       {activeCategory === 'writing' && (
-                        <span className="w-3 h-3 rounded-full bg-blue-600 ring-4 ring-blue-100 flex-shrink-0 animate-pulse" title="Selected" />
+                        <span className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-blue-600 ring-2 sm:ring-4 ring-blue-100 flex-shrink-0 animate-pulse" title="Selected" />
                       )}
                     </div>
-                    <p className="text-xs mt-1 leading-relaxed text-slate-600">
+                    <p className="hidden sm:block text-xs mt-1 leading-relaxed text-slate-600">
                       Standard English conventions, punctuation, sentence clauses & transitions.
                     </p>
                   </div>
-                  <div className="mt-3 flex items-center justify-between text-xs font-bold text-indigo-600 group-hover:text-indigo-700">
+                  <div className="mt-1.5 sm:mt-3 flex items-center justify-between text-[10px] sm:text-xs font-bold text-indigo-600 group-hover:text-indigo-700">
                     <span className="flex items-center gap-1.5">
                       {activeCategory === 'writing' && (
-                        <span className="w-2 h-2 rounded-full bg-blue-600" />
+                        <span className="w-1.5 h-1.5 rounded-full bg-blue-600" />
                       )}
-                      {activeCategory === 'writing' ? 'Active Module' : 'Select Writing'}
+                      <span>{activeCategory === 'writing' ? 'Active' : 'Select'}</span>
                     </span>
-                    <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                    <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 transition-transform group-hover:translate-x-1" />
                   </div>
                 </button>
 
                 {/* OPTION 3: MATH */}
                 <button
                   onClick={() => handleSelectCategoryFromModal('math')}
-                  className={`p-4 rounded-2xl border transition-all cursor-pointer text-left flex flex-col justify-between min-h-[160px] group relative overflow-hidden ${
+                  className={`p-3 sm:p-4 rounded-xl sm:rounded-2xl border transition-all cursor-pointer text-left flex flex-col justify-between min-h-[110px] sm:min-h-[160px] group relative overflow-hidden col-span-1 ${
                     activeCategory === 'math'
                       ? 'bg-blue-50/30 border-blue-600 ring-2 ring-blue-600/20 shadow-md'
                       : 'bg-white border-slate-200/90 hover:border-blue-600 hover:bg-blue-50/20 hover:shadow-lg'
                   }`}
                 >
                   <div>
-                    <div className="flex items-center justify-between mb-2.5">
+                    <div className="flex items-center justify-between mb-1 sm:mb-2.5">
                       <span className="text-2xl">📐</span>
-                      <span className="px-2.5 py-0.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-[10px] font-black uppercase tracking-wider">
+                      <span className="px-1.5 py-0.5 sm:px-2.5 sm:py-0.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-[8px] sm:text-[10px] font-black uppercase tracking-wider">
                         11 Chapters
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <h3 className="text-base font-extrabold tracking-tight text-slate-950 group-hover:text-blue-900">
+                      <h3 className="text-xs sm:text-base font-extrabold tracking-tight text-slate-950 group-hover:text-blue-900">
                         3. Math
                       </h3>
                       {activeCategory === 'math' && (
-                        <span className="w-3 h-3 rounded-full bg-blue-600 ring-4 ring-blue-100 flex-shrink-0 animate-pulse" title="Selected" />
+                        <span className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-blue-600 ring-2 sm:ring-4 ring-blue-100 flex-shrink-0 animate-pulse" title="Selected" />
                       )}
                     </div>
-                    <p className="text-xs mt-1 leading-relaxed text-slate-600">
+                    <p className="hidden sm:block text-xs mt-1 leading-relaxed text-slate-600">
                       Algebra, Advanced Math, Problem Solving & Geometry with step-by-step solutions.
                     </p>
                   </div>
-                  <div className="mt-3 flex items-center justify-between text-xs font-bold text-indigo-600 group-hover:text-indigo-700">
+                  <div className="mt-1.5 sm:mt-3 flex items-center justify-between text-[10px] sm:text-xs font-bold text-indigo-600 group-hover:text-indigo-700">
                     <span className="flex items-center gap-1.5">
                       {activeCategory === 'math' && (
-                        <span className="w-2 h-2 rounded-full bg-blue-600" />
+                        <span className="w-1.5 h-1.5 rounded-full bg-blue-600" />
                       )}
-                      {activeCategory === 'math' ? 'Active Module' : 'Select Math'}
+                      <span>{activeCategory === 'math' ? 'Active' : 'Select'}</span>
                     </span>
-                    <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                    <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 transition-transform group-hover:translate-x-1" />
                   </div>
                 </button>
 
                 {/* OPTION 4: DRILLS */}
                 <button
                   onClick={() => handleSelectCategoryFromModal('drills')}
-                  className={`p-4 rounded-2xl border transition-all cursor-pointer text-left flex flex-col justify-between min-h-[160px] group relative overflow-hidden ${
+                  className={`p-3 sm:p-4 rounded-xl sm:rounded-2xl border transition-all cursor-pointer text-left flex flex-col justify-between min-h-[110px] sm:min-h-[160px] group relative overflow-hidden col-span-1 ${
                     activeCategory === 'drills'
                       ? 'bg-blue-50/30 border-blue-600 ring-2 ring-blue-600/20 shadow-md'
                       : 'bg-white border-slate-200/90 hover:border-blue-600 hover:bg-blue-50/20 hover:shadow-lg'
                   }`}
                 >
                   <div>
-                    <div className="flex items-center justify-between mb-2.5">
+                    <div className="flex items-center justify-between mb-1 sm:mb-2.5">
                       <span className="text-2xl">⚡</span>
-                      <span className="px-2.5 py-0.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-[10px] font-black uppercase">
+                      <span className="px-1.5 py-0.5 sm:px-2.5 sm:py-0.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-[8px] sm:text-[10px] font-black uppercase">
                         Full Practice
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <h3 className="text-base font-extrabold tracking-tight text-slate-950 group-hover:text-blue-900">
+                      <h3 className="text-xs sm:text-base font-extrabold tracking-tight text-slate-950 group-hover:text-blue-900">
                         4. Drills
                       </h3>
                       {activeCategory === 'drills' && (
-                        <span className="w-3 h-3 rounded-full bg-blue-600 ring-4 ring-blue-100 flex-shrink-0 animate-pulse" title="Selected" />
+                        <span className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-blue-600 ring-2 sm:ring-4 ring-blue-100 flex-shrink-0 animate-pulse" title="Selected" />
                       )}
                     </div>
-                    <p className="text-xs mt-1 leading-relaxed text-slate-600">
+                    <p className="hidden sm:block text-xs mt-1 leading-relaxed text-slate-600">
                       Timed mixed speed drills, 400-1600 Score Predictor & Vocab Flashcards.
                     </p>
                   </div>
-                  <div className="mt-3 flex items-center justify-between text-xs font-bold text-indigo-600 group-hover:text-indigo-700">
+                  <div className="mt-1.5 sm:mt-3 flex items-center justify-between text-[10px] sm:text-xs font-bold text-indigo-600 group-hover:text-indigo-700">
                     <span className="flex items-center gap-1.5">
                       {activeCategory === 'drills' && (
-                        <span className="w-2 h-2 rounded-full bg-blue-600" />
+                        <span className="w-1.5 h-1.5 rounded-full bg-blue-600" />
                       )}
-                      {activeCategory === 'drills' ? 'Active Module' : 'Select Speed Drills'}
+                      <span>{activeCategory === 'drills' ? 'Active' : 'Select'}</span>
                     </span>
-                    <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                    <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 transition-transform group-hover:translate-x-1" />
                   </div>
                 </button>
 
                 {/* OPTION 5: CALCULATOR */}
                 <button
                   onClick={() => handleSelectCategoryFromModal('calculator')}
-                  className={`p-4 rounded-2xl border transition-all cursor-pointer text-left flex flex-col justify-between min-h-[160px] group relative overflow-hidden ${
+                  className={`p-3 sm:p-4 rounded-xl sm:rounded-2xl border transition-all cursor-pointer text-left flex flex-col justify-between min-h-[100px] sm:min-h-[160px] group relative overflow-hidden col-span-2 sm:col-span-1 ${
                     activeCategory === 'calculator'
                       ? 'bg-blue-50/30 border-blue-600 ring-2 ring-blue-600/20 shadow-md'
                       : 'bg-white border-slate-200/90 hover:border-blue-600 hover:bg-blue-50/20 hover:shadow-lg'
                   }`}
                 >
                   <div>
-                    <div className="flex items-center justify-between mb-2.5">
+                    <div className="flex items-center justify-between mb-1 sm:mb-2.5">
                       <span className="text-2xl">🧮</span>
-                      <span className="px-2.5 py-0.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-[10px] font-black uppercase">
+                      <span className="px-1.5 py-0.5 sm:px-2.5 sm:py-0.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-[8px] sm:text-[10px] font-black uppercase">
                         SUITE
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <h3 className="text-base font-extrabold tracking-tight text-slate-950 group-hover:text-blue-900">
+                      <h3 className="text-xs sm:text-base font-extrabold tracking-tight text-slate-950 group-hover:text-blue-900">
                         5. Calculator
                       </h3>
                       {activeCategory === 'calculator' && (
-                        <span className="w-3 h-3 rounded-full bg-blue-600 ring-4 ring-blue-100 flex-shrink-0 animate-pulse" title="Selected" />
+                        <span className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-blue-600 ring-2 sm:ring-4 ring-blue-100 flex-shrink-0 animate-pulse" title="Selected" />
                       )}
                     </div>
-                    <p className="text-xs mt-1 leading-relaxed text-slate-600">
+                    <p className="hidden sm:block text-xs mt-1 leading-relaxed text-slate-600">
                       High-precision scientific calculator optimized for SAT math problems.
                     </p>
                   </div>
-                  <div className="mt-3 flex items-center justify-between text-xs font-bold text-indigo-600 group-hover:text-indigo-700">
+                  <div className="mt-1.5 sm:mt-3 flex items-center justify-between text-[10px] sm:text-xs font-bold text-indigo-600 group-hover:text-indigo-700">
                     <span className="flex items-center gap-1.5">
                       {activeCategory === 'calculator' && (
-                        <span className="w-2 h-2 rounded-full bg-blue-600" />
+                        <span className="w-1.5 h-1.5 rounded-full bg-blue-600" />
                       )}
-                      {activeCategory === 'calculator' ? 'Active Module' : 'Select Calculator'}
+                      <span>{activeCategory === 'calculator' ? 'Active' : 'Select'}</span>
                     </span>
-                    <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                    <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 transition-transform group-hover:translate-x-1" />
                   </div>
                 </button>
               </div>
             </motion.div>
-          </div>
+          </motion.div>
         )}
       </AnimatePresence>
     </div>

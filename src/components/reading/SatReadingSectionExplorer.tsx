@@ -336,9 +336,9 @@ function renderFormattedContent(content: string) {
           return (
             <div
               key={idx}
-              className="font-extrabold font-sans text-slate-950 text-xs sm:text-sm pt-2.5 pb-1 flex items-center gap-2 border-b border-slate-200"
+              className="font-extrabold font-sans text-slate-950 text-xs sm:text-[13.5px] pt-2 pb-0.5 flex items-center gap-1.5 border-b border-slate-200"
             >
-              <span className="w-2 h-2 rounded-full bg-indigo-600 shrink-0"></span>
+              <span className="w-1.5 h-1.5 rounded-full bg-indigo-600 shrink-0"></span>
               <span>{cleanInlineMarkdown(title)}</span>
             </div>
           );
@@ -353,7 +353,7 @@ function renderFormattedContent(content: string) {
           return (
             <div
               key={idx}
-              className="font-extrabold font-sans text-slate-950 text-xs sm:text-sm pt-2 pb-0.5 flex items-center gap-2"
+              className="font-extrabold font-sans text-slate-950 text-xs sm:text-[13px] pt-1.5 pb-0.5 flex items-center gap-1.5"
             >
               <span className="w-1.5 h-1.5 rounded-full bg-indigo-600 shrink-0"></span>
               <span>{cleanInlineMarkdown(trimmed)}</span>
@@ -366,10 +366,10 @@ function renderFormattedContent(content: string) {
           return (
             <div
               key={idx}
-              className="mt-3.5 mb-1.5 pt-2 pb-1 border-b border-indigo-200/80 flex items-center gap-2 font-sans"
+              className="mt-2.5 mb-1 pt-1.5 pb-1 border-b border-indigo-200/80 flex items-center gap-2 font-sans"
             >
-              <span className="w-2 h-2 rounded-full bg-indigo-600 shrink-0"></span>
-              <span className="font-extrabold text-xs sm:text-sm text-indigo-950 tracking-tight">
+              <span className="w-1.5 h-1.5 rounded-full bg-indigo-600 shrink-0"></span>
+              <span className="font-extrabold text-xs sm:text-[13px] text-indigo-950 tracking-tight">
                 {cleanInlineMarkdown(trimmed)}
               </span>
             </div>
@@ -381,18 +381,18 @@ function renderFormattedContent(content: string) {
           return (
             <div
               key={idx}
-              className="my-3 p-3.5 rounded-xl bg-indigo-50/70 border border-indigo-200/90 text-slate-900 shadow-2xs space-y-1.5 font-sans"
+              className="my-2.5 p-3 rounded-xl bg-indigo-50/70 border border-indigo-200/90 text-slate-900 shadow-2xs space-y-1 font-sans"
             >
-              <div className="flex items-center justify-between border-b border-indigo-200/60 pb-1.5">
-                <div className="flex items-center gap-2 text-indigo-900 font-bold text-xs">
-                  <BarChart3 className="w-4 h-4 text-indigo-600 shrink-0" />
+              <div className="flex items-center justify-between border-b border-indigo-200/60 pb-1">
+                <div className="flex items-center gap-1.5 text-indigo-900 font-bold text-[11px] sm:text-xs">
+                  <BarChart3 className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
                   <span>Data Figure / Illustration</span>
                 </div>
-                <span className="text-[10px] font-mono font-bold text-indigo-700 bg-indigo-100/90 px-2 py-0.5 rounded border border-indigo-200">
+                <span className="text-[9px] sm:text-[10px] font-mono font-bold text-indigo-700 bg-indigo-100/90 px-1.5 py-0.5 rounded border border-indigo-200">
                   Empirical Figure
                 </span>
               </div>
-              <p className="text-xs sm:text-sm font-semibold text-slate-800 leading-relaxed font-sans">
+              <p className="text-xs sm:text-[13px] font-semibold text-slate-800 leading-relaxed font-sans">
                 {cleanInlineMarkdown(trimmed)}
               </p>
             </div>
@@ -405,7 +405,7 @@ function renderFormattedContent(content: string) {
           return (
             <blockquote
               key={idx}
-              className="my-2 border-l-2 border-indigo-400 pl-3.5 py-1 text-xs sm:text-sm text-slate-700 italic font-serif bg-slate-50/70 rounded-r-md"
+              className="my-1.5 border-l-2 border-indigo-400 pl-3 py-1 text-xs sm:text-[13px] text-slate-700 italic font-serif bg-slate-50/70 rounded-r-md leading-relaxed"
             >
               {cleanInlineMarkdown(quoteText)}
             </blockquote>
@@ -418,7 +418,7 @@ function renderFormattedContent(content: string) {
           return (
             <div
               key={idx}
-              className="flex items-center gap-2 pl-3 py-1 text-xs sm:text-sm font-medium text-slate-800 font-sans"
+              className="flex items-center gap-2 pl-2 py-0.5 text-xs sm:text-[13px] font-medium text-slate-800 font-sans"
             >
               <span className="text-indigo-600 font-bold">→</span>
               <span>{cleanInlineMarkdown(stepText)}</span>
@@ -434,9 +434,9 @@ function renderFormattedContent(content: string) {
           return (
             <div
               key={idx}
-              className="flex items-start gap-2.5 text-xs sm:text-sm text-slate-900 font-medium leading-relaxed pl-1 my-1.5 font-sans"
+              className="flex items-start gap-2 text-xs sm:text-[13px] text-slate-900 font-medium leading-relaxed pl-0.5 my-1 font-sans"
             >
-              <span className="w-5 h-5 rounded-full bg-indigo-100 text-indigo-800 font-extrabold text-[11px] flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
+              <span className="w-4.5 h-4.5 rounded-full bg-indigo-100 text-indigo-800 font-extrabold text-[10px] flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
                 {num}
               </span>
               <span className="flex-1 pt-0.5">{cleanInlineMarkdown(listText)}</span>
@@ -450,9 +450,9 @@ function renderFormattedContent(content: string) {
           return (
             <div
               key={idx}
-              className="flex items-start gap-2 text-xs sm:text-sm text-slate-900 font-medium leading-relaxed pl-1 my-1.5 font-sans"
+              className="flex items-start gap-2 text-xs sm:text-[13px] text-slate-900 font-medium leading-relaxed pl-0.5 my-1 font-sans"
             >
-              <span className="text-indigo-600 font-black text-base shrink-0 leading-none mt-0.5">•</span>
+              <span className="text-indigo-600 font-black text-sm shrink-0 leading-none mt-0.5">•</span>
               <span className="flex-1">{cleanInlineMarkdown(listText)}</span>
             </div>
           );
@@ -460,7 +460,7 @@ function renderFormattedContent(content: string) {
 
         // Standard text paragraph
         return (
-          <p key={idx} className="text-xs sm:text-sm font-normal text-slate-900 leading-relaxed my-1 sm:my-1.5">
+          <p key={idx} className="text-xs sm:text-[13.5px] font-normal text-slate-900 leading-relaxed my-1">
             {cleanInlineMarkdown(trimmed)}
           </p>
         );
@@ -729,14 +729,14 @@ const WorkedTheoryExampleCard: React.FC<{
 
       {/* Passage Excerpt */}
       {qPassage && (
-        <div className="space-y-2">
-          <div className="text-xs font-black uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
-            <FileText className="w-4 h-4 text-slate-600" />
+        <div className="space-y-1.5">
+          <div className="text-[11px] font-black uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+            <FileText className="w-3.5 h-3.5 text-slate-600" />
             <span>Passage Excerpt</span>
           </div>
-          <div className="p-4 sm:p-5 rounded-2xl bg-slate-50 border border-slate-200 font-serif text-xs sm:text-sm text-slate-900 leading-relaxed shadow-2xs">
+          <div className="p-3 sm:p-4 rounded-xl bg-white/95 border border-slate-200/90 font-serif text-xs sm:text-[13.5px] text-slate-800 leading-relaxed shadow-2xs">
             {qPassage.title && (
-              <div className="font-sans font-bold text-slate-800 text-xs mb-2 border-b border-slate-200 pb-1">
+              <div className="font-sans font-bold text-slate-800 text-xs mb-1.5 border-b border-slate-200 pb-1">
                 {qPassage.title}
               </div>
             )}
@@ -764,9 +764,9 @@ const WorkedTheoryExampleCard: React.FC<{
             };
 
         return (
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <div className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-              <BarChart3 className="w-4 h-4 text-indigo-600" />
+              <BarChart3 className="w-3.5 h-3.5 text-indigo-600" />
               <span>{fig.title}</span>
             </div>
             {fig.subtitle && (
@@ -778,7 +778,7 @@ const WorkedTheoryExampleCard: React.FC<{
                   <thead className="bg-slate-100">
                     <tr>
                       {fig.headers.map((h, hIdx) => (
-                        <th key={hIdx} className="px-3 py-2 text-left font-bold text-slate-800 border-r border-slate-200 last:border-r-0">
+                        <th key={hIdx} className="px-3 py-1.5 text-left font-bold text-slate-800 border-r border-slate-200 last:border-r-0">
                           {h}
                         </th>
                       ))}
@@ -789,7 +789,7 @@ const WorkedTheoryExampleCard: React.FC<{
                   {fig.rows.map((row, rIdx) => (
                     <tr key={rIdx} className={rIdx % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'}>
                       {row.map((cell, cIdx) => (
-                        <td key={cIdx} className="px-3 py-2 text-slate-700 font-medium border-r border-slate-100 last:border-r-0 text-2xs sm:text-xs">
+                        <td key={cIdx} className="px-3 py-1.5 text-slate-700 font-medium border-r border-slate-100 last:border-r-0 text-2xs sm:text-xs">
                           {cell}
                         </td>
                       ))}
@@ -806,27 +806,27 @@ const WorkedTheoryExampleCard: React.FC<{
       })()}
 
       {/* Question Prompt */}
-      <div className="space-y-1 pt-1">
-        <span className="text-[11px] font-black uppercase tracking-wider text-slate-600 block">
+      <div className="space-y-1 pt-0.5">
+        <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-slate-500 block">
           Question Stem & Objective:
         </span>
-        <p className="text-xs sm:text-sm font-extrabold text-slate-950 leading-relaxed">
+        <p className="text-[12.5px] sm:text-[14.5px] font-bold text-slate-950 leading-snug font-sans">
           {question.prompt}
         </p>
       </div>
 
       {/* Solved Options Layout */}
-      <div className="space-y-2">
-        <span className="text-[11px] font-black uppercase tracking-wider text-slate-600 block">
+      <div className="space-y-1.5">
+        <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-slate-500 block">
           Answer Choices (Solved Walkthrough):
         </span>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           {question.options.map((opt, optIdx) => {
             const isCorrect = optIdx === question.correctAnswerIndex;
             return (
               <div
                 key={opt.label}
-                className={`p-3.5 rounded-xl border transition-all text-xs flex items-start justify-between gap-2.5 ${
+                className={`p-2.5 sm:p-3 rounded-xl border transition-all text-xs sm:text-[13.5px] flex items-start justify-between gap-2.5 ${
                   isCorrect
                     ? 'bg-emerald-50/90 border-2 border-emerald-500 text-emerald-950 shadow-2xs ring-1 ring-emerald-400/40'
                     : 'bg-slate-50/80 border border-slate-200 text-slate-700'
@@ -834,7 +834,7 @@ const WorkedTheoryExampleCard: React.FC<{
               >
                 <div className="flex items-start gap-2.5">
                   <span
-                    className={`w-6 h-6 rounded-lg flex items-center justify-center font-bold text-xs shrink-0 mt-0.5 ${
+                    className={`w-5.5 h-5.5 sm:w-6.5 sm:h-6.5 rounded-full flex items-center justify-center font-bold text-[11px] sm:text-xs shrink-0 mt-0.5 ${
                       isCorrect
                         ? 'bg-emerald-600 text-white font-black shadow-xs'
                         : 'bg-slate-200 text-slate-700 border border-slate-300 font-bold'
@@ -1264,6 +1264,27 @@ export const SatReadingSectionExplorer: React.FC<SatReadingSectionExplorerProps>
 
   const [selectedExerciseTab, setSelectedExerciseTab] = useState<number>(0); // 0 = All Questions, 1-4 = Specific Exercises
   const [activeQuestionIndex, setActiveQuestionIndex] = useState<number>(0);
+  const questionCardRef = useRef<HTMLDivElement>(null);
+  const isFirstQuestionRender = useRef<boolean>(true);
+
+  const scrollToQuestionCard = () => {
+    if (questionCardRef.current) {
+      const yOffset = -100;
+      const y = questionCardRef.current.getBoundingClientRect().top + window.pageYOffset + yOffset;
+      window.scrollTo({ top: Math.max(0, y), behavior: 'auto' });
+    }
+  };
+
+  useEffect(() => {
+    if (isFirstQuestionRender.current) {
+      isFirstQuestionRender.current = false;
+      return;
+    }
+    const timer = setTimeout(() => {
+      scrollToQuestionCard();
+    }, 40);
+    return () => clearTimeout(timer);
+  }, [activeQuestionIndex]);
 
   useEffect(() => {
     setActiveQuestionIndex(0);
@@ -1423,64 +1444,64 @@ export const SatReadingSectionExplorer: React.FC<SatReadingSectionExplorerProps>
             ) : (
               <>
           {/* Back Navigation Button & Info */}
-          <div className="flex items-center justify-between bg-white border border-slate-200/90 p-3 sm:p-4 rounded-2xl shadow-xs">
+          <div className="flex items-center justify-between bg-white border border-slate-200/90 p-2 sm:p-3 rounded-xl sm:rounded-2xl shadow-xs">
             <button
               onClick={() => setSelectedChapterId(null)}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white border border-slate-200/90 shadow-xs text-xs font-bold text-slate-700 hover:text-indigo-600 hover:bg-slate-50 transition-all cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl bg-white border border-slate-200/90 shadow-xs text-[11px] sm:text-xs font-bold text-slate-700 hover:text-indigo-600 hover:bg-slate-50 transition-all cursor-pointer"
             >
-              <ArrowLeft className="w-4 h-4 text-indigo-600" />
+              <ArrowLeft className="w-3.5 h-3.5 text-indigo-600" />
               <span>Back to Reading Chapters</span>
             </button>
 
-            <span className="text-xs font-extrabold text-indigo-700 bg-indigo-50 uppercase tracking-wider px-3.5 py-1 rounded-full border border-indigo-200/80 shadow-2xs">
+            <span className="text-[10px] sm:text-xs font-extrabold text-indigo-700 bg-indigo-50 uppercase tracking-wider px-2.5 py-1 rounded-full border border-indigo-200/80 shadow-2xs">
               Chapter {chapter.chapterNumber} of {READING_CHAPTERS_METADATA.length}
             </span>
           </div>
 
           {/* CHAPTER WELCOME INTRO CARD */}
-          <div className="bg-white border border-slate-200/90 rounded-3xl p-5 sm:p-7 shadow-xs space-y-3">
-            <p className="text-xs sm:text-sm text-slate-700 leading-relaxed font-medium">
+          <div className="bg-white border border-slate-200/90 rounded-xl sm:rounded-2xl p-3.5 sm:p-5 shadow-xs">
+            <p className="text-xs sm:text-[13px] text-slate-700 leading-relaxed font-medium">
               Welcome to Chapter {chapter.chapterNumber}: {chapter.chapterTitle}. {chapter.description}
             </p>
           </div>
 
           {/* STICKY TOP QUICK-TOGGLE BAR: THEORY vs PRACTICE */}
-          <div className="sticky top-2 z-20 bg-white border border-slate-200 p-2 rounded-2xl shadow-sm flex flex-wrap items-center justify-between gap-2">
-            <div className="flex flex-wrap items-center gap-1.5 w-full sm:w-auto">
+          <div className="sticky top-2 z-20 bg-white/95 backdrop-blur-md border border-slate-200 p-1 sm:p-1.5 rounded-xl sm:rounded-2xl shadow-sm">
+            <div className="grid grid-cols-2 gap-1 w-full">
               <button
                 onClick={() => setActiveTab('theory')}
-                className={`flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                className={`inline-flex items-center justify-center gap-1.5 py-2 px-2 sm:px-3 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-bold transition-all cursor-pointer text-center ${
                   activeTab === 'theory'
-                    ? 'bg-slate-800 text-white shadow-xs'
-                    : 'bg-slate-100 hover:bg-slate-200/80 text-slate-700'
+                    ? 'bg-slate-900 text-white shadow-xs font-black'
+                    : 'bg-slate-100/80 hover:bg-slate-200/80 text-slate-700'
                 }`}
               >
-                <BookOpen className="w-4 h-4 shrink-0" />
-                <span>1. Core Theory & Worked Examples</span>
+                <BookOpen className="w-3.5 h-3.5 shrink-0" />
+                <span className="truncate">1. Core Theory & Worked Examples</span>
               </button>
 
               <button
                 onClick={() => setActiveTab('practice')}
-                className={`flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                className={`inline-flex items-center justify-center gap-1.5 py-2 px-2 sm:px-3 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-bold transition-all cursor-pointer text-center ${
                   activeTab === 'practice'
-                    ? 'bg-slate-800 text-white shadow-xs'
-                    : 'bg-slate-100 hover:bg-slate-200/80 text-slate-700'
+                    ? 'bg-slate-900 text-white shadow-xs font-black'
+                    : 'bg-slate-100/80 hover:bg-slate-200/80 text-slate-700'
                 }`}
               >
-                <Target className="w-4 h-4 shrink-0" />
-                <span>2. Practice Exercises ({totalQuestionsCount} Qs)</span>
+                <Target className="w-3.5 h-3.5 shrink-0" />
+                <span className="truncate">2. Practice Exercises ({totalQuestionsCount} Qs)</span>
               </button>
             </div>
           </div>
 
           {/* PRACTICE & MASTER THESE CONCEPTS BANNER */}
-          <div className="bg-emerald-50/80 border border-emerald-200/90 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="bg-emerald-50/80 border border-emerald-200/90 rounded-xl sm:rounded-2xl p-3 sm:p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <div className="space-y-1">
-              <div className="text-xs font-extrabold text-emerald-950 uppercase tracking-wider flex items-center gap-1.5">
-                <Sparkles className="w-4 h-4 text-emerald-600" />
+              <div className="text-[11px] sm:text-xs font-extrabold text-emerald-950 uppercase tracking-wider flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
                 <span>PRACTICE & MASTER THESE CONCEPTS</span>
               </div>
-              <p className="text-xs text-emerald-800 font-medium leading-relaxed">
+              <p className="text-[11px] sm:text-xs text-emerald-800 font-medium leading-relaxed">
                 Put your knowledge into action with {totalQuestionsCount} curated practice questions featuring step-by-step solutions, passage evidence breakdowns, and instant feedback.
               </p>
             </div>
@@ -1488,10 +1509,10 @@ export const SatReadingSectionExplorer: React.FC<SatReadingSectionExplorerProps>
               onClick={() => {
                 setActiveTab('practice');
               }}
-              className="px-4 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold shrink-0 transition-all shadow-xs cursor-pointer inline-flex items-center gap-1.5"
+              className="w-full sm:w-auto px-3.5 py-2 rounded-lg sm:rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-[11px] sm:text-xs font-bold shrink-0 transition-all shadow-xs cursor-pointer inline-flex items-center justify-center gap-1.5"
             >
               <span>Start Practice Questions</span>
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
 
@@ -1654,9 +1675,9 @@ export const SatReadingSectionExplorer: React.FC<SatReadingSectionExplorerProps>
                                 <FileText className="w-4 h-4 text-slate-700" />
                                 <span>Textual Analysis Passage</span>
                               </div>
-                              <div className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-300 shadow-2xs font-serif text-xs sm:text-sm text-slate-900 leading-relaxed">
+                              <div className="p-3.5 sm:p-5 rounded-xl sm:rounded-2xl bg-white/95 border border-slate-200/90 shadow-2xs font-serif text-xs sm:text-[13.5px] text-slate-800 leading-relaxed">
                                 {section.passage.title && (
-                                  <div className="font-sans font-bold text-slate-800 text-xs mb-2 border-b border-slate-200 pb-1">
+                                  <div className="font-sans font-bold text-slate-800 text-xs mb-1.5 border-b border-slate-200 pb-1">
                                     {section.passage.title}
                                   </div>
                                 )}
@@ -1865,49 +1886,49 @@ export const SatReadingSectionExplorer: React.FC<SatReadingSectionExplorerProps>
                 className="space-y-8"
               >
               {/* Top Practice Summary Bar */}
-              <div className="bg-white border border-slate-200 rounded-3xl p-5 sm:p-6 shadow-xs space-y-4">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+              <div className="bg-white border border-slate-200 rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 shadow-xs space-y-3 sm:space-y-4">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4 border-b border-slate-100 pb-3 sm:pb-4">
                   <div>
-                    <h3 className="text-lg sm:text-xl font-black text-slate-950 flex items-center gap-2">
-                      <Target className="w-5 h-5 text-indigo-600" />
+                    <h3 className="text-sm sm:text-lg font-black text-slate-950 flex items-center gap-1.5">
+                      <Target className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-600" />
                       <span>{totalQuestionsCount} Practice Exercises</span>
                     </h3>
-                    <p className="text-xs text-slate-500 font-medium mt-1">
+                    <p className="hidden sm:block text-xs text-slate-500 font-medium mt-1">
                       Choose an exercise set or scroll down to work through questions sequentially with instant feedback and textual analysis.
                     </p>
                   </div>
 
-                  <div className="flex items-center gap-3 shrink-0">
-                    <div className="text-right">
-                      <div className="text-xs font-black text-slate-900">
+                  <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0">
+                    <div className="text-left sm:text-right">
+                      <div className="text-[11px] sm:text-xs font-black text-slate-900">
                         {totalAnsweredCount} / {totalQuestionsCount} Answered
                       </div>
-                      <div className="text-[11px] font-bold text-indigo-600 font-mono">
+                      <div className="text-[10px] sm:text-[11px] font-bold text-indigo-600 font-mono">
                         Score: {totalCorrectCount}/{totalAnsweredCount} ({totalAnsweredCount > 0 ? Math.round((totalCorrectCount / totalAnsweredCount) * 100) : 0}%)
                       </div>
                     </div>
                     <button
                       onClick={handleResetPractice}
-                      className="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5"
+                      className="px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg sm:rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] sm:text-xs font-bold transition-all cursor-pointer flex items-center gap-1"
                     >
-                      <RefreshCw className="w-3.5 h-3.5" />
-                      <span>Reset All</span>
+                      <RefreshCw className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                      <span>Reset<span className="hidden sm:inline"> All</span></span>
                     </button>
                   </div>
                 </div>
 
                 {/* Exercise Navigation Tabs (0 = All Questions, 1-4 = Specific Exercises) */}
-                <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-thin">
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-thin">
                   <button
                     onClick={() => setSelectedExerciseTab(0)}
-                    className={`px-3.5 py-2 rounded-xl text-xs font-black transition-all cursor-pointer shrink-0 flex items-center gap-1.5 ${
+                    className={`px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-black transition-all cursor-pointer shrink-0 flex items-center gap-1 ${
                       selectedExerciseTab === 0
                         ? 'bg-slate-900 text-white shadow-xs'
                         : 'bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-700'
                     }`}
                   >
                     <span>All Questions</span>
-                    <span className={`text-[10px] font-mono ${selectedExerciseTab === 0 ? 'text-slate-300' : 'text-slate-400'}`}>
+                    <span className={`text-[9px] sm:text-[10px] font-mono ${selectedExerciseTab === 0 ? 'text-slate-300' : 'text-slate-400'}`}>
                       ({totalAnsweredCount}/{totalQuestionsCount})
                     </span>
                   </button>
@@ -1918,14 +1939,14 @@ export const SatReadingSectionExplorer: React.FC<SatReadingSectionExplorerProps>
                       <button
                         key={ex.exerciseNumber}
                         onClick={() => setSelectedExerciseTab(ex.exerciseNumber)}
-                        className={`px-3.5 py-2 rounded-xl text-xs font-black transition-all cursor-pointer shrink-0 flex items-center gap-1.5 ${
+                        className={`px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-black transition-all cursor-pointer shrink-0 flex items-center gap-1 ${
                           isSelected
                             ? 'bg-slate-900 text-white shadow-xs'
                             : 'bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-700'
                         }`}
                       >
                         <span>Exercise {ex.exerciseNumber}</span>
-                        <span className={`text-[10px] font-mono ${isSelected ? 'text-slate-300' : 'text-slate-400'}`}>
+                        <span className={`text-[9px] sm:text-[10px] font-mono ${isSelected ? 'text-slate-300' : 'text-slate-400'}`}>
                           ({exAnswered}/{ex.questions.length})
                         </span>
                       </button>
@@ -1993,6 +2014,7 @@ export const SatReadingSectionExplorer: React.FC<SatReadingSectionExplorerProps>
 
                     {/* SINGLE ACTIVE QUESTION CARD */}
                     <div
+                      ref={questionCardRef}
                       className={`bg-white border-2 rounded-3xl p-5 sm:p-8 space-y-6 transition-all shadow-xs ${
                         isSubmitted
                           ? isCorrect
@@ -2038,8 +2060,8 @@ export const SatReadingSectionExplorer: React.FC<SatReadingSectionExplorerProps>
 
                       {/* Question Passage if present */}
                       {(q.passageText || q.passage?.text) && (
-                        <div className="p-4 sm:p-6 rounded-2xl bg-slate-50/90 border border-slate-200/90 font-serif text-sm sm:text-base text-slate-900 leading-relaxed shadow-2xs">
-                          <div className="font-sans font-bold text-slate-600 text-xs uppercase tracking-wider mb-3 border-b border-slate-200 pb-1.5 flex items-center justify-between">
+                        <div className="p-3.5 sm:p-5 rounded-xl sm:rounded-2xl bg-white/95 border border-slate-200/90 font-serif text-xs sm:text-[13.5px] text-slate-800 leading-relaxed shadow-2xs">
+                          <div className="font-sans font-bold text-slate-600 text-xs uppercase tracking-wider mb-2.5 border-b border-slate-200 pb-1.5 flex items-center justify-between">
                             <span>{q.passageTitle || q.passage?.title || 'Passage Context'}</span>
                             <span className="text-[10px] font-mono text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200">
                               Digital SAT Reading
@@ -2068,19 +2090,19 @@ export const SatReadingSectionExplorer: React.FC<SatReadingSectionExplorerProps>
                             };
 
                         return (
-                          <div className="p-4 rounded-xl bg-white border border-slate-200/90 shadow-2xs overflow-x-auto">
-                            <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">
+                          <div className="p-3.5 rounded-xl bg-white border border-slate-200/90 shadow-2xs overflow-x-auto">
+                            <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">
                               {fig.title}
                             </div>
                             {fig.subtitle && (
-                              <p className="text-2xs text-slate-500 mb-2">{fig.subtitle}</p>
+                              <p className="text-2xs text-slate-500 mb-1.5">{fig.subtitle}</p>
                             )}
                             <table className="w-full text-left text-xs border-collapse font-sans">
                               {fig.headers && (
                                 <thead>
                                   <tr className="border-b border-slate-200 bg-slate-50">
                                     {fig.headers.map((col, cIdx) => (
-                                      <th key={cIdx} className="py-2 px-3 font-semibold text-slate-700">
+                                      <th key={cIdx} className="py-1.5 px-3 font-semibold text-slate-700">
                                         {col}
                                       </th>
                                     ))}
@@ -2091,7 +2113,7 @@ export const SatReadingSectionExplorer: React.FC<SatReadingSectionExplorerProps>
                                 {fig.rows.map((row, rIdx) => (
                                   <tr key={rIdx} className="border-b border-slate-100 hover:bg-slate-50/50">
                                     {row.map((cell, cIdx) => (
-                                      <td key={cIdx} className="py-2 px-3 text-slate-600 font-mono text-2xs sm:text-xs">
+                                      <td key={cIdx} className="py-1.5 px-3 text-slate-600 font-mono text-2xs sm:text-xs">
                                         {cell}
                                       </td>
                                     ))}
@@ -2100,7 +2122,7 @@ export const SatReadingSectionExplorer: React.FC<SatReadingSectionExplorerProps>
                               </tbody>
                             </table>
                             {fig.note && (
-                              <div className="mt-2 text-[11px] text-slate-500 italic">
+                              <div className="mt-1.5 text-[11px] text-slate-500 italic">
                                 {fig.note}
                               </div>
                             )}
@@ -2109,18 +2131,18 @@ export const SatReadingSectionExplorer: React.FC<SatReadingSectionExplorerProps>
                       })()}
 
                       {/* Question Prompt */}
-                      <div className="space-y-3">
-                        <p className="text-base sm:text-lg font-extrabold text-slate-950 leading-relaxed font-sans">
+                      <div className="space-y-1">
+                        <p className="text-[12.5px] sm:text-[14.5px] font-bold text-slate-950 leading-snug font-sans">
                           {q.prompt}
                         </p>
                       </div>
 
                       {/* Options List */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 font-sans">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 font-sans">
                         {q.options.map((option, optIdx) => {
                           const isThisSelected = selectedOption === optIdx;
                           let btnStyle =
-                            'bg-white border-slate-200 text-slate-900 hover:bg-indigo-50/80 hover:border-indigo-400 shadow-2xs';
+                            'bg-white border-slate-200/90 text-slate-800 hover:bg-indigo-50/80 hover:border-indigo-300 shadow-2xs';
 
                           if (isSubmitted) {
                             if (optIdx === q.correctAnswerIndex) {
@@ -2136,16 +2158,16 @@ export const SatReadingSectionExplorer: React.FC<SatReadingSectionExplorerProps>
                             <button
                               key={option.label}
                               onClick={() => handleSelectAnswer(q.id, optIdx)}
-                              className={`text-left p-4 rounded-2xl border transition-all text-xs sm:text-sm flex items-center justify-between cursor-pointer ${btnStyle}`}
+                              className={`text-left p-2.5 sm:p-3 rounded-xl border transition-all text-xs sm:text-[13.5px] font-medium flex items-center justify-between cursor-pointer ${btnStyle}`}
                             >
-                              <div className="flex items-center gap-3">
+                              <div className="flex items-center gap-2.5">
                                 <span
-                                  className={`w-7 h-7 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 ${
+                                  className={`w-5.5 h-5.5 sm:w-6.5 sm:h-6.5 rounded-full flex items-center justify-center font-bold text-[11px] sm:text-xs shrink-0 ${
                                     isSubmitted
                                       ? optIdx === q.correctAnswerIndex || isThisSelected
                                         ? 'bg-white/20 text-white'
                                         : 'bg-slate-100 text-slate-600'
-                                      : 'bg-slate-100 text-slate-800 border border-slate-300'
+                                      : 'bg-slate-100 text-slate-700 border border-slate-300'
                                   }`}
                                 >
                                   {option.label}
@@ -2153,10 +2175,10 @@ export const SatReadingSectionExplorer: React.FC<SatReadingSectionExplorerProps>
                                 <span className="leading-snug">{option.text}</span>
                               </div>
                               {isSubmitted && optIdx === q.correctAnswerIndex && (
-                                <CheckCircle2 className="w-5 h-5 text-white shrink-0" />
+                                <CheckCircle2 className="w-4 h-4 text-white shrink-0" />
                               )}
                               {isSubmitted && isThisSelected && optIdx !== q.correctAnswerIndex && (
-                                <XCircle className="w-5 h-5 text-white shrink-0" />
+                                <XCircle className="w-4 h-4 text-white shrink-0" />
                               )}
                             </button>
                           );

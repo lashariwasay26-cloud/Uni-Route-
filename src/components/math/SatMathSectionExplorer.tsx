@@ -60,6 +60,27 @@ export const SatMathSectionExplorer: React.FC<SatMathSectionExplorerProps> = ({ 
   const [selectedExerciseTab, setSelectedExerciseTab] = useState<number>(1);
   const [exerciseViewMode, setExerciseViewMode] = useState<'cards' | 'table'>('cards');
   const [activeQuestionIndex, setActiveQuestionIndex] = useState<number>(0);
+  const questionCardRef = useRef<HTMLDivElement>(null);
+  const isFirstQuestionRender = useRef<boolean>(true);
+
+  const scrollToQuestionCard = () => {
+    if (questionCardRef.current) {
+      const yOffset = -100;
+      const y = questionCardRef.current.getBoundingClientRect().top + window.pageYOffset + yOffset;
+      window.scrollTo({ top: Math.max(0, y), behavior: 'auto' });
+    }
+  };
+
+  useEffect(() => {
+    if (isFirstQuestionRender.current) {
+      isFirstQuestionRender.current = false;
+      return;
+    }
+    const timer = setTimeout(() => {
+      scrollToQuestionCard();
+    }, 40);
+    return () => clearTimeout(timer);
+  }, [activeQuestionIndex]);
 
   useEffect(() => {
     setActiveQuestionIndex(0);
@@ -352,124 +373,127 @@ export const SatMathSectionExplorer: React.FC<SatMathSectionExplorerProps> = ({ 
             ) : (
               <>
                 {/* Top Bar: Back to Topics Button */}
-                <div className="flex items-center justify-between bg-white border border-slate-200/90 p-3 sm:p-4 rounded-2xl shadow-xs">
+                <div className="flex items-center justify-between bg-white border border-slate-200/90 p-2 sm:p-4 rounded-xl sm:rounded-2xl shadow-xs">
                   <button
                     onClick={() => setSelectedChapterId(null)}
-                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white border border-slate-200/90 shadow-xs text-xs font-bold text-slate-700 hover:text-indigo-600 hover:bg-slate-50 transition-all cursor-pointer"
+                    className="inline-flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-4 sm:py-2.5 rounded-xl sm:rounded-2xl bg-white border border-slate-200/90 shadow-xs text-[11px] sm:text-xs font-bold text-slate-700 hover:text-indigo-600 hover:bg-slate-50 transition-all cursor-pointer"
                   >
-                    <ArrowLeft className="w-4 h-4 text-indigo-600" />
+                    <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-indigo-600" />
                     <span>Back to All Math Topics</span>
                   </button>
 
-                  <span className="text-xs font-extrabold text-indigo-700 bg-indigo-50 uppercase tracking-wider px-3.5 py-1 rounded-full border border-indigo-200/80 shadow-2xs">
+                  <span className="text-[10px] sm:text-xs font-extrabold text-indigo-700 bg-indigo-50 uppercase tracking-wider px-2.5 py-1 sm:px-3.5 sm:py-1 rounded-full border border-indigo-200/80 shadow-2xs">
                     Chapter {currentChapter.chapterNumber} of {FULL_SAT_MATH_BOOK.length}
                   </span>
                 </div>
 
                 {/* CHAPTER SELECTOR & INSPIRATIONAL BANNER */}
-                <div className="bg-white border border-slate-200/90 rounded-3xl p-5 sm:p-7 shadow-xs space-y-5">
+                <div className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-3.5 sm:p-7 shadow-xs space-y-3 sm:space-y-5">
             {/* Chapter Selection Pills (Removed because we use the Back button now, but kept for Mastery stats) */}
-            <div className="flex flex-wrap items-center justify-end gap-3 border-b border-slate-100 pb-4">
-              <div className="flex items-center gap-2 text-xs font-bold">
+            <div className="flex flex-wrap items-center justify-end gap-2 sm:gap-3 border-b border-slate-100 pb-2.5 sm:pb-4">
+              <div className="flex items-center gap-1.5 sm:gap-2 text-[11px] sm:text-xs font-bold">
                 <span className="text-slate-500">Mastery:</span>
-                <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 font-extrabold">
+                <span className="px-2 py-0.5 sm:px-2.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 font-extrabold text-[10px] sm:text-xs">
                   {totalCorrect}/{totalChapterQuestions} Solved ({Math.round((totalCorrect / (totalChapterQuestions || 1)) * 100)}%)
                 </span>
               </div>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-1.5 sm:space-y-2">
               <div className="flex items-center gap-2">
-                <span className="px-2.5 py-0.5 rounded-full bg-slate-100 border border-slate-200 text-slate-800 text-[10px] font-black uppercase tracking-wider">
+                <span className="px-2 py-0.5 sm:px-2.5 rounded-full bg-slate-100 border border-slate-200 text-slate-800 text-[9px] sm:text-[10px] font-black uppercase tracking-wider">
                   Chapter {currentChapter.chapterNumber} • Uni Route Advanced SAT Math
                 </span>
               </div>
-              <h1 className="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight flex items-center gap-2.5">
-                <Calculator className="w-7 h-7 text-slate-800 shrink-0" />
+              <h1 className="text-base sm:text-3xl font-black text-slate-950 tracking-tight flex items-center gap-2 sm:gap-2.5 leading-snug sm:leading-tight">
+                <Calculator className="w-5 h-5 sm:w-7 sm:h-7 text-slate-800 shrink-0" />
                 <span>Chapter {currentChapter.chapterNumber}: {currentChapter.chapterTitle}</span>
               </h1>
               {currentChapter.quote && (
-                <p className="text-xs sm:text-sm font-semibold italic text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-200/70">
+                <p className="text-[11.5px] sm:text-sm font-semibold italic text-slate-600 bg-slate-50 p-2.5 sm:p-3 rounded-lg sm:rounded-xl border border-slate-200/70 leading-relaxed">
                   "{currentChapter.quote}"
                 </p>
               )}
-              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-medium whitespace-pre-line">
+              <p className="text-[11.5px] sm:text-sm text-slate-600 leading-relaxed font-medium whitespace-pre-line">
                 {currentChapter.introduction}
               </p>
             </div>
           </div>
 
       {/* STICKY TOP QUICK-TOGGLE BAR: THEORY vs EXERCISES vs VISUAL LAB vs GRAPH STUDIO */}
-      <div className="sticky top-2 z-20 bg-white border border-slate-200 p-2 rounded-2xl shadow-sm flex flex-wrap items-center justify-between gap-2">
-        <div className="flex flex-wrap items-center gap-1.5 w-full sm:w-auto">
+      <div className="sticky top-2 z-20 bg-white/95 backdrop-blur-md border border-slate-200 p-1 sm:p-2 rounded-xl sm:rounded-2xl shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5 sm:gap-2">
+        <div className="grid grid-cols-3 sm:flex sm:flex-wrap items-center gap-1 sm:gap-1.5 w-full sm:w-auto">
           <button
             onClick={() => setActiveMainTab('theory')}
-            className={`flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
+            className={`inline-flex items-center justify-center gap-1 sm:gap-2 px-1.5 py-2 sm:px-3.5 sm:py-2 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-bold transition-all cursor-pointer text-center ${
               activeMainTab === 'theory'
-                ? 'bg-slate-800 text-white shadow-xs'
-                : 'bg-slate-100 hover:bg-slate-200/80 text-slate-700'
+                ? 'bg-slate-900 text-white shadow-xs font-black'
+                : 'bg-slate-100/80 hover:bg-slate-200/80 text-slate-700'
             }`}
           >
-            <BookOpen className="w-4 h-4" />
-            <span>1. Core Theory & Worked Examples</span>
+            <BookOpen className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+            <span className="sm:hidden">1. Theory</span>
+            <span className="hidden sm:inline">1. Core Theory & Worked Examples</span>
           </button>
 
           <button
             onClick={() => setActiveMainTab('exercises')}
-            className={`flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
+            className={`inline-flex items-center justify-center gap-1 sm:gap-2 px-1.5 py-2 sm:px-3.5 sm:py-2 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-bold transition-all cursor-pointer text-center ${
               activeMainTab === 'exercises'
-                ? 'bg-slate-800 text-white shadow-xs'
-                : 'bg-slate-100 hover:bg-slate-200/80 text-slate-700'
+                ? 'bg-slate-900 text-white shadow-xs font-black'
+                : 'bg-slate-100/80 hover:bg-slate-200/80 text-slate-700'
             }`}
           >
-            <Target className="w-4 h-4" />
-            <span>2. Practice Exercises ({totalChapterQuestions} Qs)</span>
+            <Target className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+            <span className="sm:hidden">2. Exercises ({totalChapterQuestions})</span>
+            <span className="hidden sm:inline">2. Practice Exercises ({totalChapterQuestions} Qs)</span>
           </button>
 
           <button
             onClick={() => setActiveMainTab('visual-studio')}
-            className={`flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
+            className={`inline-flex items-center justify-center gap-1 sm:gap-2 px-1.5 py-2 sm:px-3.5 sm:py-2 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-bold transition-all cursor-pointer text-center ${
               activeMainTab === 'visual-studio'
-                ? 'bg-black text-white shadow-xs'
-                : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200'
+                ? 'bg-slate-900 text-white shadow-xs font-black'
+                : 'bg-slate-100/80 hover:bg-slate-200/80 text-slate-700'
             }`}
           >
-            <TrendingUp className="w-4 h-4" />
-            <span>3. Visual Lab & Interactive Graph Studio</span>
+            <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+            <span className="sm:hidden">3. Visual Lab</span>
+            <span className="hidden sm:inline">3. Visual Lab & Interactive Graph Studio</span>
           </button>
         </div>
 
         {activeMainTab === 'exercises' && (
-          <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
+          <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end pt-1 sm:pt-0 border-t sm:border-t-0 border-slate-100">
             {/* View Mode Toggle: Cards vs Table */}
-            <div className="inline-flex rounded-xl bg-slate-100 p-1 border border-slate-200">
+            <div className="inline-flex rounded-lg sm:rounded-xl bg-slate-100 p-0.5 sm:p-1 border border-slate-200">
               <button
                 onClick={() => setExerciseViewMode('cards')}
-                className={`px-2.5 py-1 rounded-lg text-[11px] font-black transition-all cursor-pointer inline-flex items-center gap-1 ${
+                className={`px-2 sm:px-2.5 py-1 rounded-md sm:rounded-lg text-[10px] sm:text-[11px] font-black transition-all cursor-pointer inline-flex items-center gap-1 ${
                   exerciseViewMode === 'cards'
                     ? 'bg-white text-slate-900 shadow-2xs'
                     : 'text-slate-500 hover:text-slate-800'
                 }`}
               >
-                <Grid className="w-3.5 h-3.5" />
+                <Grid className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                 <span>Card View</span>
               </button>
               <button
                 onClick={() => setExerciseViewMode('table')}
-                className={`px-2.5 py-1 rounded-lg text-[11px] font-black transition-all cursor-pointer inline-flex items-center gap-1 ${
+                className={`px-2 sm:px-2.5 py-1 rounded-md sm:rounded-lg text-[10px] sm:text-[11px] font-black transition-all cursor-pointer inline-flex items-center gap-1 ${
                   exerciseViewMode === 'table'
                     ? 'bg-white text-slate-900 shadow-2xs'
                     : 'text-slate-500 hover:text-slate-800'
                 }`}
               >
-                <TableIcon className="w-3.5 h-3.5" />
+                <TableIcon className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                 <span>Table Matrix</span>
               </button>
             </div>
 
             <button
               onClick={handleResetCurrentExercise}
-              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-bold transition-all cursor-pointer"
+              className="inline-flex items-center gap-1 px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-lg sm:rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] sm:text-[11px] font-bold transition-all cursor-pointer"
             >
               <RefreshCw className="w-3 h-3" />
               <span>Reset</span>
@@ -490,13 +514,13 @@ export const SatMathSectionExplorer: React.FC<SatMathSectionExplorerProps> = ({ 
             className="space-y-6"
           >
           {/* Quick Jump to Exercises Action Card */}
-          <div className="bg-emerald-50/80 border border-emerald-200 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="bg-emerald-50/80 border border-emerald-200 rounded-xl sm:rounded-2xl p-3 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 sm:gap-4">
             <div className="space-y-1">
-              <div className="text-xs font-extrabold text-emerald-950 uppercase tracking-wider flex items-center gap-1.5">
-                <Sparkles className="w-4 h-4 text-emerald-600" />
+              <div className="text-[11px] sm:text-xs font-extrabold text-emerald-950 uppercase tracking-wider flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-600" />
                 <span>Practice & Master These Concepts</span>
               </div>
-              <p className="text-xs text-emerald-800 font-medium">
+              <p className="text-[11px] sm:text-xs text-emerald-800 font-medium">
                 Put your knowledge into action with {totalChapterQuestions} curated practice questions featuring step-by-step solutions, interactive diagrams, and instant feedback.
               </p>
             </div>
@@ -505,23 +529,23 @@ export const SatMathSectionExplorer: React.FC<SatMathSectionExplorerProps> = ({ 
                 setActiveMainTab('exercises');
                 setSelectedExerciseTab(1);
               }}
-              className="px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold shrink-0 transition-all shadow-xs cursor-pointer inline-flex items-center gap-1.5"
+              className="w-full sm:w-auto px-3.5 py-2 sm:px-4 sm:py-2 rounded-lg sm:rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-[11px] sm:text-xs font-bold shrink-0 transition-all shadow-xs cursor-pointer inline-flex items-center justify-center gap-1.5"
             >
               <span>Start Practice Questions</span>
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </button>
           </div>
 
           {/* Detailed Theory Sections */}
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             {currentChapter.sections.map((sec, sIdx) => (
               <div
                 key={sIdx}
-                className="bg-white border border-slate-200 rounded-3xl p-5 sm:p-7 shadow-xs space-y-4"
+                className="bg-white border border-slate-200 rounded-2xl sm:rounded-3xl p-3.5 sm:p-7 shadow-xs space-y-3 sm:space-y-4"
               >
-                <div className="border-b border-slate-100 pb-3">
-                  <h3 className="text-base sm:text-xl font-black text-slate-950 tracking-tight flex items-center gap-2">
-                    <span className="w-6 h-6 rounded-lg bg-slate-800 text-white text-xs font-black flex items-center justify-center">
+                <div className="border-b border-slate-100 pb-2.5 sm:pb-3">
+                  <h3 className="text-sm sm:text-xl font-black text-slate-950 tracking-tight flex items-center gap-2">
+                    <span className="w-5 h-5 sm:w-6 sm:h-6 rounded-md sm:rounded-lg bg-slate-800 text-white text-[10.5px] sm:text-xs font-black flex items-center justify-center">
                       {sIdx + 1}
                     </span>
                     <span>{formatMathText(sec.sectionTitle)}</span>
@@ -544,15 +568,15 @@ export const SatMathSectionExplorer: React.FC<SatMathSectionExplorerProps> = ({ 
 
                 {/* Bullet Points */}
                 {sec.bulletPoints && sec.bulletPoints.length > 0 && (
-                  <div className="bg-slate-50 border border-slate-200/90 rounded-2xl p-4 sm:p-5 space-y-3 shadow-2xs">
-                    <div className="text-xs font-black uppercase tracking-wider text-slate-950 flex items-center gap-2">
-                      <Sparkles className="w-4 h-4 text-indigo-600 shrink-0" />
+                  <div className="bg-slate-50 border border-slate-200/90 rounded-xl sm:rounded-2xl p-3 sm:p-5 space-y-2 sm:space-y-3 shadow-2xs">
+                    <div className="text-[11px] sm:text-xs font-black uppercase tracking-wider text-slate-950 flex items-center gap-1.5 sm:gap-2">
+                      <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-indigo-600 shrink-0" />
                       <span>Key Strategy Takeaways & Rules</span>
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-1.5 sm:space-y-2">
                       {sec.bulletPoints.map((bp, bIdx) => (
-                        <div key={bIdx} className="flex items-start gap-2.5 text-xs sm:text-sm text-slate-900 leading-relaxed font-medium p-3 rounded-xl bg-white border border-slate-200/70 shadow-2xs">
-                          <span className="w-5 h-5 rounded-md bg-indigo-50 border border-indigo-200 text-indigo-900 text-[10px] font-black flex items-center justify-center shrink-0 mt-0.5">
+                        <div key={bIdx} className="flex items-start gap-2 sm:gap-2.5 text-[11.5px] sm:text-sm text-slate-900 leading-relaxed font-medium p-2.5 sm:p-3 rounded-lg sm:rounded-xl bg-white border border-slate-200/70 shadow-2xs">
+                          <span className="w-4.5 h-4.5 sm:w-5 sm:h-5 rounded-md bg-indigo-50 border border-indigo-200 text-indigo-900 text-[9.5px] sm:text-[10px] font-black flex items-center justify-center shrink-0 mt-0.5">
                             {bIdx + 1}
                           </span>
                           <div className="flex-1">{cleanMathInlineMarkdown(bp)}</div>
@@ -564,24 +588,24 @@ export const SatMathSectionExplorer: React.FC<SatMathSectionExplorerProps> = ({ 
 
                 {/* Tables */}
                 {sec.tables && sec.tables.length > 0 && (
-                  <div className="space-y-4 pt-2">
+                  <div className="space-y-3 sm:space-y-4 pt-1 sm:pt-2">
                     {sec.tables.map((table, tIdx) => (
                       <div
                         key={tIdx}
-                        className="border border-slate-200 rounded-2xl overflow-hidden shadow-2xs"
+                        className="border border-slate-200 rounded-xl sm:rounded-2xl overflow-hidden shadow-2xs"
                       >
-                        <div className="bg-slate-100/90 px-4 py-2.5 font-black text-xs text-slate-900 border-b border-slate-200 flex items-center gap-2">
+                        <div className="bg-slate-100/90 px-3 sm:px-4 py-2 sm:py-2.5 font-black text-[11px] sm:text-xs text-slate-900 border-b border-slate-200 flex items-center gap-1.5 sm:gap-2">
                           <TableIcon className="w-3.5 h-3.5 text-slate-800" />
                           <span>{table.title}</span>
                         </div>
                         <div className="overflow-x-auto">
-                          <table className="w-full text-left text-xs border-collapse">
+                          <table className="w-full text-left text-[11px] sm:text-xs border-collapse">
                             <thead>
                               <tr className="bg-slate-50 border-b border-slate-200">
                                 {table.headers.map((h, hIdx) => (
                                   <th
                                     key={hIdx}
-                                    className="p-3 font-extrabold text-slate-950 uppercase text-[10px] tracking-wider"
+                                    className="p-2 sm:p-3 font-extrabold text-slate-950 uppercase text-[9.5px] sm:text-[10px] tracking-wider"
                                   >
                                     {formatMathText(h)}
                                   </th>
@@ -597,7 +621,7 @@ export const SatMathSectionExplorer: React.FC<SatMathSectionExplorerProps> = ({ 
                                   {row.map((cell, cIdx) => (
                                     <td
                                       key={cIdx}
-                                      className={`p-3 text-slate-700 font-medium ${
+                                      className={`p-2 sm:p-3 text-slate-700 font-medium ${
                                         cIdx === 1 ? 'font-mono text-indigo-700 font-bold' : ''
                                       }`}
                                     >
@@ -630,9 +654,9 @@ export const SatMathSectionExplorer: React.FC<SatMathSectionExplorerProps> = ({ 
 
                 {/* Worked Examples in this Section */}
                 {sec.examples && sec.examples.length > 0 && (
-                  <div className="space-y-4 pt-3">
-                    <div className="text-xs font-black uppercase tracking-wider text-slate-900 flex items-center gap-1.5">
-                      <Calculator className="w-4 h-4 text-slate-800" />
+                  <div className="space-y-3 sm:space-y-4 pt-2 sm:pt-3">
+                    <div className="text-[11px] sm:text-xs font-black uppercase tracking-wider text-slate-900 flex items-center gap-1.5">
+                      <Calculator className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-800" />
                       <span>Worked-Out Step-by-Step Examples</span>
                     </div>
 
@@ -645,19 +669,19 @@ export const SatMathSectionExplorer: React.FC<SatMathSectionExplorerProps> = ({ 
                       return (
                         <div
                           key={exIdx}
-                          className="bg-amber-50/60 border-2 border-amber-300 rounded-3xl p-5 sm:p-6 space-y-4 shadow-2xs"
+                          className="bg-white border-2 border-amber-400 rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 space-y-3 sm:space-y-4 shadow-2xs"
                         >
-                          <div className="flex items-center justify-between flex-wrap gap-2 border-b border-amber-200/80 pb-2.5">
-                            <span className="text-xs font-black text-amber-950 uppercase tracking-wider flex items-center gap-2">
-                              <Calculator className="w-4 h-4 text-amber-700 shrink-0" />
+                          <div className="flex items-center justify-between flex-wrap gap-1.5 sm:gap-2 border-b border-amber-200/80 pb-2 sm:pb-2.5">
+                            <span className="text-[11px] sm:text-xs font-black text-amber-950 uppercase tracking-wider flex items-center gap-1.5 sm:gap-2">
+                              <Calculator className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-700 shrink-0" />
                               <span>{formatMathText(ex.title)}</span>
                             </span>
-                            <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-amber-200 text-amber-950 border border-amber-300 uppercase tracking-wider">
+                            <span className="text-[9px] sm:text-[10px] font-black px-2 sm:px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-950 border border-amber-300 uppercase tracking-wider">
                               Yellow Card Example
                             </span>
                           </div>
 
-                          <p className="text-xs sm:text-sm font-extrabold text-slate-950 leading-relaxed">
+                          <p className="text-[12px] sm:text-sm font-extrabold text-slate-950 leading-relaxed">
                             {cleanMathInlineMarkdown(ex.question)}
                           </p>
 
@@ -669,16 +693,16 @@ export const SatMathSectionExplorer: React.FC<SatMathSectionExplorerProps> = ({ 
 
                           {/* Worked Example Table */}
                           {ex.table && (
-                            <div className="border border-amber-200 rounded-xl overflow-hidden bg-white shadow-2xs my-2">
-                              <div className="bg-amber-100/70 px-3 py-1.5 font-black text-[11px] text-amber-950 border-b border-amber-200 flex items-center gap-1.5">
+                            <div className="border border-amber-200 rounded-xl overflow-hidden bg-white shadow-2xs my-1.5 sm:my-2">
+                              <div className="bg-amber-100/70 px-3 py-1.5 font-black text-[10.5px] sm:text-[11px] text-amber-950 border-b border-amber-200 flex items-center gap-1.5">
                                 <TableIcon className="w-3 h-3 text-amber-800" />
                                 <span>{formatMathText(ex.table.title)}</span>
                               </div>
-                              <table className="w-full text-left text-xs border-collapse">
+                              <table className="w-full text-left text-[11px] sm:text-xs border-collapse">
                                 <thead>
                                   <tr className="bg-amber-50/50 border-b border-amber-200">
                                     {ex.table.headers.map((h, hIdx) => (
-                                      <th key={hIdx} className="p-2 font-black text-amber-950 text-[10px] uppercase">
+                                      <th key={hIdx} className="p-2 font-black text-amber-950 text-[9.5px] sm:text-[10px] uppercase">
                                         {formatMathText(h)}
                                       </th>
                                     ))}
@@ -706,7 +730,7 @@ export const SatMathSectionExplorer: React.FC<SatMathSectionExplorerProps> = ({ 
                                 const isThisCorrect = oIdx === ex.correctIndex;
 
                                 let btnStyle =
-                                  'bg-white border-slate-200 text-slate-800 hover:bg-amber-100/50';
+                                  'bg-white border-slate-200 text-slate-800 hover:bg-amber-50/60';
                                 if (hasSubmitted) {
                                   if (isThisCorrect) {
                                     btnStyle = 'bg-emerald-500 text-white border-emerald-600 font-bold';
@@ -721,20 +745,20 @@ export const SatMathSectionExplorer: React.FC<SatMathSectionExplorerProps> = ({ 
                                   <button
                                     key={oIdx}
                                     onClick={() => handleSelectAnswer(exKey, oIdx)}
-                                    className={`p-3.5 rounded-xl border text-xs sm:text-sm text-left transition-all font-medium flex flex-col justify-between gap-2 cursor-pointer ${btnStyle}`}
+                                    className={`p-2.5 sm:p-3.5 rounded-xl border text-[11.5px] sm:text-sm text-left transition-all font-medium flex flex-col justify-between gap-1.5 sm:gap-2 cursor-pointer ${btnStyle}`}
                                   >
                                     <div className="flex items-center justify-between w-full">
                                       <div className="flex items-center gap-2">
-                                        <span className="w-5 h-5 rounded-md bg-slate-100 text-slate-800 font-black text-[11px] flex items-center justify-center border border-slate-300 shrink-0">
+                                        <span className={`w-5 h-5 rounded-md bg-slate-100 text-slate-800 font-black text-[10.5px] sm:text-[11px] flex items-center justify-center border border-slate-300 shrink-0 ${hasSubmitted && (isThisCorrect || isThisSelected) ? 'bg-white/20 text-white border-white/20' : ''}`}>
                                           {String.fromCharCode(65 + oIdx)}
                                         </span>
                                         <span>{cleanMathInlineMarkdown(opt)}</span>
                                       </div>
                                       {hasSubmitted && isThisCorrect && (
-                                        <CheckCircle2 className="w-4 h-4 text-white shrink-0" />
+                                        <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white shrink-0" />
                                       )}
                                       {hasSubmitted && isThisSelected && !isThisCorrect && (
-                                        <XCircle className="w-4 h-4 text-white shrink-0" />
+                                        <XCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white shrink-0" />
                                       )}
                                     </div>
 
@@ -767,9 +791,9 @@ export const SatMathSectionExplorer: React.FC<SatMathSectionExplorerProps> = ({ 
                           )}
 
                           {/* Step-by-Step Breakdown Accordion/Card */}
-                          <div className="mt-3 p-4 sm:p-5 rounded-2xl bg-white border-2 border-amber-300/80 text-xs sm:text-sm leading-relaxed space-y-3 shadow-2xs">
-                            <div className="font-black text-amber-950 flex items-center gap-2 text-xs uppercase tracking-wider border-b border-amber-200/60 pb-2">
-                              <Lightbulb className="w-4 h-4 text-amber-600 shrink-0" />
+                          <div className="mt-2.5 sm:mt-3 p-3 sm:p-5 rounded-xl sm:rounded-2xl bg-white border border-amber-300/80 text-[11.5px] sm:text-sm leading-relaxed space-y-2 sm:space-y-3 shadow-2xs">
+                            <div className="font-black text-amber-950 flex items-center gap-1.5 sm:gap-2 text-[10.5px] sm:text-xs uppercase tracking-wider border-b border-amber-200/60 pb-1.5 sm:pb-2">
+                              <Lightbulb className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-600 shrink-0" />
                               <span>Step-by-Step Solution & Mathematical Proof</span>
                             </div>
                             <FormattedMathExplanation text={ex.explanation} />
@@ -795,7 +819,7 @@ export const SatMathSectionExplorer: React.FC<SatMathSectionExplorerProps> = ({ 
             className="space-y-6"
           >
           {/* EXERCISE GROUP TABS */}
-          <div className="flex overflow-x-auto gap-2 pb-1 scrollbar-thin">
+          <div className="flex overflow-x-auto gap-1.5 sm:gap-2 pb-1 scrollbar-thin">
             {currentChapter.exerciseGroups.map((eg) => {
               const answeredInGroup = eg.questions.filter(
                 (q) => userSelectedAnswers[q.id] !== undefined
@@ -810,16 +834,16 @@ export const SatMathSectionExplorer: React.FC<SatMathSectionExplorerProps> = ({ 
                 <button
                   key={eg.exerciseNumber}
                   onClick={() => setSelectedExerciseTab(eg.exerciseNumber)}
-                  className={`px-4 py-2.5 rounded-2xl border text-xs font-black whitespace-nowrap transition-all cursor-pointer flex flex-col items-start gap-0.5 shrink-0 ${
+                  className={`px-3 py-1.5 sm:px-4 sm:py-2.5 rounded-xl sm:rounded-2xl border text-[11px] sm:text-xs font-black whitespace-nowrap transition-all cursor-pointer flex flex-col items-start gap-0.5 shrink-0 ${
                     isSelected
                       ? 'bg-slate-800 border-slate-800 text-white shadow-xs'
                       : 'bg-white border-slate-200 hover:bg-slate-50 text-slate-700'
                   }`}
                 >
                   <div className="flex items-center gap-1.5">
-                    <span>Exercise {eg.exerciseNumber}</span>
+                    <span className="text-[10.5px] sm:text-xs">Exercise {eg.exerciseNumber}</span>
                     <span
-                      className={`text-[9px] px-1.5 py-0.2 rounded-full font-bold ${
+                      className={`text-[8.5px] sm:text-[9px] px-1.5 py-0.2 rounded-full font-bold ${
                         isSelected
                           ? 'bg-zinc-800 text-white'
                           : 'bg-slate-100 text-slate-600'
@@ -829,7 +853,7 @@ export const SatMathSectionExplorer: React.FC<SatMathSectionExplorerProps> = ({ 
                     </span>
                   </div>
                   <span
-                    className={`text-[10px] font-semibold ${
+                    className={`text-[9px] sm:text-[10px] font-semibold ${
                       isSelected ? 'text-zinc-300' : 'text-slate-400'
                     }`}
                   >
@@ -842,18 +866,18 @@ export const SatMathSectionExplorer: React.FC<SatMathSectionExplorerProps> = ({ 
 
           {/* CURRENT EXERCISE GROUP BANNER */}
           {currentExerciseGroup && (
-            <div className="bg-white border border-slate-200 rounded-3xl p-5 sm:p-6 shadow-xs space-y-2">
-              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
-                <div className="flex items-center gap-2">
-                  <span className="px-3 py-1 rounded-full bg-slate-800 text-white text-xs font-black uppercase tracking-wider">
+            <div className="bg-white border border-slate-200 rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 shadow-xs space-y-1.5 sm:space-y-2">
+              <div className="flex flex-wrap items-center justify-between gap-1.5 sm:gap-2 border-b border-slate-100 pb-2 sm:pb-3">
+                <div className="flex items-center gap-1.5 sm:gap-2">
+                  <span className="px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full bg-slate-800 text-white text-[10px] sm:text-xs font-black uppercase tracking-wider">
                     Exercise {currentExerciseGroup.exerciseNumber} of {currentChapter.exerciseGroups.length}
                   </span>
-                  <span className="text-xs font-bold text-slate-600">
+                  <span className="text-[10.5px] sm:text-xs font-bold text-slate-600">
                     {currentExerciseGroup.questions.length} Problems
                   </span>
                 </div>
 
-                <div className="flex items-center gap-2 text-xs font-bold">
+                <div className="flex items-center gap-1.5 sm:gap-2 text-[10.5px] sm:text-xs font-bold">
                   <span className="text-slate-500">Progress:</span>
                   <span className="text-slate-950 font-black">
                     {groupAnswered}/{currentExerciseGroup.questions.length} Answered
@@ -861,10 +885,10 @@ export const SatMathSectionExplorer: React.FC<SatMathSectionExplorerProps> = ({ 
                 </div>
               </div>
 
-              <h2 className="text-lg sm:text-xl font-black text-slate-950 tracking-tight">
+              <h2 className="text-sm sm:text-xl font-black text-slate-950 tracking-tight">
                 {currentExerciseGroup.title}
               </h2>
-              <p className="text-xs sm:text-sm text-slate-600 font-medium leading-relaxed">
+              <p className="text-[11px] sm:text-sm text-slate-600 font-medium leading-relaxed">
                 {currentExerciseGroup.description}
               </p>
             </div>
@@ -883,12 +907,12 @@ export const SatMathSectionExplorer: React.FC<SatMathSectionExplorerProps> = ({ 
             const groupAnswered = currentExerciseGroup.questions.filter((item) => userSelectedAnswers[item.id] !== undefined).length;
 
             return (
-              <div className="space-y-6">
+              <div className="space-y-4 sm:space-y-6">
                 {/* QUESTION SELECTION NAVIGATION RIBBON */}
-                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 flex flex-col md:flex-row items-center justify-between gap-4">
-                  <div className="flex items-center gap-3 w-full md:w-auto overflow-x-auto py-1 scrollbar-none">
-                    <span className="text-xs font-black uppercase text-slate-500 whitespace-nowrap">Go to:</span>
-                    <div className="flex gap-1.5">
+                <div className="bg-slate-50 border border-slate-200 rounded-xl sm:rounded-2xl p-2.5 sm:p-4 flex flex-col md:flex-row items-center justify-between gap-2.5 sm:gap-4">
+                  <div className="flex items-center gap-2 sm:gap-3 w-full md:w-auto overflow-x-auto py-1 scrollbar-none">
+                    <span className="text-[10.5px] sm:text-xs font-black uppercase text-slate-500 whitespace-nowrap">Go to:</span>
+                    <div className="flex gap-1 sm:gap-1.5">
                       {currentExerciseGroup.questions.map((item, idx) => {
                         const isSelected = activeQuestionIndex === idx;
                         const isAnswered = userSelectedAnswers[item.id] !== undefined;
@@ -896,7 +920,7 @@ export const SatMathSectionExplorer: React.FC<SatMathSectionExplorerProps> = ({ 
                           <button
                             key={item.id}
                             onClick={() => setActiveQuestionIndex(idx)}
-                            className={`w-8 h-8 rounded-xl border text-xs font-black transition-all cursor-pointer flex items-center justify-center shrink-0 ${
+                            className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl border text-[11px] sm:text-xs font-black transition-all cursor-pointer flex items-center justify-center shrink-0 ${
                               isSelected
                                 ? 'bg-indigo-600 border-indigo-600 text-white shadow-xs ring-2 ring-indigo-500/25'
                                 : isAnswered
@@ -912,8 +936,8 @@ export const SatMathSectionExplorer: React.FC<SatMathSectionExplorerProps> = ({ 
                   </div>
 
                   {/* Ribbon Progress Indicator */}
-                  <div className="flex items-center gap-3 w-full md:w-auto shrink-0 justify-between md:justify-end">
-                    <div className="bg-slate-200 w-24 md:w-32 h-2 rounded-full overflow-hidden">
+                  <div className="flex items-center gap-2.5 sm:gap-3 w-full md:w-auto shrink-0 justify-between md:justify-end">
+                    <div className="bg-slate-200 w-20 sm:w-32 h-1.5 sm:h-2 rounded-full overflow-hidden">
                       <div
                         className="bg-indigo-600 h-full transition-all duration-300"
                         style={{
@@ -921,7 +945,7 @@ export const SatMathSectionExplorer: React.FC<SatMathSectionExplorerProps> = ({ 
                         }}
                       />
                     </div>
-                    <span className="text-xs font-bold text-slate-600 whitespace-nowrap">
+                    <span className="text-[10.5px] sm:text-xs font-bold text-slate-600 whitespace-nowrap">
                       {groupAnswered}/{currentExerciseGroup.questions.length} Solved
                     </span>
                   </div>
@@ -929,8 +953,9 @@ export const SatMathSectionExplorer: React.FC<SatMathSectionExplorerProps> = ({ 
 
                 {/* SINGLE ACTIVE QUESTION CONTAINER */}
                 <div
+                  ref={questionCardRef}
                   key="active-question-container"
-                  className={`bg-white border-2 rounded-2xl p-4 sm:p-6 transition-colors duration-150 space-y-4 shadow-xs ${
+                  className={`bg-white border-2 rounded-xl sm:rounded-2xl p-3.5 sm:p-6 transition-colors duration-150 space-y-3.5 sm:space-y-4 shadow-xs ${
                     isSubmitted
                       ? isCorrect
                         ? 'border-emerald-300 bg-emerald-50/20'
@@ -940,44 +965,44 @@ export const SatMathSectionExplorer: React.FC<SatMathSectionExplorerProps> = ({ 
                 >
                   {/* Question Number & Status Badge */}
                   <div className="flex items-center justify-between text-xs">
-                    <div className="flex items-center gap-2 font-black text-slate-900">
-                      <span className="w-6 h-6 rounded-lg bg-slate-800 text-white text-xs flex items-center justify-center font-black">
+                    <div className="flex items-center gap-1.5 sm:gap-2 font-black text-slate-900">
+                      <span className="w-5 h-5 sm:w-6 sm:h-6 rounded-md sm:rounded-lg bg-slate-800 text-white text-[11px] sm:text-xs flex items-center justify-center font-black">
                         {q.number}
                       </span>
-                      <span>Question {activeQuestionIndex + 1} of {currentExerciseGroup.questions.length}</span>
+                      <span className="text-[11px] sm:text-xs">Question {activeQuestionIndex + 1} of {currentExerciseGroup.questions.length}</span>
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           setIsCalculatorOpen(true);
                         }}
-                        className="ml-2 px-2.5 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-[10px] font-black border border-indigo-200 flex items-center gap-1 cursor-pointer transition-colors"
+                        className="ml-1 sm:ml-2 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-md sm:rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-[9.5px] sm:text-[10px] font-black border border-indigo-200 flex items-center gap-1 cursor-pointer transition-colors"
                       >
-                        <Calculator className="w-3.5 h-3.5 text-indigo-600" />
+                        <Calculator className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-indigo-600" />
                         <span>Calculator</span>
                       </button>
                     </div>
 
                     {isSubmitted ? (
                       isCorrect ? (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-extrabold text-[11px] border border-emerald-300">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 sm:px-2.5 sm:py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-extrabold text-[10px] sm:text-[11px] border border-emerald-300">
+                          <CheckCircle2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-emerald-600" />
                           Correct
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800 font-extrabold text-[11px] border border-rose-300">
-                          <AlertCircle className="w-3.5 h-3.5 text-rose-600" />
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 sm:px-2.5 sm:py-0.5 rounded-full bg-rose-100 text-rose-800 font-extrabold text-[10px] sm:text-[11px] border border-rose-300">
+                          <AlertCircle className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-rose-600" />
                           Incorrect
                         </span>
                       )
                     ) : (
-                      <span className="text-[11px] text-slate-400 font-semibold">
+                      <span className="text-[10px] sm:text-[11px] text-slate-400 font-semibold">
                         Click an option below
                       </span>
                     )}
                   </div>
 
                   {/* Question Text */}
-                  <p className="text-xs sm:text-base font-extrabold text-slate-950 leading-relaxed">
+                  <p className="text-[12.5px] sm:text-base font-extrabold text-slate-950 leading-relaxed">
                     {cleanMathInlineMarkdown(q.question)}
                   </p>
 
@@ -1075,20 +1100,20 @@ export const SatMathSectionExplorer: React.FC<SatMathSectionExplorerProps> = ({ 
                         <button
                           key={optIdx}
                           onClick={() => handleSelectAnswer(q.id, optIdx)}
-                          className={`p-3.5 rounded-xl border text-xs sm:text-sm text-left transition-all font-medium flex flex-col justify-between gap-2 cursor-pointer ${btnClasses}`}
+                          className={`p-2.5 sm:p-3.5 rounded-xl border text-[11.5px] sm:text-sm text-left transition-all font-medium flex flex-col justify-between gap-1.5 sm:gap-2 cursor-pointer ${btnClasses}`}
                         >
                           <div className="flex items-center justify-between w-full">
                             <div className="flex items-center gap-2">
-                              <span className={`w-5 h-5 rounded-md bg-slate-100 text-slate-800 font-black text-[11px] flex items-center justify-center border border-slate-300 shrink-0 ${isSubmitted && (isThisCorrect || isThisSelected) ? 'bg-white/20 text-white border-white/20' : ''}`}>
+                              <span className={`w-5 h-5 rounded-md bg-slate-100 text-slate-800 font-black text-[10.5px] sm:text-[11px] flex items-center justify-center border border-slate-300 shrink-0 ${isSubmitted && (isThisCorrect || isThisSelected) ? 'bg-white/20 text-white border-white/20' : ''}`}>
                                 {String.fromCharCode(65 + optIdx)}
                               </span>
                               <span>{cleanMathInlineMarkdown(opt)}</span>
                             </div>
                             {isSubmitted && isThisCorrect && (
-                              <CheckCircle2 className="w-4 h-4 text-white shrink-0" />
+                              <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white shrink-0" />
                             )}
                             {isSubmitted && isThisSelected && !isThisCorrect && (
-                              <XCircle className="w-4 h-4 text-white shrink-0" />
+                              <XCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white shrink-0" />
                             )}
                           </div>
 
@@ -1124,14 +1149,14 @@ export const SatMathSectionExplorer: React.FC<SatMathSectionExplorerProps> = ({ 
                     <motion.div
                       initial={{ opacity: 0, y: 4 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className={`p-4 sm:p-5 rounded-2xl border-2 text-xs sm:text-sm leading-relaxed space-y-3 shadow-2xs ${
+                      className={`p-3.5 sm:p-5 rounded-xl sm:rounded-2xl border-2 text-[11.5px] sm:text-sm leading-relaxed space-y-2.5 sm:space-y-3 shadow-2xs ${
                         isCorrect
                           ? 'bg-emerald-50/90 text-emerald-950 border-emerald-300'
                           : 'bg-rose-50/90 text-rose-950 border-rose-300'
                       }`}
                     >
-                      <div className="font-black flex items-center gap-2 text-xs uppercase tracking-wider border-b border-current/20 pb-2">
-                        <Lightbulb className="w-4 h-4 shrink-0" />
+                      <div className="font-black flex items-center gap-1.5 sm:gap-2 text-[10.5px] sm:text-xs uppercase tracking-wider border-b border-current/20 pb-2">
+                        <Lightbulb className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
                         <span>
                           {isCorrect ? 'Correct! Detailed Mathematical Solution & Proof:' : 'Solution & Mathematical Proof Breakdown:'}
                         </span>

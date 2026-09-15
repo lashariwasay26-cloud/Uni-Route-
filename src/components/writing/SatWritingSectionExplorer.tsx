@@ -1039,6 +1039,27 @@ export const SatWritingSectionExplorer: React.FC<SatWritingSectionExplorerProps>
 
   const [selectedExerciseTab, setSelectedExerciseTab] = useState<number>(0); // 0 = All Questions, 1-4 = Specific Exercise
   const [activeQuestionIndex, setActiveQuestionIndex] = useState<number>(0);
+  const questionCardRef = useRef<HTMLDivElement>(null);
+  const isFirstQuestionRender = useRef<boolean>(true);
+
+  const scrollToQuestionCard = () => {
+    if (questionCardRef.current) {
+      const yOffset = -100;
+      const y = questionCardRef.current.getBoundingClientRect().top + window.pageYOffset + yOffset;
+      window.scrollTo({ top: Math.max(0, y), behavior: 'auto' });
+    }
+  };
+
+  useEffect(() => {
+    if (isFirstQuestionRender.current) {
+      isFirstQuestionRender.current = false;
+      return;
+    }
+    const timer = setTimeout(() => {
+      scrollToQuestionCard();
+    }, 40);
+    return () => clearTimeout(timer);
+  }, [activeQuestionIndex]);
 
   useEffect(() => {
     setActiveQuestionIndex(0);
@@ -1194,64 +1215,64 @@ export const SatWritingSectionExplorer: React.FC<SatWritingSectionExplorerProps>
             ) : (
               <>
           {/* Back Navigation Button & Info */}
-          <div className="flex items-center justify-between bg-white border border-slate-200/90 p-3 sm:p-4 rounded-2xl shadow-xs">
+          <div className="flex items-center justify-between bg-white border border-slate-200/90 p-2 sm:p-3 rounded-xl sm:rounded-2xl shadow-xs">
             <button
               onClick={() => setSelectedChapterId(null)}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white border border-slate-200/90 shadow-xs text-xs font-bold text-slate-700 hover:text-indigo-600 hover:bg-slate-50 transition-all cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl bg-white border border-slate-200/90 shadow-xs text-[11px] sm:text-xs font-bold text-slate-700 hover:text-indigo-600 hover:bg-slate-50 transition-all cursor-pointer"
             >
-              <ArrowLeft className="w-4 h-4 text-indigo-600" />
+              <ArrowLeft className="w-3.5 h-3.5 text-indigo-600" />
               <span>Back to Writing Chapters</span>
             </button>
 
-            <span className="text-xs font-extrabold text-indigo-700 bg-indigo-50 uppercase tracking-wider px-3.5 py-1 rounded-full border border-indigo-200/80 shadow-2xs">
+            <span className="text-[10px] sm:text-xs font-extrabold text-indigo-700 bg-indigo-50 uppercase tracking-wider px-2.5 py-1 rounded-full border border-indigo-200/80 shadow-2xs">
               Chapter {chapter.chapterNumber} of {WRITING_CHAPTERS_LIST.length}
             </span>
           </div>
 
           {/* CHAPTER WELCOME INTRO CARD */}
-          <div className="bg-white border border-slate-200/90 rounded-3xl p-5 sm:p-7 shadow-xs space-y-3">
-            <p className="text-xs sm:text-sm text-slate-700 leading-relaxed font-medium">
+          <div className="bg-white border border-slate-200/90 rounded-xl sm:rounded-2xl p-3.5 sm:p-5 shadow-xs">
+            <p className="text-xs sm:text-[13px] text-slate-700 leading-relaxed font-medium">
               Welcome to Chapter {chapter.chapterNumber}: {chapter.chapterTitle}. {chapter.introduction}
             </p>
           </div>
 
           {/* STICKY TOP QUICK-TOGGLE BAR: THEORY vs PRACTICE */}
-          <div className="sticky top-2 z-20 bg-white border border-slate-200 p-2 rounded-2xl shadow-sm flex flex-wrap items-center justify-between gap-2">
-            <div className="flex flex-wrap items-center gap-1.5 w-full sm:w-auto">
+          <div className="sticky top-2 z-20 bg-white/95 backdrop-blur-md border border-slate-200 p-1 sm:p-1.5 rounded-xl sm:rounded-2xl shadow-sm">
+            <div className="grid grid-cols-2 gap-1 w-full">
               <button
                 onClick={() => setActiveTab('theory')}
-                className={`flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                className={`inline-flex items-center justify-center gap-1.5 py-2 px-2 sm:px-3 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-bold transition-all cursor-pointer text-center ${
                   activeTab === 'theory'
-                    ? 'bg-slate-800 text-white shadow-xs'
-                    : 'bg-slate-100 hover:bg-slate-200/80 text-slate-700'
+                    ? 'bg-slate-900 text-white shadow-xs font-black'
+                    : 'bg-slate-100/80 hover:bg-slate-200/80 text-slate-700'
                 }`}
               >
-                <BookOpen className="w-4 h-4 shrink-0" />
-                <span>1. Core Theory & Worked Examples</span>
+                <BookOpen className="w-3.5 h-3.5 shrink-0" />
+                <span className="truncate">1. Core Theory & Worked Examples</span>
               </button>
 
               <button
                 onClick={() => setActiveTab('practice')}
-                className={`flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                className={`inline-flex items-center justify-center gap-1.5 py-2 px-2 sm:px-3 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-bold transition-all cursor-pointer text-center ${
                   activeTab === 'practice'
-                    ? 'bg-slate-800 text-white shadow-xs'
-                    : 'bg-slate-100 hover:bg-slate-200/80 text-slate-700'
+                    ? 'bg-slate-900 text-white shadow-xs font-black'
+                    : 'bg-slate-100/80 hover:bg-slate-200/80 text-slate-700'
                 }`}
               >
-                <Target className="w-4 h-4 shrink-0" />
-                <span>2. Practice Exercises ({totalQuestionsCount} Qs)</span>
+                <Target className="w-3.5 h-3.5 shrink-0" />
+                <span className="truncate">2. Practice Exercises ({totalQuestionsCount} Qs)</span>
               </button>
             </div>
           </div>
 
           {/* PRACTICE & MASTER THESE CONCEPTS BANNER */}
-          <div className="bg-emerald-50/80 border border-emerald-200/90 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="bg-emerald-50/80 border border-emerald-200/90 rounded-xl sm:rounded-2xl p-3 sm:p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <div className="space-y-1">
-              <div className="text-xs font-extrabold text-emerald-950 uppercase tracking-wider flex items-center gap-1.5">
-                <Sparkles className="w-4 h-4 text-emerald-600" />
+              <div className="text-[11px] sm:text-xs font-extrabold text-emerald-950 uppercase tracking-wider flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
                 <span>PRACTICE & MASTER THESE CONCEPTS</span>
               </div>
-              <p className="text-xs text-emerald-800 font-medium leading-relaxed">
+              <p className="text-[11px] sm:text-xs text-emerald-800 font-medium leading-relaxed">
                 Put your knowledge into action with {totalQuestionsCount} curated practice questions featuring step-by-step solutions, interactive diagrams, and instant feedback.
               </p>
             </div>
@@ -1259,10 +1280,10 @@ export const SatWritingSectionExplorer: React.FC<SatWritingSectionExplorerProps>
               onClick={() => {
                 setActiveTab('practice');
               }}
-              className="px-4 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold shrink-0 transition-all shadow-xs cursor-pointer inline-flex items-center gap-1.5"
+              className="w-full sm:w-auto px-3.5 py-2 rounded-lg sm:rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-[11px] sm:text-xs font-bold shrink-0 transition-all shadow-xs cursor-pointer inline-flex items-center justify-center gap-1.5"
             >
               <span>Start Practice Questions</span>
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
 
@@ -1537,49 +1558,49 @@ export const SatWritingSectionExplorer: React.FC<SatWritingSectionExplorerProps>
                 className="space-y-8"
               >
               {/* Top Practice Summary Bar */}
-              <div className="bg-white border border-slate-200 rounded-3xl p-5 sm:p-6 shadow-xs space-y-4">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+              <div className="bg-white border border-slate-200 rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 shadow-xs space-y-3 sm:space-y-4">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4 border-b border-slate-100 pb-3 sm:pb-4">
                   <div>
-                    <h3 className="text-lg sm:text-xl font-black text-slate-950 flex items-center gap-2">
-                      <Target className="w-5 h-5 text-indigo-600" />
+                    <h3 className="text-sm sm:text-lg font-black text-slate-950 flex items-center gap-1.5">
+                      <Target className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-600" />
                       <span>{totalQuestionsCount} Practice Exercises</span>
                     </h3>
-                    <p className="text-xs text-slate-500 font-medium mt-1">
+                    <p className="hidden sm:block text-xs text-slate-500 font-medium mt-1">
                       Choose an exercise set or scroll down to work through questions sequentially with instant feedback.
                     </p>
                   </div>
 
-                  <div className="flex items-center gap-3 shrink-0">
-                    <div className="text-right">
-                      <div className="text-xs font-black text-slate-900">
+                  <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0">
+                    <div className="text-left sm:text-right">
+                      <div className="text-[11px] sm:text-xs font-black text-slate-900">
                         {totalAnsweredCount} / {totalQuestionsCount} Answered
                       </div>
-                      <div className="text-[11px] font-bold text-indigo-600 font-mono">
+                      <div className="text-[10px] sm:text-[11px] font-bold text-indigo-600 font-mono">
                         Score: {totalCorrectCount}/{totalAnsweredCount} ({totalAnsweredCount > 0 ? Math.round((totalCorrectCount / totalAnsweredCount) * 100) : 0}%)
                       </div>
                     </div>
                     <button
                       onClick={handleResetPractice}
-                      className="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5"
+                      className="px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg sm:rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] sm:text-xs font-bold transition-all cursor-pointer flex items-center gap-1"
                     >
-                      <RefreshCw className="w-3.5 h-3.5" />
-                      <span>Reset All</span>
+                      <RefreshCw className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                      <span>Reset<span className="hidden sm:inline"> All</span></span>
                     </button>
                   </div>
                 </div>
 
                 {/* Exercise Navigation Tabs (0 = All Questions, 1-4 = Specific Exercises) */}
-                <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-thin">
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-thin">
                   <button
                     onClick={() => setSelectedExerciseTab(0)}
-                    className={`px-3.5 py-2 rounded-xl text-xs font-black transition-all cursor-pointer shrink-0 flex items-center gap-1.5 ${
+                    className={`px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-black transition-all cursor-pointer shrink-0 flex items-center gap-1 ${
                       selectedExerciseTab === 0
                         ? 'bg-slate-900 text-white shadow-xs'
                         : 'bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-700'
                     }`}
                   >
                     <span>All Questions</span>
-                    <span className={`text-[10px] font-mono ${selectedExerciseTab === 0 ? 'text-slate-300' : 'text-slate-400'}`}>
+                    <span className={`text-[9px] sm:text-[10px] font-mono ${selectedExerciseTab === 0 ? 'text-slate-300' : 'text-slate-400'}`}>
                       ({totalAnsweredCount}/{totalQuestionsCount})
                     </span>
                   </button>
@@ -1590,14 +1611,14 @@ export const SatWritingSectionExplorer: React.FC<SatWritingSectionExplorerProps>
                       <button
                         key={ex.exerciseNumber}
                         onClick={() => setSelectedExerciseTab(ex.exerciseNumber)}
-                        className={`px-3.5 py-2 rounded-xl text-xs font-black transition-all cursor-pointer shrink-0 flex items-center gap-1.5 ${
+                        className={`px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-black transition-all cursor-pointer shrink-0 flex items-center gap-1 ${
                           isSelected
                             ? 'bg-slate-900 text-white shadow-xs'
                             : 'bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-700'
                         }`}
                       >
                         <span>Exercise {ex.exerciseNumber}</span>
-                        <span className={`text-[10px] font-mono ${isSelected ? 'text-slate-300' : 'text-slate-400'}`}>
+                        <span className={`text-[9px] sm:text-[10px] font-mono ${isSelected ? 'text-slate-300' : 'text-slate-400'}`}>
                           ({exAnswered}/{ex.questions.length})
                         </span>
                       </button>
@@ -1665,6 +1686,7 @@ export const SatWritingSectionExplorer: React.FC<SatWritingSectionExplorerProps>
 
                     {/* SINGLE ACTIVE QUESTION CARD */}
                     <div
+                      ref={questionCardRef}
                       className={`bg-white border-2 rounded-3xl p-5 sm:p-8 space-y-6 transition-all shadow-xs ${
                         isSubmitted
                           ? isCorrect
