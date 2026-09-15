@@ -436,7 +436,7 @@ where t represents the time in years since the start of the study, and N(t) repr
     setIsOptionPopupOpen(false);
     setTimeout(() => {
       setIsSwitchingCategory(false);
-    }, 180);
+    }, 500);
   };
 
   const handleOptionSelect = (index: number) => {

@@ -264,7 +264,14 @@ export function mapPakistaniRowToUniversity(row: any): UniversityTrackItem {
 let cachedUniversityScholarships: UniversityTrackItem[] | null = null;
 let cachedGovernmentScholarships: GovernmentTrackItem[] | null = null;
 
-export function getCachedUniversityScholarships(): UniversityTrackItem[] | null {
+export function getCachedUniversityScholarships(trackType?: 'international' | 'pakistani'): UniversityTrackItem[] | null {
+  if (!cachedUniversityScholarships) return null;
+  if (trackType === 'international') {
+    return cachedUniversityScholarships.filter(u => u.track_category === 'international' || u.track_category === 'global');
+  }
+  if (trackType === 'pakistani') {
+    return cachedUniversityScholarships.filter(u => u.track_category === 'pakistani');
+  }
   return cachedUniversityScholarships;
 }
 
@@ -288,7 +295,7 @@ export async function prefetchScholarshipData() {
  */
 export async function fetchUniversityScholarshipsFromSupabase(trackType?: 'international' | 'pakistani') {
   if (!isSupabaseConfigured() || !supabase) {
-    return { data: null, error: new Error('Supabase environment variables not configured') };
+    return { data: getCachedUniversityScholarships(trackType), error: new Error('Supabase environment variables not configured') };
   }
 
   // Return filtered cache if available
@@ -301,12 +308,17 @@ export async function fetchUniversityScholarshipsFromSupabase(trackType?: 'inter
     }
     
     // Background refresh
-    fetchUniversityScholarshipsFromSupabaseBackground();
+    fetchUniversityScholarshipsFromSupabaseBackground().catch(() => {});
     return { data: filtered, error: null };
   }
 
   try {
-    const allData = await fetchUniversityScholarshipsFromSupabaseBackground();
+    const fetchPromise = fetchUniversityScholarshipsFromSupabaseBackground();
+    const timeoutPromise = new Promise<UniversityTrackItem[]>((_, reject) =>
+      setTimeout(() => reject(new Error('University fetch timeout exceeded 7000ms')), 7000)
+    );
+
+    const allData = await Promise.race([fetchPromise, timeoutPromise]);
     let filtered = allData;
     if (trackType === 'international') {
       filtered = allData.filter(u => u.track_category === 'international' || u.track_category === 'global');
@@ -315,7 +327,8 @@ export async function fetchUniversityScholarshipsFromSupabase(trackType?: 'inter
     }
     return { data: filtered, error: null };
   } catch (err: any) {
-    return { data: null, error: err };
+    console.warn('University fetch timeout or error, falling back to cache:', err);
+    return { data: getCachedUniversityScholarships(trackType), error: err };
   }
 }
 
@@ -2197,20 +2210,26 @@ export async function fetchSatWritingChapter7FromSupabase(): Promise<{ data: Ful
 
 export async function fetchGovernmentScholarshipsFromSupabase() {
   if (!isSupabaseConfigured() || !supabase) {
-    return { data: null, error: new Error('Supabase environment variables not configured') };
+    return { data: getCachedGovernmentScholarships(), error: new Error('Supabase environment variables not configured') };
   }
 
   if (cachedGovernmentScholarships && cachedGovernmentScholarships.length > 0) {
     // Return cached immediately, and optionally refresh in the background
-    fetchGovernmentScholarshipsFromSupabaseBackground();
+    fetchGovernmentScholarshipsFromSupabaseBackground().catch(() => {});
     return { data: cachedGovernmentScholarships, error: null };
   }
 
   try {
-    const data = await fetchGovernmentScholarshipsFromSupabaseBackground();
+    const fetchPromise = fetchGovernmentScholarshipsFromSupabaseBackground();
+    const timeoutPromise = new Promise<GovernmentTrackItem[]>((_, reject) =>
+      setTimeout(() => reject(new Error('Government fetch timeout exceeded 7000ms')), 7000)
+    );
+
+    const data = await Promise.race([fetchPromise, timeoutPromise]);
     return { data, error: null };
   } catch (err: any) {
-    return { data: null, error: err };
+    console.warn('Government scholarship fetch timeout or error, falling back to cache:', err);
+    return { data: getCachedGovernmentScholarships(), error: err };
   }
 }
 

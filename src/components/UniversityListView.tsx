@@ -59,13 +59,15 @@ export const UniversityListView: React.FC<UniversityListViewProps> = ({
   onRequestAuth,
   pendingUniId,
 }) => {
-  // Master universities state (Synchronously read from memory cache or empty fallback)
+  // Master universities state (Synchronously read from memory cache or empty fallback filtered by track)
   const [universities, setUniversities] = useState<UniversityTrackItem[]>(() => {
-    return getCachedUniversityScholarships() || [];
+    const trackType = title.toLowerCase().includes('pakistani') ? 'pakistani' : 'international';
+    return getCachedUniversityScholarships(trackType) || [];
   });
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
   const [isSupabaseLive, setIsSupabaseLive] = useState<boolean>(() => {
-    const cached = getCachedUniversityScholarships();
+    const trackType = title.toLowerCase().includes('pakistani') ? 'pakistani' : 'international';
+    const cached = getCachedUniversityScholarships(trackType);
     return Boolean(cached && cached.length > 0);
   });
   const [showSqlModal, setShowSqlModal] = useState<boolean>(false);
@@ -133,6 +135,7 @@ export const UniversityListView: React.FC<UniversityListViewProps> = ({
     scrollPosRef.current = window.scrollY || document.documentElement.scrollTop || 0;
     lastSelectedUniIdRef.current = uni.id;
     setActiveModalUni(uni);
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
   };
 
   // Handle auto-opening uni profile after successful auth
@@ -156,15 +159,17 @@ export const UniversityListView: React.FC<UniversityListViewProps> = ({
       const targetId = lastSelectedUniIdRef.current;
       const targetPos = scrollPosRef.current;
 
-      const timer = setTimeout(() => {
+      const restoreUniScroll = () => {
         const cardEl = document.getElementById(`uni-card-${targetId}`);
         if (cardEl) {
           cardEl.scrollIntoView({ block: 'center', behavior: 'instant' });
         } else {
           window.scrollTo({ top: targetPos, left: 0, behavior: 'instant' });
         }
-      }, 30);
+      };
 
+      restoreUniScroll();
+      const timer = setTimeout(restoreUniScroll, 30);
       return () => clearTimeout(timer);
     }
   }, [activeModalUni]);
@@ -172,21 +177,38 @@ export const UniversityListView: React.FC<UniversityListViewProps> = ({
   // Fetch real-time / dynamic data from Supabase on mount
   useEffect(() => {
     let isMounted = true;
+    let timerId: any = null;
+
     async function loadSupabaseData() {
-      if (!isSupabaseConfigured()) {
-        setIsSupabaseLive(false);
+      const trackType = title.toLowerCase().includes('pakistani') ? 'pakistani' : 'international';
+      const cached = getCachedUniversityScholarships(trackType);
+
+      if (cached && cached.length > 0) {
+        setUniversities(cached);
+        setIsSupabaseLive(true);
+        setIsSyncing(false);
         return;
       }
 
-      // Determine track type based on title
-      const trackType = title.toLowerCase().includes('pakistani') ? 'pakistani' : 'international';
+      setIsSyncing(true);
 
-      // Only show syncing spinner if we don't already have universities in state/cache
-      if (universities.length === 0) {
-        setIsSyncing(true);
+      // Strict 7-second max loading screen limit timer to ensure it NEVER hangs indefinitely
+      timerId = setTimeout(() => {
+        if (isMounted) {
+          setIsSyncing(false);
+        }
+      }, 7000);
+
+      if (!isSupabaseConfigured()) {
+        setIsSupabaseLive(false);
+        setIsSyncing(false);
+        if (timerId) clearTimeout(timerId);
+        return;
       }
+
       const { data, error } = await fetchUniversityScholarshipsFromSupabase(trackType);
       if (isMounted) {
+        if (timerId) clearTimeout(timerId);
         setIsSyncing(false);
         if (!error && data && data.length > 0) {
           setUniversities(data);
@@ -200,6 +222,7 @@ export const UniversityListView: React.FC<UniversityListViewProps> = ({
     loadSupabaseData();
     return () => {
       isMounted = false;
+      if (timerId) clearTimeout(timerId);
     };
   }, [title]);
 
@@ -365,22 +388,40 @@ export const UniversityListView: React.FC<UniversityListViewProps> = ({
     toggleUniversityBookmark(uniId).catch(() => {});
   };
 
-  if (isSyncing && (universities.length === 0)) {
-    return <InteractivePageLoader />;
-  }
+  const isPakistani = title.toLowerCase().includes('pakistani');
+  const showLoaderOverlay = isSyncing && (universities.length === 0);
 
   return (
-    <div className="relative overflow-x-hidden w-full">
-      <AnimatePresence mode="wait">
-        {!activeModalUni ? (
+    <div className="relative overflow-x-hidden w-full min-h-[500px]">
+      <AnimatePresence>
+        {showLoaderOverlay && (
           <motion.div
-            key="list"
-            initial={{ opacity: 0, x: 12 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -12 }}
-            transition={{ duration: 0.1, ease: "easeOut" }}
-            className="py-4 sm:py-8 max-w-5xl mx-auto px-1 sm:px-4"
+            key="university-loader-overlay"
+            initial={{ opacity: 1 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15, ease: "easeOut" }}
+            className="absolute inset-0 z-30 bg-slate-50 flex flex-col items-center justify-center min-h-[500px] rounded-2xl"
           >
+            <InteractivePageLoader
+              title={isPakistani ? "Loading Pakistani Universities Directory" : "Loading International University Scholarships"}
+              subtitle={isPakistani ? "Fetching local higher education institutions, HEC/Ehsaas programs, and local grants..." : "Searching global university financial aid database and eligibility matrices..."}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <div className={showLoaderOverlay ? "opacity-0 pointer-events-none" : "opacity-100 transition-opacity duration-200"}>
+        <AnimatePresence initial={false}>
+          {!activeModalUni ? (
+            <motion.div
+              key="uni-list"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+              className="py-4 sm:py-8 max-w-5xl mx-auto px-1 sm:px-4"
+            >
       
       {/* Header & Back Action */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 pb-6 border-b border-slate-200/80">
@@ -750,11 +791,11 @@ export const UniversityListView: React.FC<UniversityListViewProps> = ({
     </motion.div>
     ) : (
           <motion.div
-            key="profile"
-            initial={{ opacity: 0, x: 12 }}
+            key={`uni-profile-${activeModalUni.id}`}
+            initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -12 }}
-            transition={{ duration: 0.1, ease: "easeOut" }}
+            exit={{ opacity: 0, x: 50 }}
+            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
           >
             <UniversityProfile
               university={activeModalUni!}
@@ -763,6 +804,7 @@ export const UniversityListView: React.FC<UniversityListViewProps> = ({
           </motion.div>
         )}
       </AnimatePresence>
+      </div>
 
       {/* Saved Universities Shortlist Modal */}
       <SavedUniversitiesModal

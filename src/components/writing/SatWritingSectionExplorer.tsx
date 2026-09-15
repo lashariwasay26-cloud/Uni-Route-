@@ -830,22 +830,34 @@ export const SatWritingSectionExplorer: React.FC<SatWritingSectionExplorerProps>
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   useEffect(() => {
-    if (!selectedChapterId) return;
+    if (!selectedChapterId) {
+      setIsLoading(false);
+      setCurrentChapterData(null);
+      return;
+    }
 
     let isMounted = true;
     setIsLoading(true);
     setCurrentChapterData(null);
 
-    const timer = setTimeout(() => {
-      if (isMounted && !isSupabaseConfigured()) {
-        setIsLoading(false);
-      }
-    }, 600);
+    const startTime = Date.now();
+    const MIN_LOAD_TIME = 600;
+
+    const finishLoading = () => {
+      if (!isMounted) return;
+      const elapsed = Date.now() - startTime;
+      const remaining = Math.max(0, MIN_LOAD_TIME - elapsed);
+      setTimeout(() => {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }, remaining);
+    };
 
     if (!isSupabaseConfigured()) {
+      finishLoading();
       return () => {
         isMounted = false;
-        clearTimeout(timer);
       };
     }
 
@@ -861,26 +873,27 @@ export const SatWritingSectionExplorer: React.FC<SatWritingSectionExplorerProps>
 
     const fetchFunc = chapterFetchMap[selectedChapterId];
     if (!fetchFunc) {
-      clearTimeout(timer);
-      if (isMounted) setIsLoading(false);
-      return () => { isMounted = false; };
+      finishLoading();
+      return () => {
+        isMounted = false;
+      };
     }
 
     fetchFunc()
       .then(({ data }) => {
         if (isMounted) {
           setCurrentChapterData(data);
-          setIsLoading(false);
         }
       })
       .catch((err) => {
         console.error(`Failed to fetch ${selectedChapterId} from Supabase:`, err);
-        if (isMounted) setIsLoading(false);
+      })
+      .finally(() => {
+        finishLoading();
       });
 
     return () => {
       isMounted = false;
-      clearTimeout(timer);
     };
   }, [selectedChapterId]);
 
@@ -1141,7 +1154,7 @@ export const SatWritingSectionExplorer: React.FC<SatWritingSectionExplorerProps>
               ))}
             </div>
           </motion.div>
-        ) : isCurrentChapterLoading ? (
+        ) : !chapter ? (
           <motion.div
             key="loader"
             initial={{ opacity: 0 }}
@@ -1150,8 +1163,8 @@ export const SatWritingSectionExplorer: React.FC<SatWritingSectionExplorerProps>
             transition={{ duration: 0.1, ease: "easeOut" }}
           >
             <InteractivePageLoader
-              title={selectedChapterId !== null ? "Loading Chapter Content" : "Loading Writing Section"}
-              subtitle={selectedChapterId !== null ? "Assembling curriculum modules, structured analytics, and interactive practice questions..." : "Loading grammar rules, passage edits, and question banks..."}
+              title="Loading Writing Chapter"
+              subtitle="Loading grammar rules, passage edits, and question banks..."
             />
           </motion.div>
         ) : (
@@ -1161,8 +1174,27 @@ export const SatWritingSectionExplorer: React.FC<SatWritingSectionExplorerProps>
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.12, ease: "easeOut" }}
-            className="space-y-6"
+            className="space-y-6 relative min-h-[500px]"
           >
+            <AnimatePresence>
+              {isCurrentChapterLoading && (
+                <motion.div
+                  key="chapter-loader-overlay"
+                  initial={{ opacity: 1 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.15, ease: "easeOut" }}
+                  className="absolute inset-0 z-30 bg-slate-50 flex flex-col items-center justify-center min-h-[500px] rounded-2xl"
+                >
+                  <InteractivePageLoader
+                    title="Loading Chapter Content"
+                    subtitle="Assembling curriculum modules, structured analytics, and interactive practice questions..."
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <div className={isCurrentChapterLoading ? "opacity-0 pointer-events-none" : "opacity-100 transition-opacity duration-200"}>
           {/* Back Navigation Button & Info */}
           <div className="flex items-center justify-between bg-white border border-slate-200/90 p-3 sm:p-4 rounded-2xl shadow-xs">
             <button
@@ -1906,6 +1938,7 @@ export const SatWritingSectionExplorer: React.FC<SatWritingSectionExplorerProps>
               })()}
               </motion.div>
             </div>
+        </div>
         </div>
     </motion.div>
   )}

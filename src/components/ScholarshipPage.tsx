@@ -43,9 +43,9 @@ export const ScholarshipPage: React.FC<ScholarshipPageProps> = ({
         {subView === 'selection' && (
           <motion.div
             key="selection"
-            initial={{ opacity: 0, x: 12 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -12 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
             transition={{ duration: 0.1, ease: "easeOut" }}
           >
             {/* 1. Track Selection Screen */}
@@ -85,54 +85,56 @@ export const ScholarshipPage: React.FC<ScholarshipPageProps> = ({
                 {/* Card 1: University Track */}
                 <div
                   onClick={() => setSubView('university')}
-                  className="bg-white text-slate-900 border border-slate-200/90 rounded-xl sm:rounded-[28px] p-4 sm:p-8 shadow-[0_4px_25px_rgba(0,0,0,0.04)] hover:bg-slate-950 hover:text-white active:bg-slate-900 hover:border-slate-900 hover:shadow-xl cursor-pointer hover:-translate-y-1 active:scale-[0.99] transition-all duration-150 flex flex-col justify-between min-h-0 sm:min-h-[340px] relative overflow-hidden group"
+                  className="bg-white text-slate-900 border-2 border-slate-200/90 rounded-xl sm:rounded-[28px] p-4 sm:p-8 shadow-xs hover:shadow-md hover:border-indigo-600 hover:bg-slate-50/80 active:bg-slate-100 cursor-pointer hover:-translate-y-0.5 active:scale-[0.99] transition-all duration-200 flex flex-col justify-between min-h-0 sm:min-h-[340px] relative overflow-hidden group"
                 >
-                  <div className="absolute top-0 right-0 w-36 h-36 bg-slate-500/5 rounded-full pointer-events-none group-hover:bg-white/10" />
+                  <div className="absolute top-0 right-0 w-36 h-36 bg-indigo-50/40 rounded-full pointer-events-none group-hover:bg-indigo-100/50 transition-colors" />
 
                   <div>
-                    <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-slate-950 text-white flex items-center justify-center mb-3 sm:mb-8 shadow-md transition-colors group-hover:bg-white/20">
-                      <Building2 className="w-5 h-5 sm:w-7 sm:h-7 text-white" />
+                    <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-indigo-50 border border-indigo-100 text-indigo-600 flex items-center justify-center mb-3 sm:mb-8 shadow-2xs transition-colors group-hover:bg-indigo-600 group-hover:text-white">
+                      <Building2 className="w-5 h-5 sm:w-7 sm:h-7" />
                     </div>
-                    <div className="inline-block text-[10px] sm:text-[11px] font-extrabold tracking-widest text-slate-900 group-hover:text-slate-200 uppercase mb-1 sm:mb-2 transition-colors">
+                    <div className="inline-block text-[10px] sm:text-[11px] font-black tracking-widest text-indigo-700 uppercase mb-1 sm:mb-2">
                       INSTITUTIONAL ADMISSIONS
                     </div>
-                    <h2 className="text-lg sm:text-3xl font-extrabold tracking-tight text-slate-950 group-hover:text-white mb-2 sm:mb-4 transition-colors">
+                    <h2 className="text-lg sm:text-3xl font-extrabold tracking-tight text-slate-950 group-hover:text-indigo-950 mb-2 sm:mb-4 transition-colors">
                       University Track
                     </h2>
-                    <p className="text-slate-600 group-hover:text-slate-200 text-xs sm:text-base leading-relaxed font-normal transition-colors">
+                    <p className="text-slate-600 text-xs sm:text-base leading-relaxed font-normal">
                       Compare worldwide universities, explore degree requirements, find institutional merit scholarships, and evaluate your best academic match.
                     </p>
                   </div>
 
-                  <div className="pt-4 sm:pt-8 border-t border-slate-100 group-hover:border-white/20 flex items-center justify-between text-xs font-bold text-slate-700 group-hover:text-white transition-colors mt-4 sm:mt-0">
-                    <span className="text-xs sm:text-sm">Explore Universities</span>
-                    <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 transition-transform group-hover:translate-x-1" />
+                  <div className="pt-4 sm:pt-8 border-t border-slate-100 group-hover:border-slate-200 flex items-center justify-between text-xs sm:text-sm font-bold text-slate-800 group-hover:text-indigo-600 transition-colors mt-4 sm:mt-0">
+                    <span>Explore Universities</span>
+                    <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 transition-transform group-hover:translate-x-1 text-indigo-600" />
                   </div>
                 </div>
 
                 {/* Card 2: Government Track */}
                 <div
                   onClick={() => setSubView('government')}
-                  className="bg-white text-slate-900 border border-slate-200/90 rounded-xl sm:rounded-[28px] p-4 sm:p-8 shadow-[0_4px_25px_rgba(0,0,0,0.04)] hover:bg-slate-950 hover:text-white active:bg-slate-900 hover:border-slate-900 hover:shadow-xl cursor-pointer hover:-translate-y-1 active:scale-[0.99] transition-all duration-150 flex flex-col justify-between min-h-0 sm:min-h-[340px] relative overflow-hidden group"
+                  className="bg-white text-slate-900 border-2 border-slate-200/90 rounded-xl sm:rounded-[28px] p-4 sm:p-8 shadow-xs hover:shadow-md hover:border-emerald-600 hover:bg-slate-50/80 active:bg-slate-100 cursor-pointer hover:-translate-y-0.5 active:scale-[0.99] transition-all duration-200 flex flex-col justify-between min-h-0 sm:min-h-[340px] relative overflow-hidden group"
                 >
+                  <div className="absolute top-0 right-0 w-36 h-36 bg-emerald-50/40 rounded-full pointer-events-none group-hover:bg-emerald-100/50 transition-colors" />
+
                   <div>
-                    <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-slate-950 text-white flex items-center justify-center mb-3 sm:mb-8 shadow-md transition-colors group-hover:bg-white/20">
-                      <Landmark className="w-5 h-5 sm:w-7 sm:h-7 text-white" />
+                    <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-emerald-50 border border-emerald-100 text-emerald-600 flex items-center justify-center mb-3 sm:mb-8 shadow-2xs transition-colors group-hover:bg-emerald-600 group-hover:text-white">
+                      <Landmark className="w-5 h-5 sm:w-7 sm:h-7" />
                     </div>
-                    <div className="inline-block text-[10px] sm:text-[11px] font-extrabold tracking-widest text-slate-500 group-hover:text-slate-400 uppercase mb-1 sm:mb-2 transition-colors">
+                    <div className="inline-block text-[10px] sm:text-[11px] font-black tracking-widest text-emerald-700 uppercase mb-1 sm:mb-2">
                       STATE & NATIONAL FUNDING
                     </div>
-                    <h2 className="text-lg sm:text-3xl font-extrabold tracking-tight text-slate-950 group-hover:text-white mb-2 sm:mb-4 transition-colors">
+                    <h2 className="text-lg sm:text-3xl font-extrabold tracking-tight text-slate-950 group-hover:text-emerald-950 mb-2 sm:mb-4 transition-colors">
                       Government Track
                     </h2>
-                    <p className="text-slate-600 group-hover:text-slate-200 text-xs sm:text-base leading-relaxed font-normal transition-colors">
+                    <p className="text-slate-600 text-xs sm:text-base leading-relaxed font-normal">
                       Explore official government scholarships, national grants, fully funded bilateral sponsorships, and public higher education funding.
                     </p>
                   </div>
 
-                  <div className="pt-4 sm:pt-8 border-t border-slate-100 group-hover:border-white/20 flex items-center justify-between text-xs font-bold text-slate-700 group-hover:text-white transition-colors mt-4 sm:mt-0">
-                    <span className="text-xs sm:text-sm">Explore Government Grants</span>
-                    <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 transition-transform group-hover:translate-x-1" />
+                  <div className="pt-4 sm:pt-8 border-t border-slate-100 group-hover:border-slate-200 flex items-center justify-between text-xs sm:text-sm font-bold text-slate-800 group-hover:text-emerald-600 transition-colors mt-4 sm:mt-0">
+                    <span>Explore Government Grants</span>
+                    <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 transition-transform group-hover:translate-x-1 text-emerald-600" />
                   </div>
                 </div>
 
@@ -144,9 +146,9 @@ export const ScholarshipPage: React.FC<ScholarshipPageProps> = ({
         {subView === 'university' && (
           <motion.div
             key="university"
-            initial={{ opacity: 0, x: 12 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -12 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
             transition={{ duration: 0.1, ease: "easeOut" }}
           >
             <UniversityListView
@@ -161,9 +163,9 @@ export const ScholarshipPage: React.FC<ScholarshipPageProps> = ({
         {subView === 'government' && (
           <motion.div
             key="government"
-            initial={{ opacity: 0, x: 12 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -12 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
             transition={{ duration: 0.1, ease: "easeOut" }}
           >
             <GovernmentTrackView

@@ -34,6 +34,7 @@ export const GovernmentTrackView: React.FC<GovernmentTrackViewProps> = ({
   pendingScholarshipId,
 }) => {
   const scrollPositionRef = useRef<number>(0);
+  const lastSelectedGovIdRef = useRef<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDegree, setSelectedDegree] = useState<string>('All');
   const [selectedRegion, setSelectedRegion] = useState<'All' | 'Americas' | 'Asia' | 'Europe' | 'Oceania' | 'Africa'>('All');
@@ -53,18 +54,36 @@ export const GovernmentTrackView: React.FC<GovernmentTrackViewProps> = ({
   // Load from Supabase if configured
   useEffect(() => {
     let isMounted = true;
+    let timerId: any = null;
+
     async function loadSupabaseGovData() {
-      if (!isSupabaseConfigured()) {
-        setIsSupabaseLive(false);
+      const cached = getCachedGovernmentScholarships();
+      if (cached && cached.length > 0) {
+        setScholarships(cached);
+        setIsSupabaseLive(true);
+        setIsSyncing(false);
         return;
       }
 
-      // Only show syncing spinner if we don't already have scholarships in state/cache
-      if (scholarships.length === 0) {
-        setIsSyncing(true);
+      setIsSyncing(true);
+
+      // Hard 7-second max limit timer so user NEVER gets stuck infinitely
+      timerId = setTimeout(() => {
+        if (isMounted) {
+          setIsSyncing(false);
+        }
+      }, 7000);
+
+      if (!isSupabaseConfigured()) {
+        setIsSupabaseLive(false);
+        setIsSyncing(false);
+        if (timerId) clearTimeout(timerId);
+        return;
       }
+
       const { data, error } = await fetchGovernmentScholarshipsFromSupabase();
       if (isMounted) {
+        if (timerId) clearTimeout(timerId);
         setIsSyncing(false);
         if (!error && data && data.length > 0) {
           setScholarships(data);
@@ -78,6 +97,7 @@ export const GovernmentTrackView: React.FC<GovernmentTrackViewProps> = ({
     loadSupabaseGovData();
     return () => {
       isMounted = false;
+      if (timerId) clearTimeout(timerId);
     };
   }, []);
 
@@ -101,10 +121,37 @@ export const GovernmentTrackView: React.FC<GovernmentTrackViewProps> = ({
       }
       return;
     }
-    scrollPositionRef.current = window.scrollY;
+    scrollPositionRef.current = window.scrollY || document.documentElement.scrollTop || 0;
+    lastSelectedGovIdRef.current = item.id;
     setSelectedScholarship(item);
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
   };
+
+  // Scroll to top on mount
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  }, []);
+
+  // Restore scroll position or scroll into view of selected government scholarship card
+  useEffect(() => {
+    if (!selectedScholarship && lastSelectedGovIdRef.current) {
+      const targetId = lastSelectedGovIdRef.current;
+      const targetPos = scrollPositionRef.current;
+
+      const restoreGovScroll = () => {
+        const cardEl = document.getElementById(`gov-card-${targetId}`);
+        if (cardEl) {
+          cardEl.scrollIntoView({ block: 'center', behavior: 'instant' });
+        } else {
+          window.scrollTo({ top: targetPos, left: 0, behavior: 'instant' });
+        }
+      };
+
+      restoreGovScroll();
+      const timer = setTimeout(restoreGovScroll, 30);
+      return () => clearTimeout(timer);
+    }
+  }, [selectedScholarship]);
 
   const regionCounts = useMemo(() => {
     let oceania = 0;
@@ -176,22 +223,39 @@ export const GovernmentTrackView: React.FC<GovernmentTrackViewProps> = ({
     return filteredScholarships.slice(0, visibleCount);
   }, [filteredScholarships, visibleCount]);
 
-  if (isSyncing && (scholarships.length === 0)) {
-    return <InteractivePageLoader />;
-  }
+  const showGovLoaderOverlay = isSyncing && (scholarships.length === 0);
 
   return (
-    <div className="relative overflow-x-hidden w-full">
-      <AnimatePresence mode="wait">
-        {!selectedScholarship ? (
+    <div className="relative overflow-x-hidden w-full min-h-[500px]">
+      <AnimatePresence>
+        {showGovLoaderOverlay && (
           <motion.div
-            key="list"
-            initial={{ opacity: 0, x: 18 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -18 }}
-            transition={{ duration: 0.18, ease: "easeOut" }}
-            className="py-4 sm:py-8 max-w-5xl mx-auto px-1 sm:px-4"
+            key="gov-loader-overlay"
+            initial={{ opacity: 1 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15, ease: "easeOut" }}
+            className="absolute inset-0 z-30 bg-slate-50 flex flex-col items-center justify-center min-h-[500px] rounded-2xl"
           >
+            <InteractivePageLoader
+              title="Loading Government Scholarships Track"
+              subtitle="Searching government-funded grants, international bilateral scholarships, and public awards..."
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <div className={showGovLoaderOverlay ? "opacity-0 pointer-events-none" : "opacity-100 transition-opacity duration-200"}>
+        <AnimatePresence initial={false}>
+          {!selectedScholarship ? (
+            <motion.div
+              key="gov-list"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+              className="py-4 sm:py-8 max-w-5xl mx-auto px-1 sm:px-4"
+            >
       
       {/* Header & Back Action */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 pb-6 border-b border-slate-200/80">
@@ -346,6 +410,7 @@ export const GovernmentTrackView: React.FC<GovernmentTrackViewProps> = ({
               return (
                 <div
                   key={item.id}
+                  id={`gov-card-${item.id}`}
                   className="bg-white border border-slate-200/90 rounded-3xl p-6 sm:p-8 shadow-xs hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 flex flex-col justify-between group hover:border-indigo-300"
                 >
                   <div>
@@ -492,24 +557,20 @@ export const GovernmentTrackView: React.FC<GovernmentTrackViewProps> = ({
     </motion.div>
     ) : (
           <motion.div
-            key="profile"
-            initial={{ opacity: 0, x: 18 }}
+            key={`gov-profile-${selectedScholarship.id}`}
+            initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -18 }}
-            transition={{ duration: 0.18, ease: "easeOut" }}
+            exit={{ opacity: 0, x: 50 }}
+            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
           >
             <GovernmentProfile
               scholarship={selectedScholarship}
-              onBack={() => {
-                setSelectedScholarship(null);
-                setTimeout(() => {
-                  window.scrollTo({ top: scrollPositionRef.current, left: 0, behavior: 'instant' });
-                }, 30);
-              }}
+              onBack={() => setSelectedScholarship(null)}
             />
           </motion.div>
         )}
       </AnimatePresence>
+      </div>
     </div>
   );
 };

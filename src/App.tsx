@@ -60,13 +60,13 @@ const getAppLoaderDetails = (view: string, satCat?: string) => {
   }
   if (view === 'scholarship') {
     return {
-      title: 'Loading Merit Scholarships',
+      title: 'Loading International University Scholarships',
       subtitle: 'Searching global university financial aid database and eligibility matrices...'
     };
   }
   if (view === 'pakistani-scholarships') {
     return {
-      title: 'Loading Pakistani Directory',
+      title: 'Loading Pakistani Universities Directory',
       subtitle: 'Fetching local university scholarships, HEC/Ehsaas programs, and grant options...'
     };
   }
