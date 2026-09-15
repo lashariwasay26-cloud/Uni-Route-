@@ -261,10 +261,16 @@ export function mapPakistaniRowToUniversity(row: any): UniversityTrackItem {
   };
 }
 
-let cachedUniversityScholarships: UniversityTrackItem[] | null = null;
-let cachedGovernmentScholarships: GovernmentTrackItem[] | null = null;
+const CACHE_KEY_UNIVERSITIES = 'uniroute_universities_cache_v2';
+const CACHE_KEY_GOVERNMENT = 'uniroute_government_scholarships_cache_v2';
+
+let cachedUniversityScholarships: UniversityTrackItem[] | null = getLocalStorageCache<UniversityTrackItem[]>(CACHE_KEY_UNIVERSITIES);
+let cachedGovernmentScholarships: GovernmentTrackItem[] | null = getLocalStorageCache<GovernmentTrackItem[]>(CACHE_KEY_GOVERNMENT);
 
 export function getCachedUniversityScholarships(trackType?: 'international' | 'pakistani'): UniversityTrackItem[] | null {
+  if (!cachedUniversityScholarships) {
+    cachedUniversityScholarships = getLocalStorageCache<UniversityTrackItem[]>(CACHE_KEY_UNIVERSITIES);
+  }
   if (!cachedUniversityScholarships) return null;
   if (trackType === 'international') {
     return cachedUniversityScholarships.filter(u => u.track_category === 'international' || u.track_category === 'global');
@@ -276,11 +282,14 @@ export function getCachedUniversityScholarships(trackType?: 'international' | 'p
 }
 
 export function getCachedGovernmentScholarships(): GovernmentTrackItem[] | null {
+  if (!cachedGovernmentScholarships) {
+    cachedGovernmentScholarships = getLocalStorageCache<GovernmentTrackItem[]>(CACHE_KEY_GOVERNMENT);
+  }
   return cachedGovernmentScholarships;
 }
 
 export async function prefetchScholarshipData() {
-  if (!isSupabaseConfigured()) return;
+  if (!isSupabaseConfigured() || !supabase) return;
   
   // Fire both in parallel and cache them
   await Promise.allSettled([
@@ -291,31 +300,23 @@ export async function prefetchScholarshipData() {
 
 /**
  * Helper to fetch University Track records from Supabase
- * Queries 'university_scholarships' table or 'universities' table
  */
 export async function fetchUniversityScholarshipsFromSupabase(trackType?: 'international' | 'pakistani') {
   if (!isSupabaseConfigured() || !supabase) {
     return { data: getCachedUniversityScholarships(trackType), error: new Error('Supabase environment variables not configured') };
   }
 
-  // Return filtered cache if available
-  if (cachedUniversityScholarships && cachedUniversityScholarships.length > 0) {
-    let filtered = cachedUniversityScholarships;
-    if (trackType === 'international') {
-      filtered = cachedUniversityScholarships.filter(u => u.track_category === 'international' || u.track_category === 'global');
-    } else if (trackType === 'pakistani') {
-      filtered = cachedUniversityScholarships.filter(u => u.track_category === 'pakistani');
-    }
-    
+  const cached = getCachedUniversityScholarships(trackType);
+  if (cached && cached.length > 0) {
     // Background refresh
     fetchUniversityScholarshipsFromSupabaseBackground().catch(() => {});
-    return { data: filtered, error: null };
+    return { data: cached, error: null };
   }
 
   try {
     const fetchPromise = fetchUniversityScholarshipsFromSupabaseBackground();
     const timeoutPromise = new Promise<UniversityTrackItem[]>((_, reject) =>
-      setTimeout(() => reject(new Error('University fetch timeout exceeded 7000ms')), 7000)
+      setTimeout(() => reject(new Error('University fetch timeout exceeded 10000ms')), 10000)
     );
 
     const allData = await Promise.race([fetchPromise, timeoutPromise]);
@@ -333,11 +334,11 @@ export async function fetchUniversityScholarshipsFromSupabase(trackType?: 'inter
 }
 
 async function fetchUniversityScholarshipsFromSupabaseBackground(): Promise<UniversityTrackItem[]> {
-  if (!supabase) return [];
+  if (!supabase) return cachedUniversityScholarships || [];
   
   try {
-    // Run all fetches in parallel for maximum speed
-    const [pakRes, intRes, globalRes] = await Promise.all([
+    // Fetch Pakistani and International universities in parallel using allSettled
+    const [pakSettled, intSettled] = await Promise.allSettled([
       supabase
         .from('pakistani_universities')
         .select('*, pakistani_university_programs(*), pakistani_university_scholarships(*)')
@@ -345,51 +346,42 @@ async function fetchUniversityScholarshipsFromSupabaseBackground(): Promise<Univ
       supabase
         .from('international_universities')
         .select('*, international_university_programs(*), international_university_scholarships(*)')
-        .order('university_name', { ascending: true }),
-      supabase
-        .from('university_scholarships')
-        .select('*')
-        .limit(100)
+        .order('university_name', { ascending: true })
     ]);
 
     const allFormatted: UniversityTrackItem[] = [];
 
-    // 1. Process Pakistani
-    if (!pakRes.error && pakRes.data) {
-      pakRes.data.forEach(row => {
-        allFormatted.push(mapPakistaniRowToUniversity(row));
-      });
-    }
-
-    // 2. Process International
-    if (!intRes.error && intRes.data) {
-      intRes.data.forEach(row => {
-        if (!allFormatted.some(u => u.id === row.uni_id)) {
-          allFormatted.push(mapInternationalRowToUniversity(row));
-        }
-      });
-    }
-
-    // 3. Process Global / Legacy
-    let globalData = globalRes.data;
-    if (globalRes.error || !globalData || globalData.length === 0) {
-      const res = await supabase.from('universities').select('*').limit(200);
-      if (!res.error && res.data) {
-        globalData = res.data;
+    // 1. Process Pakistani universities
+    if (pakSettled.status === 'fulfilled') {
+      const pakRes = pakSettled.value;
+      if (!pakRes.error && pakRes.data) {
+        pakRes.data.forEach((row: any) => {
+          allFormatted.push(mapPakistaniRowToUniversity(row));
+        });
       }
     }
 
-    if (globalData) {
-      globalData.forEach((row, idx) => {
-        const id = row.uni_id || row.id;
-        if (!allFormatted.some(u => u.id === id)) {
-          allFormatted.push(mapLegacyRowToUniversity(row, idx));
-        }
-      });
+    // 2. Process International universities
+    if (intSettled.status === 'fulfilled') {
+      const intRes = intSettled.value;
+      if (!intRes.error && intRes.data) {
+        intRes.data.forEach((row: any) => {
+          if (!allFormatted.some(u => u.id === row.uni_id)) {
+            allFormatted.push(mapInternationalRowToUniversity(row));
+          }
+        });
+      }
     }
 
-    cachedUniversityScholarships = allFormatted;
-    return allFormatted;
+    if (allFormatted.length > 0) {
+      cachedUniversityScholarships = allFormatted;
+      setLocalStorageCache(CACHE_KEY_UNIVERSITIES, allFormatted);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('uniroute-universities-updated', { detail: { universities: allFormatted } }));
+      }
+    }
+
+    return allFormatted.length > 0 ? allFormatted : (cachedUniversityScholarships || []);
   } catch (err) {
     console.error('Error fetching university scholarships:', err);
     return cachedUniversityScholarships || [];
@@ -2213,16 +2205,17 @@ export async function fetchGovernmentScholarshipsFromSupabase() {
     return { data: getCachedGovernmentScholarships(), error: new Error('Supabase environment variables not configured') };
   }
 
-  if (cachedGovernmentScholarships && cachedGovernmentScholarships.length > 0) {
-    // Return cached immediately, and optionally refresh in the background
+  const cached = getCachedGovernmentScholarships();
+  if (cached && cached.length > 0) {
+    // Return cached immediately, and refresh in the background
     fetchGovernmentScholarshipsFromSupabaseBackground().catch(() => {});
-    return { data: cachedGovernmentScholarships, error: null };
+    return { data: cached, error: null };
   }
 
   try {
     const fetchPromise = fetchGovernmentScholarshipsFromSupabaseBackground();
     const timeoutPromise = new Promise<GovernmentTrackItem[]>((_, reject) =>
-      setTimeout(() => reject(new Error('Government fetch timeout exceeded 7000ms')), 7000)
+      setTimeout(() => reject(new Error('Government fetch timeout exceeded 10000ms')), 10000)
     );
 
     const data = await Promise.race([fetchPromise, timeoutPromise]);
@@ -2234,19 +2227,31 @@ export async function fetchGovernmentScholarshipsFromSupabase() {
 }
 
 async function fetchGovernmentScholarshipsFromSupabaseBackground(): Promise<GovernmentTrackItem[]> {
-  if (!supabase) return [];
-  const { data, error } = await supabase
-    .from('government_scholarships')
-    .select('*')
-    .limit(100);
+  if (!supabase) return cachedGovernmentScholarships || [];
+  try {
+    const { data, error } = await supabase
+      .from('government_scholarships')
+      .select('*')
+      .limit(100);
 
-  if (error) {
-    throw error;
+    if (error) {
+      console.error('Error querying government scholarships table:', error);
+      return cachedGovernmentScholarships || [];
+    }
+
+    const formattedList: GovernmentTrackItem[] = (data || []).map((row, idx) => mapRowToGovernmentTrack(row, idx));
+    if (formattedList.length > 0) {
+      cachedGovernmentScholarships = formattedList;
+      setLocalStorageCache(CACHE_KEY_GOVERNMENT, formattedList);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('uniroute-gov-scholarships-updated', { detail: { scholarships: formattedList } }));
+      }
+    }
+    return formattedList.length > 0 ? formattedList : (cachedGovernmentScholarships || []);
+  } catch (err) {
+    console.error('Exception fetching government scholarships:', err);
+    return cachedGovernmentScholarships || [];
   }
-
-  const formattedList: GovernmentTrackItem[] = (data || []).map((row, idx) => mapRowToGovernmentTrack(row, idx));
-  cachedGovernmentScholarships = formattedList;
-  return formattedList;
 }
 
 export const SUPABASE_SQL_SCHEMA = `

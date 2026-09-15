@@ -62,6 +62,12 @@ export const GovernmentTrackView: React.FC<GovernmentTrackViewProps> = ({
         setScholarships(cached);
         setIsSupabaseLive(true);
         setIsSyncing(false);
+        // Refresh silently in background
+        fetchGovernmentScholarshipsFromSupabase().then(({ data }) => {
+          if (isMounted && data && data.length > 0) {
+            setScholarships(data);
+          }
+        }).catch(() => {});
         return;
       }
 
@@ -94,10 +100,21 @@ export const GovernmentTrackView: React.FC<GovernmentTrackViewProps> = ({
       }
     }
 
+    const handleGovUpdateEvent = (e: any) => {
+      if (isMounted && e.detail?.scholarships && e.detail.scholarships.length > 0) {
+        setScholarships(e.detail.scholarships);
+        setIsSupabaseLive(true);
+        setIsSyncing(false);
+      }
+    };
+
+    window.addEventListener('uniroute-gov-scholarships-updated', handleGovUpdateEvent);
+
     loadSupabaseGovData();
     return () => {
       isMounted = false;
       if (timerId) clearTimeout(timerId);
+      window.removeEventListener('uniroute-gov-scholarships-updated', handleGovUpdateEvent);
     };
   }, []);
 

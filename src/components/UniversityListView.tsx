@@ -187,6 +187,12 @@ export const UniversityListView: React.FC<UniversityListViewProps> = ({
         setUniversities(cached);
         setIsSupabaseLive(true);
         setIsSyncing(false);
+        // Refresh silently in background
+        fetchUniversityScholarshipsFromSupabase(trackType).then(({ data }) => {
+          if (isMounted && data && data.length > 0) {
+            setUniversities(data);
+          }
+        }).catch(() => {});
         return;
       }
 
@@ -219,10 +225,27 @@ export const UniversityListView: React.FC<UniversityListViewProps> = ({
       }
     }
 
+    const handleUpdateEvent = (e: any) => {
+      if (isMounted && e.detail?.universities) {
+        const trackType = title.toLowerCase().includes('pakistani') ? 'pakistani' : 'international';
+        const filtered = trackType === 'pakistani'
+          ? e.detail.universities.filter((u: any) => u.track_category === 'pakistani')
+          : e.detail.universities.filter((u: any) => u.track_category === 'international' || u.track_category === 'global');
+        if (filtered.length > 0) {
+          setUniversities(filtered);
+          setIsSupabaseLive(true);
+          setIsSyncing(false);
+        }
+      }
+    };
+
+    window.addEventListener('uniroute-universities-updated', handleUpdateEvent);
+
     loadSupabaseData();
     return () => {
       isMounted = false;
       if (timerId) clearTimeout(timerId);
+      window.removeEventListener('uniroute-universities-updated', handleUpdateEvent);
     };
   }, [title]);
 

@@ -5,7 +5,7 @@ import { SpeedInsights } from '@vercel/speed-insights/react';
 import { Navbar } from './components/Navbar';
 import { AuthModal } from './components/AuthModal';
 import { SignOutConfirmModal } from './components/SignOutConfirmModal';
-import { supabase, isSupabaseConfigured } from './lib/supabase';
+import { supabase, isSupabaseConfigured, prefetchScholarshipData } from './lib/supabase';
 import { syncEssaysFromSupabase } from './lib/essayStorage';
 import { syncDrillDataFromSupabase } from './data/satDrills/progressStorage';
 import { fetchSavedUniversityIds, loadSatPracticeProgress } from './lib/userStorage';
@@ -128,6 +128,9 @@ export default function App() {
 
   useEffect(() => {
     let mounted = true;
+
+    // Warm up university and scholarship data caches in parallel immediately
+    prefetchScholarshipData().catch(() => {});
 
     if (isSupabaseConfigured() && supabase) {
       // Fetch initial user session
