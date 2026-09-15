@@ -27,6 +27,67 @@ const SatPreparationHub = React.lazy(() => import('./components/hubs/SatPreparat
 const AiAnalysisHub = React.lazy(() => import('./components/hubs/AiAnalysisHub').then(module => ({ default: module.AiAnalysisHub })));
 const EssayHub = React.lazy(() => import('./components/hubs/EssayHub').then(module => ({ default: module.EssayHub })));
 
+const getAppLoaderDetails = (view: string, satCat?: string) => {
+  if (view === 'sat-learning') {
+    if (satCat === 'reading') {
+      return {
+        title: 'Loading Reading Section',
+        subtitle: 'Assembling passages, comprehension modules, and practice questions...'
+      };
+    }
+    if (satCat === 'writing') {
+      return {
+        title: 'Loading Writing Section',
+        subtitle: 'Loading grammar rules, passage edits, and question banks...'
+      };
+    }
+    if (satCat === 'math') {
+      return {
+        title: 'Loading Math Section',
+        subtitle: 'Loading formulas, interactive graphs, and problem sets...'
+      };
+    }
+    return {
+      title: 'Loading SAT Preparation Hub',
+      subtitle: 'Initializing SAT practice modules, chapter index, and curriculum roadmap...'
+    };
+  }
+  if (view === 'sat-landing' || view === 'sat-intro') {
+    return {
+      title: 'Loading SAT Preparation Hub',
+      subtitle: 'Initializing SAT practice modules, chapter index, and curriculum roadmap...'
+    };
+  }
+  if (view === 'scholarship') {
+    return {
+      title: 'Loading Merit Scholarships',
+      subtitle: 'Searching global university financial aid database and eligibility matrices...'
+    };
+  }
+  if (view === 'pakistani-scholarships') {
+    return {
+      title: 'Loading Pakistani Directory',
+      subtitle: 'Fetching local university scholarships, HEC/Ehsaas programs, and grant options...'
+    };
+  }
+  if (view === 'ai-analysis') {
+    return {
+      title: 'Loading AI Diagnostics',
+      subtitle: 'Initializing profile analysis tool and admissions counselor engine...'
+    };
+  }
+  if (view === 'essay-hub') {
+    return {
+      title: 'Loading College Essay Hub',
+      subtitle: 'Opening essay topic analyzer, brainstorm stage, and draft builder...'
+    };
+  }
+  return {
+    title: 'Loading Content',
+    subtitle: 'Assembling requested modules and resources...'
+  };
+};
+
 type ViewType =
   | 'home'
   | 'scholarship'
@@ -241,7 +302,7 @@ export default function App() {
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 pt-2 sm:pt-4 overflow-x-hidden">
-        <AnimatePresence>
+        <AnimatePresence mode="wait">
           <motion.div
             key={currentView}
             initial={{ opacity: 0 }}
@@ -250,7 +311,7 @@ export default function App() {
             transition={{ duration: 0.12, ease: "easeOut" }}
             className="w-full transform-gpu"
           >
-            <Suspense fallback={<InteractivePageLoader />}>
+            <Suspense fallback={<InteractivePageLoader {...getAppLoaderDetails(currentView, satCategory)} />}>
               {currentView === 'home' && (
                 <>
                   <FloatingIconsGateway

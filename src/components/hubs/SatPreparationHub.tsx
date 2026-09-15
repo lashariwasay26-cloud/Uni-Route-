@@ -10,6 +10,7 @@ import { SatMathStatisticsChapter } from '../math/SatMathStatisticsChapter';
 import { SatDrillsHub } from '../satDrills/SatDrillsHub';
 import { SatCalculatorView } from '../math/SatCalculatorView';
 import { FormattedMathExplanation } from '../math/SatMathConceptRenderer';
+import { InteractivePageLoader } from '../InteractivePageLoader';
 
 interface SatPreparationHubProps {
   initialCategory?: 'reading' | 'writing' | 'math' | 'drills' | 'stats' | 'calculator';
@@ -342,6 +343,47 @@ where t represents the time in years since the start of the study, and N(t) repr
 
   const [activeCategory, setActiveCategory] = useState<MainCategory>(initialCategory);
   const [isOptionPopupOpen, setIsOptionPopupOpen] = useState(false);
+  const [isSwitchingCategory, setIsSwitchingCategory] = useState(false);
+
+  const getCategoryLoaderDetails = (cat: MainCategory) => {
+    switch (cat) {
+      case 'reading':
+        return {
+          title: 'Loading Reading Section',
+          subtitle: 'Assembling passages, comprehension modules, and practice questions...'
+        };
+      case 'writing':
+        return {
+          title: 'Loading Writing Section',
+          subtitle: 'Loading grammar rules, passage edits, and question banks...'
+        };
+      case 'math':
+        return {
+          title: 'Loading Math Section',
+          subtitle: 'Loading formulas, interactive graphs, and problem sets...'
+        };
+      case 'drills':
+        return {
+          title: 'Loading SAT Drills',
+          subtitle: 'Preparing adaptive drill questions and performance metrics...'
+        };
+      case 'calculator':
+        return {
+          title: 'Loading SAT Calculator',
+          subtitle: 'Initializing interactive graph engine and mathematical tools...'
+        };
+      case 'stats':
+        return {
+          title: 'Loading Advanced Stats',
+          subtitle: 'Computing performance analytics and score projections...'
+        };
+      default:
+        return {
+          title: 'Loading Section',
+          subtitle: 'Preparing curriculum content...'
+        };
+    }
+  };
 
   // Sync if initialCategory prop changes
   useEffect(() => {
@@ -386,11 +428,15 @@ where t represents the time in years since the start of the study, and N(t) repr
   const currentFlashcard: SatFlashcard = SAT_FLASHCARDS[currentFlashcardIndex % SAT_FLASHCARDS.length];
 
   const handleSelectCategoryFromModal = (category: MainCategory) => {
+    setIsSwitchingCategory(true);
     setActiveCategory(category);
     setCurrentQuestionIndex(0);
     setSelectedOption(null);
     setIsAnswerSubmitted(false);
     setIsOptionPopupOpen(false);
+    setTimeout(() => {
+      setIsSwitchingCategory(false);
+    }, 180);
   };
 
   const handleOptionSelect = (index: number) => {
@@ -746,45 +792,57 @@ where t represents the time in years since the start of the study, and N(t) repr
 
       {/* ANIMATED WRAPPER FOR CATEGORIES */}
       <div className="relative overflow-x-hidden w-full">
-        <AnimatePresence>
-          <motion.div
-            key={activeCategory}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.12, ease: 'easeOut' }}
-            className="w-full space-y-6"
-          >
-            {/* READING SECTION EXPLORER */}
-            {activeCategory === 'reading' && (
-              <SatReadingSectionExplorer user={user} onOpenAuth={onOpenAuth} />
-            )}
+        <AnimatePresence mode="wait">
+          {isSwitchingCategory ? (
+            <motion.div
+              key="category-loader"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.1, ease: 'easeOut' }}
+            >
+              <InteractivePageLoader {...getCategoryLoaderDetails(activeCategory)} />
+            </motion.div>
+          ) : (
+            <motion.div
+              key={activeCategory}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.1, ease: 'easeOut' }}
+              className="w-full space-y-6"
+            >
+              {/* READING SECTION EXPLORER */}
+              {activeCategory === 'reading' && (
+                <SatReadingSectionExplorer user={user} onOpenAuth={onOpenAuth} />
+              )}
 
-            {/* WRITING SECTION EXPLORER */}
-            {activeCategory === 'writing' && (
-              <SatWritingSectionExplorer user={user} onOpenAuth={onOpenAuth} />
-            )}
+              {/* WRITING SECTION EXPLORER */}
+              {activeCategory === 'writing' && (
+                <SatWritingSectionExplorer user={user} onOpenAuth={onOpenAuth} />
+              )}
 
-            {/* MATH SECTION EXPLORER */}
-            {activeCategory === 'math' && (
-              <SatMathSectionExplorer user={user} onOpenAuth={onOpenAuth} />
-            )}
+              {/* MATH SECTION EXPLORER */}
+              {activeCategory === 'math' && (
+                <SatMathSectionExplorer user={user} onOpenAuth={onOpenAuth} />
+              )}
 
-            {/* ADVANCED STATISTICS HANDBOOK & LAB */}
-            {activeCategory === 'stats' && (
-              <SatMathStatisticsChapter />
-            )}
+              {/* ADVANCED STATISTICS HANDBOOK & LAB */}
+              {activeCategory === 'stats' && (
+                <SatMathStatisticsChapter />
+              )}
 
-            {/* SAT ADAPTIVE DRILLS SYSTEM */}
-            {activeCategory === 'drills' && (
-              <SatDrillsHub />
-            )}
+              {/* SAT ADAPTIVE DRILLS SYSTEM */}
+              {activeCategory === 'drills' && (
+                <SatDrillsHub />
+              )}
 
-            {/* SAT INTEGRATED CALCULATOR */}
-            {activeCategory === 'calculator' && (
-              <SatCalculatorView inline={true} />
-            )}
-          </motion.div>
+              {/* SAT INTEGRATED CALCULATOR */}
+              {activeCategory === 'calculator' && (
+                <SatCalculatorView inline={true} />
+              )}
+            </motion.div>
+          )}
         </AnimatePresence>
       </div>
 

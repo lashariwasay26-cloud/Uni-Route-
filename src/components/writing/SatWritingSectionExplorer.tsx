@@ -967,7 +967,7 @@ export const SatWritingSectionExplorer: React.FC<SatWritingSectionExplorerProps>
     return selectedChapterId && chapterMap[selectedChapterId] ? chapterMap[selectedChapterId] : SAT_WRITING_CHAPTER_1_FULL;
   }, [selectedChapterId, currentChapterData, chapterMap]);
 
-  const isCurrentChapterLoading = isLoading;
+  const isCurrentChapterLoading = isLoading || (selectedChapterId !== null && isSupabaseConfigured() && !currentChapterData);
 
   // Active View Tab: 'theory' or 'practice'
   const [activeTab, setActiveTab] = useState<'theory' | 'practice'>('theory');
@@ -1081,14 +1081,14 @@ export const SatWritingSectionExplorer: React.FC<SatWritingSectionExplorerProps>
 
   return (
     <div id="sat-writing-section-explorer" className="space-y-6 text-slate-900 min-h-[600px] pb-12 relative overflow-x-hidden w-full">
-      <AnimatePresence>
+      <AnimatePresence mode="wait">
         {!selectedChapterId ? (
           <motion.div
             key="list"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.12, ease: "easeOut" }}
+            transition={{ duration: 0.1, ease: "easeOut" }}
             className="space-y-6"
           >
             {/* Simple Clean Header */}
@@ -1104,6 +1104,7 @@ export const SatWritingSectionExplorer: React.FC<SatWritingSectionExplorerProps>
                 <button
                   key={item.id}
                   onClick={() => {
+                    setIsLoading(true);
                     setSelectedChapterId(item.id);
                     setActiveTab('theory');
                     setSelectedBlockIndex(0);
@@ -1141,14 +1142,25 @@ export const SatWritingSectionExplorer: React.FC<SatWritingSectionExplorerProps>
             </div>
           </motion.div>
         ) : isCurrentChapterLoading ? (
-          <InteractivePageLoader />
+          <motion.div
+            key="loader"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.1, ease: "easeOut" }}
+          >
+            <InteractivePageLoader
+              title={selectedChapterId !== null ? "Loading Chapter Content" : "Loading Writing Section"}
+              subtitle={selectedChapterId !== null ? "Assembling curriculum modules, structured analytics, and interactive practice questions..." : "Loading grammar rules, passage edits, and question banks..."}
+            />
+          </motion.div>
         ) : (
           <motion.div
             key={`chapter-${selectedChapterId}`}
-            initial={{ opacity: 0, x: 12 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -12 }}
-            transition={{ duration: 0.1, ease: "easeOut" }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.12, ease: "easeOut" }}
             className="space-y-6"
           >
           {/* Back Navigation Button & Info */}
@@ -1228,9 +1240,9 @@ export const SatWritingSectionExplorer: React.FC<SatWritingSectionExplorerProps>
           <div className="relative overflow-x-hidden w-full">
             <div className={activeTab === 'theory' ? 'block' : 'hidden'}>
               <motion.div
-                initial={{ opacity: 0, x: 12 }}
-                animate={activeTab === 'theory' ? { opacity: 1, x: 0 } : { opacity: 0, x: 12 }}
-                transition={{ duration: 0.1, ease: "easeOut" }}
+                initial={{ opacity: 0 }}
+                animate={activeTab === 'theory' ? { opacity: 1 } : { opacity: 0 }}
+                transition={{ duration: 0.12, ease: "easeOut" }}
                 className="space-y-6"
               >
               {/* Numbered Theory Block Cards */}
@@ -1489,9 +1501,9 @@ export const SatWritingSectionExplorer: React.FC<SatWritingSectionExplorerProps>
 
             <div className={activeTab === 'practice' ? 'block' : 'hidden'}>
               <motion.div
-                initial={{ opacity: 0, x: 12 }}
-                animate={activeTab === 'practice' ? { opacity: 1, x: 0 } : { opacity: 0, x: 12 }}
-                transition={{ duration: 0.1, ease: "easeOut" }}
+                initial={{ opacity: 0 }}
+                animate={activeTab === 'practice' ? { opacity: 1 } : { opacity: 0 }}
+                transition={{ duration: 0.12, ease: "easeOut" }}
                 className="space-y-8"
               >
               {/* Top Practice Summary Bar */}

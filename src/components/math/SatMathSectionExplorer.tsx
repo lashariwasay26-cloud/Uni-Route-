@@ -235,12 +235,12 @@ export const SatMathSectionExplorer: React.FC<SatMathSectionExplorerProps> = ({ 
         {!selectedChapterId ? (
           <motion.div
             key="list"
-              initial={{ opacity: 0, x: 12 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -12 }}
-              transition={{ duration: 0.1, ease: "easeOut" }}
-              className="space-y-6"
-            >
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.12, ease: "easeOut" }}
+            className="space-y-6"
+          >
             {/* Simple Clean Header */}
             <div className="border-b border-slate-200 pb-2.5">
               <h2 className="text-xl sm:text-2xl font-black text-slate-950 tracking-tight">
@@ -260,6 +260,7 @@ export const SatMathSectionExplorer: React.FC<SatMathSectionExplorerProps> = ({ 
                 <button
                   key={chapter.id}
                   onClick={() => {
+                    setIsLoading(true);
                     setSelectedChapterId(chapter.id);
                     setActiveMainTab('theory');
                     setSelectedExerciseTab(1);
@@ -297,14 +298,25 @@ export const SatMathSectionExplorer: React.FC<SatMathSectionExplorerProps> = ({ 
           </div>
         </motion.div>
         ) : isCurrentlyLoading || !currentChapter ? (
-          <InteractivePageLoader key="loader" />
+          <motion.div
+            key="loader"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.1, ease: "easeOut" }}
+          >
+            <InteractivePageLoader
+              title={selectedChapterId !== null ? "Loading Chapter Content" : "Loading Math Section"}
+              subtitle={selectedChapterId !== null ? "Assembling curriculum modules, structured analytics, and interactive practice questions..." : "Loading formulas, interactive graphs, and problem sets..."}
+            />
+          </motion.div>
         ) : (
           <motion.div
             key={`chapter-${selectedChapterId}`}
-            initial={{ opacity: 0, x: 12 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -12 }}
-            transition={{ duration: 0.1, ease: "easeOut" }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.12, ease: "easeOut" }}
             className="space-y-6"
           >
           {/* Top Bar: Back to Topics Button */}
@@ -1147,9 +1159,9 @@ export const SatMathSectionExplorer: React.FC<SatMathSectionExplorerProps> = ({ 
 
       <div className={activeMainTab === 'visual-studio' ? 'block' : 'hidden'}>
         <motion.div
-          initial={{ opacity: 0, x: 12 }}
-          animate={activeMainTab === 'visual-studio' ? { opacity: 1, x: 0 } : { opacity: 0, x: 12 }}
-          transition={{ duration: 0.1, ease: "easeOut" }}
+          initial={{ opacity: 0 }}
+          animate={activeMainTab === 'visual-studio' ? { opacity: 1 } : { opacity: 0 }}
+          transition={{ duration: 0.12, ease: "easeOut" }}
           className="space-y-6"
         >
           {/* SUB-VIEW TOGGLE SWITCHER */}
