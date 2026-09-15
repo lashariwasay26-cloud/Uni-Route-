@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { SatCalculatorView } from '../math/SatCalculatorView';
 import { shuffleExerciseGroupQuestions } from '../../utils/questionShuffler';
@@ -108,6 +109,17 @@ export const SatDrillSession: React.FC<SatDrillSessionProps> = ({
       isMounted = false;
     };
   }, [drillId]);
+
+  // Lock body scroll while drill session is active
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      const originalOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = originalOverflow;
+      };
+    }
+  }, []);
 
   // Check for existing saved session on initial load
   const savedSession = useMemo(() => getActiveDrillSession(drillId), [drillId]);
@@ -460,8 +472,8 @@ export const SatDrillSession: React.FC<SatDrillSessionProps> = ({
 
   // If still loading questions from Supabase within the 5s window, show the interactive app loader (NO blank page!)
   if (isLoadingQuestions) {
-    return (
-      <div className="fixed inset-0 z-50 bg-[#f8fafc] flex items-center justify-center p-4 select-none">
+    const loadingContent = (
+      <div className="fixed inset-0 z-[99999] bg-[#f8fafc] flex items-center justify-center p-4 select-none h-screen h-[100dvh] w-screen">
         <div className="w-full max-w-lg bg-white border border-slate-200/90 rounded-3xl p-6 sm:p-8 shadow-xl">
           <InteractivePageLoader
             title={`Loading SAT Drill #${drillId}`}
@@ -470,12 +482,13 @@ export const SatDrillSession: React.FC<SatDrillSessionProps> = ({
         </div>
       </div>
     );
+    return typeof document !== 'undefined' ? createPortal(loadingContent, document.body) : loadingContent;
   }
 
   // If Supabase fetch timed out or errored
   if (fetchError || moduleQuestions.length === 0) {
-    return (
-      <div className="fixed inset-0 z-50 bg-[#f8fafc] flex items-center justify-center p-4 select-none">
+    const errorContent = (
+      <div className="fixed inset-0 z-[99999] bg-[#f8fafc] flex items-center justify-center p-4 select-none h-screen h-[100dvh] w-screen">
         <div className="w-full max-w-md bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 text-center shadow-xl space-y-4">
           <div className="w-14 h-14 rounded-2xl bg-amber-50 text-amber-600 border border-amber-200 flex items-center justify-center mx-auto">
             <AlertCircle className="w-7 h-7" />
@@ -516,30 +529,31 @@ export const SatDrillSession: React.FC<SatDrillSessionProps> = ({
         </div>
       </div>
     );
+    return typeof document !== 'undefined' ? createPortal(errorContent, document.body) : errorContent;
   }
 
-  return (
-    <div className="fixed inset-0 z-50 bg-[#f8fafc] text-slate-900 flex flex-col font-sans select-none overflow-hidden">
+  const sessionContent = (
+    <div className="fixed inset-0 z-[99999] bg-[#f8fafc] text-slate-900 flex flex-col font-sans select-none overflow-hidden h-screen h-[100dvh] w-screen">
       {/* Top Header Toolbar */}
-      <header className="h-16 bg-white border-b border-slate-200/90 px-4 sm:px-6 flex items-center justify-between shrink-0 shadow-2xs">
-        <div className="flex items-center gap-3">
+      <header className="h-14 sm:h-16 bg-white border-b border-slate-200/90 px-3 sm:px-6 flex items-center justify-between shrink-0 shadow-2xs gap-2">
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           <button
             onClick={() => setIsExitConfirmModalOpen(true)}
-            className="p-2 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-100 border border-slate-200/70 transition-colors cursor-pointer"
+            className="p-1.5 sm:p-2 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-100 border border-slate-200/70 transition-colors cursor-pointer"
             title="Save & Exit Test"
           >
             <X className="w-4 h-4" />
           </button>
           
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-slate-950 text-white font-extrabold text-sm flex items-center justify-center shadow-xs">
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-slate-950 text-white font-extrabold text-xs sm:text-sm flex items-center justify-center shadow-xs">
               U
             </div>
             <div>
-              <h1 className="text-xs sm:text-sm font-black text-slate-950 tracking-tight">
+              <h1 className="text-xs sm:text-sm font-black text-slate-950 tracking-tight truncate max-w-[130px] sm:max-w-none">
                 {currentSection} — {currentModule}
               </h1>
-              <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
+              <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider hidden sm:block">
                 Uni Route SAT Practice Drill #{drillId}
               </p>
             </div>
@@ -547,9 +561,9 @@ export const SatDrillSession: React.FC<SatDrillSessionProps> = ({
         </div>
 
         {/* Center: Timer Bar & Auto-save Status */}
-        <div className="flex items-center gap-2.5 sm:gap-3">
-          <div className="flex items-center gap-2 bg-slate-100/90 border border-slate-200/80 rounded-full px-3.5 py-1.5 shadow-2xs">
-            <Clock className={`w-4 h-4 ${timeRemaining < 300 ? 'text-rose-500 animate-pulse' : 'text-indigo-600'}`} />
+        <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-2 bg-slate-100/90 border border-slate-200/80 rounded-full px-2.5 sm:px-3.5 py-1 sm:py-1.5 shadow-2xs">
+            <Clock className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${timeRemaining < 300 ? 'text-rose-500 animate-pulse' : 'text-indigo-600'}`} />
             {showTimer ? (
               <span className={`text-xs sm:text-sm font-mono font-black ${timeRemaining < 300 ? 'text-rose-600' : 'text-slate-800'}`}>
                 {formatTime(timeRemaining)}
@@ -559,33 +573,33 @@ export const SatDrillSession: React.FC<SatDrillSessionProps> = ({
             )}
             <button
               onClick={() => setShowTimer(!showTimer)}
-              className="text-slate-400 hover:text-slate-700 ml-1 cursor-pointer transition-colors"
+              className="text-slate-400 hover:text-slate-700 ml-0.5 sm:ml-1 cursor-pointer transition-colors"
               title={showTimer ? 'Hide Timer' : 'Show Timer'}
             >
               {showTimer ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
             </button>
           </div>
 
-          <div className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200/70 text-[11px] font-bold text-emerald-700">
+          <div className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200/70 text-[11px] font-bold text-emerald-700">
             <Check className="w-3 h-3 text-emerald-600" />
             <span>Progress Saved</span>
           </div>
         </div>
 
         {/* Right: Tools & Controls */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           {currentSection === 'Math' && (
             <>
               <button
                 onClick={() => setIsCalculatorOpen(true)}
-                className="px-3 py-1.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer"
+                className="px-2.5 sm:px-3 py-1.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer"
               >
                 <Calculator className="w-3.5 h-3.5 text-indigo-600" />
                 <span className="hidden sm:inline">Calculator</span>
               </button>
               <button
                 onClick={() => setIsFormulaSheetOpen(true)}
-                className="px-3 py-1.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer"
+                className="px-2.5 sm:px-3 py-1.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer"
               >
                 <BookOpen className="w-3.5 h-3.5 text-emerald-600" />
                 <span className="hidden sm:inline">Reference</span>
@@ -595,16 +609,17 @@ export const SatDrillSession: React.FC<SatDrillSessionProps> = ({
 
           <button
             onClick={() => setIsGridOpen(true)}
-            className="px-3.5 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 border border-indigo-200/80 text-indigo-700 text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer"
+            className="px-2.5 sm:px-3.5 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 border border-indigo-200/80 text-indigo-700 text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer"
           >
             <Grid className="w-3.5 h-3.5" />
-            <span>Question Palette ({activeQuestionIndex + 1}/{moduleQuestions.length})</span>
+            <span className="hidden sm:inline">Question Palette </span>
+            <span>({activeQuestionIndex + 1}/{moduleQuestions.length})</span>
           </button>
         </div>
       </header>
 
       {/* Main Test Split Screen View */}
-      <div className="flex-1 overflow-hidden p-3 sm:p-4 max-w-7xl mx-auto w-full flex flex-col">
+      <div className="flex-1 overflow-hidden p-2.5 sm:p-4 max-w-7xl mx-auto w-full flex flex-col min-h-0">
         {isTransitioning ? (
           <div className="flex-1 bg-white border border-slate-200/90 rounded-3xl flex flex-col items-center justify-center p-6 text-center shadow-xs">
             <Sparkles className="w-12 h-12 text-indigo-600 animate-spin mb-4" />
@@ -616,12 +631,12 @@ export const SatDrillSession: React.FC<SatDrillSessionProps> = ({
         ) : !activeQuestion ? (
           <div className="p-8 text-center text-slate-500">Loading module questions...</div>
         ) : (
-          <div className="flex-1 flex flex-col md:flex-row gap-4 overflow-hidden">
+          <div className="flex-1 flex flex-col md:flex-row gap-3 sm:gap-4 overflow-hidden min-h-0">
             {/* Left Pane: Passage or Context Stimulus */}
             {activeQuestion.passage && (
               <div
                 ref={passageScrollRef}
-                className="md:w-1/2 bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-5 sm:p-7 overflow-y-auto max-h-[40vh] md:max-h-full shadow-2xs flex flex-col scroll-smooth"
+                className="md:w-1/2 bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-4 sm:p-7 overflow-y-auto max-h-[35vh] md:max-h-full shadow-2xs flex flex-col scroll-smooth min-h-0 shrink-0 md:shrink"
               >
                 <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-200/60 text-[11px] font-bold text-indigo-700 mb-4 w-fit">
                   <FileText className="w-3.5 h-3.5 text-indigo-600" />
@@ -636,7 +651,7 @@ export const SatDrillSession: React.FC<SatDrillSessionProps> = ({
             {/* Right Pane: Question & Choices */}
             <div
               ref={questionScrollRef}
-              className={`flex-1 bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-5 sm:p-7 overflow-y-auto shadow-2xs flex flex-col justify-between scroll-smooth ${!activeQuestion.passage ? 'max-w-3xl mx-auto w-full' : ''}`}
+              className={`flex-1 bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-4 sm:p-7 overflow-y-auto shadow-2xs flex flex-col justify-between scroll-smooth min-h-0 ${!activeQuestion.passage ? 'max-w-3xl mx-auto w-full' : ''}`}
             >
               <motion.div
                 key={activeQuestion.id}
@@ -973,4 +988,6 @@ export const SatDrillSession: React.FC<SatDrillSessionProps> = ({
       </AnimatePresence>
     </div>
   );
+
+  return typeof document !== 'undefined' ? createPortal(sessionContent, document.body) : sessionContent;
 };
