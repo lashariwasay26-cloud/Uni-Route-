@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { saveSatPracticeProgress } from '../../lib/userStorage';
 import { shuffleExerciseGroupQuestions } from '../../utils/questionShuffler';
@@ -825,6 +825,8 @@ interface SatWritingSectionExplorerProps {
 }
 
 export const SatWritingSectionExplorer: React.FC<SatWritingSectionExplorerProps> = ({ user, onOpenAuth }) => {
+  const scrollPosRef = useRef<number>(0);
+  const lastSelectedChapterIdRef = useRef<string | null>(null);
   const [selectedChapterId, setSelectedChapterId] = useState<string | null>(null);
   const [currentChapterData, setCurrentChapterData] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -841,7 +843,7 @@ export const SatWritingSectionExplorer: React.FC<SatWritingSectionExplorerProps>
     setCurrentChapterData(null);
 
     const startTime = Date.now();
-    const MIN_LOAD_TIME = 600;
+    const MIN_LOAD_TIME = 500;
 
     const finishLoading = () => {
       if (!isMounted) return;
@@ -861,6 +863,13 @@ export const SatWritingSectionExplorer: React.FC<SatWritingSectionExplorerProps>
       };
     }
 
+    // Safety timeout: Ensure loading finishes within 5 seconds even if Supabase stalls
+    const timeoutTimer = setTimeout(() => {
+      if (isMounted) {
+        finishLoading();
+      }
+    }, 5000);
+
     const chapterFetchMap: Record<string, () => Promise<{ data: any | null; error: any }>> = {
       'ch1': fetchSatWritingChapter1FromSupabase,
       'ch2': fetchSatWritingChapter2FromSupabase,
@@ -873,6 +882,7 @@ export const SatWritingSectionExplorer: React.FC<SatWritingSectionExplorerProps>
 
     const fetchFunc = chapterFetchMap[selectedChapterId];
     if (!fetchFunc) {
+      clearTimeout(timeoutTimer);
       finishLoading();
       return () => {
         isMounted = false;
@@ -881,7 +891,7 @@ export const SatWritingSectionExplorer: React.FC<SatWritingSectionExplorerProps>
 
     fetchFunc()
       .then(({ data }) => {
-        if (isMounted) {
+        if (isMounted && data) {
           setCurrentChapterData(data);
         }
       })
@@ -889,12 +899,22 @@ export const SatWritingSectionExplorer: React.FC<SatWritingSectionExplorerProps>
         console.error(`Failed to fetch ${selectedChapterId} from Supabase:`, err);
       })
       .finally(() => {
+        clearTimeout(timeoutTimer);
         finishLoading();
       });
 
     return () => {
       isMounted = false;
+      clearTimeout(timeoutTimer);
     };
+  }, [selectedChapterId]);
+
+  // Restore scroll position when leaving a chapter profile back to writing chapters list
+  useEffect(() => {
+    if (!selectedChapterId && lastSelectedChapterIdRef.current) {
+      const targetPos = scrollPosRef.current;
+      window.scrollTo({ top: targetPos, left: 0, behavior: 'instant' });
+    }
   }, [selectedChapterId]);
 
   const chapterMap: Record<string, typeof SAT_WRITING_CHAPTER_1_FULL> = {
@@ -1094,16 +1114,14 @@ export const SatWritingSectionExplorer: React.FC<SatWritingSectionExplorerProps>
 
   return (
     <div id="sat-writing-section-explorer" className="space-y-6 text-slate-900 min-h-[600px] pb-12 relative overflow-x-hidden w-full">
-      <AnimatePresence mode="wait">
-        {!selectedChapterId ? (
-          <motion.div
-            key="list"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.1, ease: "easeOut" }}
-            className="space-y-6"
-          >
+      {!selectedChapterId ? (
+        <motion.div
+          key="writing-list"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.15 }}
+          className="space-y-6"
+        >
             {/* Simple Clean Header */}
             <div className="border-b border-slate-200 pb-2.5">
               <h2 className="text-xl sm:text-2xl font-black text-slate-950 tracking-tight">
@@ -1116,12 +1134,16 @@ export const SatWritingSectionExplorer: React.FC<SatWritingSectionExplorerProps>
               {CHAPTER_METADATA.map((item) => (
                 <button
                   key={item.id}
+                  id={`writing-card-${item.id}`}
                   onClick={() => {
+                    scrollPosRef.current = window.scrollY || document.documentElement.scrollTop || 0;
+                    lastSelectedChapterIdRef.current = item.id;
                     setIsLoading(true);
                     setSelectedChapterId(item.id);
                     setActiveTab('theory');
                     setSelectedBlockIndex(0);
                     setSelectedConceptIndex(0);
+                    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
                   }}
                   className="bg-white hover:bg-slate-50 border-2 border-slate-200 hover:border-slate-400 rounded-2xl p-3.5 sm:p-5 text-left transition-all duration-200 cursor-pointer flex flex-col justify-between space-y-3 group relative overflow-hidden shadow-xs hover:shadow-md"
                 >
@@ -1154,47 +1176,23 @@ export const SatWritingSectionExplorer: React.FC<SatWritingSectionExplorerProps>
               ))}
             </div>
           </motion.div>
-        ) : !chapter ? (
-          <motion.div
-            key="loader"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.1, ease: "easeOut" }}
-          >
-            <InteractivePageLoader
-              title="Loading Writing Chapter"
-              subtitle="Loading grammar rules, passage edits, and question banks..."
-            />
-          </motion.div>
         ) : (
           <motion.div
-            key={`chapter-${selectedChapterId}`}
+            key={`writing-chapter-${selectedChapterId}`}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.12, ease: "easeOut" }}
+            transition={{ duration: 0.15 }}
             className="space-y-6 relative min-h-[500px]"
           >
-            <AnimatePresence>
-              {isCurrentChapterLoading && (
-                <motion.div
-                  key="chapter-loader-overlay"
-                  initial={{ opacity: 1 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.15, ease: "easeOut" }}
-                  className="absolute inset-0 z-30 bg-slate-50 flex flex-col items-center justify-center min-h-[500px] rounded-2xl"
-                >
-                  <InteractivePageLoader
-                    title="Loading Chapter Content"
-                    subtitle="Assembling curriculum modules, structured analytics, and interactive practice questions..."
-                  />
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            <div className={isCurrentChapterLoading ? "opacity-0 pointer-events-none" : "opacity-100 transition-opacity duration-200"}>
+            {isCurrentChapterLoading ? (
+              <div className="w-full min-h-[500px] flex items-center justify-center py-12">
+                <InteractivePageLoader
+                  title="Loading Writing Chapter"
+                  subtitle="Loading grammar rules, passage edits, and question banks..."
+                />
+              </div>
+            ) : (
+              <>
           {/* Back Navigation Button & Info */}
           <div className="flex items-center justify-between bg-white border border-slate-200/90 p-3 sm:p-4 rounded-2xl shadow-xs">
             <button
@@ -1936,14 +1934,14 @@ export const SatWritingSectionExplorer: React.FC<SatWritingSectionExplorerProps>
                   </div>
                 );
               })()}
-              </motion.div>
+                </motion.div>
+              </div>
             </div>
-        </div>
-        </div>
-    </motion.div>
-  )}
-  </AnimatePresence>
-</div>
+              </>
+            )}
+          </motion.div>
+        )}
+    </div>
   );
 };
 

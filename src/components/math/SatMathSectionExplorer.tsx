@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { saveSatPracticeProgress } from '../../lib/userStorage';
 import { shuffleExerciseGroupQuestions } from '../../utils/questionShuffler';
@@ -52,6 +52,8 @@ interface SatMathSectionExplorerProps {
 }
 
 export const SatMathSectionExplorer: React.FC<SatMathSectionExplorerProps> = ({ user, onOpenAuth }) => {
+  const scrollPosRef = useRef<number>(0);
+  const lastSelectedChapterIdRef = useRef<string | null>(null);
   const [selectedChapterId, setSelectedChapterId] = useState<string | null>(null);
   const [activeMainTab, setActiveMainTab] = useState<'theory' | 'exercises' | 'visual-studio'>('theory');
   const [visualSubTab, setVisualSubTab] = useState<'gallery' | 'interactive'>('gallery');
@@ -73,7 +75,9 @@ export const SatMathSectionExplorer: React.FC<SatMathSectionExplorerProps> = ({ 
   });
 
   useEffect(() => {
-    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    if (selectedChapterId) {
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    }
   }, [selectedChapterId, activeMainTab]);
 
   useEffect(() => {
@@ -102,7 +106,7 @@ export const SatMathSectionExplorer: React.FC<SatMathSectionExplorerProps> = ({ 
     setCurrentChapterData(null);
 
     const startTime = Date.now();
-    const MIN_LOAD_TIME = 600;
+    const MIN_LOAD_TIME = 500;
 
     const finishLoading = () => {
       if (!isMounted) return;
@@ -122,6 +126,13 @@ export const SatMathSectionExplorer: React.FC<SatMathSectionExplorerProps> = ({ 
       };
     }
 
+    // Safety timeout: Ensure loading finishes within 5 seconds even if Supabase stalls
+    const timeoutTimer = setTimeout(() => {
+      if (isMounted) {
+        finishLoading();
+      }
+    }, 5000);
+
     const chapterFetchMap: Record<string, () => Promise<{ data: FullSatMathChapter | null; error: any }>> = {
       'exponents-and-radicals': fetchSatMathChapter1FromSupabase,
       'linear-expressions': fetchSatMathChapter2FromSupabase,
@@ -138,6 +149,7 @@ export const SatMathSectionExplorer: React.FC<SatMathSectionExplorerProps> = ({ 
 
     const fetchFunc = chapterFetchMap[selectedChapterId];
     if (!fetchFunc) {
+      clearTimeout(timeoutTimer);
       finishLoading();
       return () => {
         isMounted = false;
@@ -146,7 +158,7 @@ export const SatMathSectionExplorer: React.FC<SatMathSectionExplorerProps> = ({ 
 
     fetchFunc()
       .then(({ data }) => {
-        if (isMounted) {
+        if (isMounted && data) {
           setCurrentChapterData(data);
         }
       })
@@ -154,12 +166,22 @@ export const SatMathSectionExplorer: React.FC<SatMathSectionExplorerProps> = ({ 
         console.error(`Failed to fetch ${selectedChapterId} from Supabase:`, err);
       })
       .finally(() => {
+        clearTimeout(timeoutTimer);
         finishLoading();
       });
 
     return () => {
       isMounted = false;
+      clearTimeout(timeoutTimer);
     };
+  }, [selectedChapterId]);
+
+  // Restore scroll position when leaving a math chapter back to math chapters list
+  useEffect(() => {
+    if (!selectedChapterId && lastSelectedChapterIdRef.current) {
+      const targetPos = scrollPosRef.current;
+      window.scrollTo({ top: targetPos, left: 0, behavior: 'instant' });
+    }
   }, [selectedChapterId]);
 
   const currentChapter: FullSatMathChapter | undefined = useMemo(() => {
@@ -244,16 +266,14 @@ export const SatMathSectionExplorer: React.FC<SatMathSectionExplorerProps> = ({ 
 
   return (
     <div id="sat-math-section-explorer" className="space-y-6 text-slate-900 min-h-[600px] relative overflow-x-hidden w-full">
-      <AnimatePresence mode="wait">
-        {!selectedChapterId ? (
-          <motion.div
-            key="list"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.12, ease: "easeOut" }}
-            className="space-y-6"
-          >
+      {!selectedChapterId ? (
+        <motion.div
+          key="math-list"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.15 }}
+          className="space-y-6"
+        >
             {/* Simple Clean Header */}
             <div className="border-b border-slate-200 pb-2.5">
               <h2 className="text-xl sm:text-2xl font-black text-slate-950 tracking-tight">
@@ -272,11 +292,15 @@ export const SatMathSectionExplorer: React.FC<SatMathSectionExplorerProps> = ({ 
               return (
                 <button
                   key={chapter.id}
+                  id={`math-card-${chapter.id}`}
                   onClick={() => {
+                    scrollPosRef.current = window.scrollY || document.documentElement.scrollTop || 0;
+                    lastSelectedChapterIdRef.current = chapter.id;
                     setIsLoading(true);
                     setSelectedChapterId(chapter.id);
                     setActiveMainTab('theory');
                     setSelectedExerciseTab(1);
+                    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
                   }}
                   className="bg-white hover:bg-slate-50 border-2 border-slate-200 hover:border-slate-400 rounded-2xl p-3.5 sm:p-5 text-left transition-all duration-200 cursor-pointer flex flex-col justify-between space-y-3 group relative overflow-hidden shadow-xs hover:shadow-md"
                 >
@@ -310,64 +334,40 @@ export const SatMathSectionExplorer: React.FC<SatMathSectionExplorerProps> = ({ 
             })}
           </div>
         </motion.div>
-        ) : !currentChapter ? (
-          <motion.div
-            key="loader"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.1, ease: "easeOut" }}
-          >
-            <InteractivePageLoader
-              title="Loading Math Chapter"
-              subtitle="Assembling curriculum modules, structured analytics, and interactive practice questions..."
-            />
-          </motion.div>
         ) : (
           <motion.div
-            key={`chapter-${selectedChapterId}`}
+            key={`math-chapter-${selectedChapterId}`}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.12, ease: "easeOut" }}
+            transition={{ duration: 0.15 }}
             className="space-y-6 relative min-h-[500px]"
           >
-            <AnimatePresence>
-              {isCurrentlyLoading && (
-                <motion.div
-                  key="chapter-loader-overlay"
-                  initial={{ opacity: 1 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.15, ease: "easeOut" }}
-                  className="absolute inset-0 z-30 bg-slate-50 flex flex-col items-center justify-center min-h-[500px] rounded-2xl"
-                >
-                  <InteractivePageLoader
-                    title="Loading Chapter Content"
-                    subtitle="Assembling curriculum modules, structured analytics, and interactive practice questions..."
-                  />
-                </motion.div>
-              )}
-            </AnimatePresence>
+            {isCurrentlyLoading || !currentChapter ? (
+              <div className="w-full min-h-[500px] flex items-center justify-center py-12">
+                <InteractivePageLoader
+                  title="Loading Math Chapter"
+                  subtitle="Assembling curriculum modules, structured analytics, and interactive practice questions..."
+                />
+              </div>
+            ) : (
+              <>
+                {/* Top Bar: Back to Topics Button */}
+                <div className="flex items-center justify-between bg-white border border-slate-200/90 p-3 sm:p-4 rounded-2xl shadow-xs">
+                  <button
+                    onClick={() => setSelectedChapterId(null)}
+                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white border border-slate-200/90 shadow-xs text-xs font-bold text-slate-700 hover:text-indigo-600 hover:bg-slate-50 transition-all cursor-pointer"
+                  >
+                    <ArrowLeft className="w-4 h-4 text-indigo-600" />
+                    <span>Back to All Math Topics</span>
+                  </button>
 
-            <div className={isCurrentlyLoading ? "opacity-0 pointer-events-none" : "opacity-100 transition-opacity duration-200"}>
-          {/* Top Bar: Back to Topics Button */}
-          <div className="flex items-center justify-between bg-white border border-slate-200/90 p-3 sm:p-4 rounded-2xl shadow-xs">
-            <button
-              onClick={() => setSelectedChapterId(null)}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white border border-slate-200/90 shadow-xs text-xs font-bold text-slate-700 hover:text-indigo-600 hover:bg-slate-50 transition-all cursor-pointer"
-            >
-              <ArrowLeft className="w-4 h-4 text-indigo-600" />
-              <span>Back to All Math Topics</span>
-            </button>
+                  <span className="text-xs font-extrabold text-indigo-700 bg-indigo-50 uppercase tracking-wider px-3.5 py-1 rounded-full border border-indigo-200/80 shadow-2xs">
+                    Chapter {currentChapter.chapterNumber} of {FULL_SAT_MATH_BOOK.length}
+                  </span>
+                </div>
 
-            <span className="text-xs font-extrabold text-indigo-700 bg-indigo-50 uppercase tracking-wider px-3.5 py-1 rounded-full border border-indigo-200/80 shadow-2xs">
-              Chapter {currentChapter.chapterNumber} of {FULL_SAT_MATH_BOOK.length}
-            </span>
-          </div>
-
-          {/* CHAPTER SELECTOR & INSPIRATIONAL BANNER */}
-          <div className="bg-white border border-slate-200/90 rounded-3xl p-5 sm:p-7 shadow-xs space-y-5">
+                {/* CHAPTER SELECTOR & INSPIRATIONAL BANNER */}
+                <div className="bg-white border border-slate-200/90 rounded-3xl p-5 sm:p-7 shadow-xs space-y-5">
             {/* Chapter Selection Pills (Removed because we use the Back button now, but kept for Mastery stats) */}
             <div className="flex flex-wrap items-center justify-end gap-3 border-b border-slate-100 pb-4">
               <div className="flex items-center gap-2 text-xs font-bold">
@@ -1250,15 +1250,13 @@ export const SatMathSectionExplorer: React.FC<SatMathSectionExplorerProps> = ({ 
               }
             />
           )}
-          </motion.div>
+            </motion.div>
+          </div>
         </div>
-      </div>
-      </div>
-      </motion.div>
-      )
-      }
-      </AnimatePresence>
-
+              </>
+            )}
+          </motion.div>
+        )}
       <AnimatePresence>
         {isCalculatorOpen && (
           <SatCalculatorView onClose={() => setIsCalculatorOpen(false)} />
