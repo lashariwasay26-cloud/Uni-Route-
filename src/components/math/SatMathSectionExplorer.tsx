@@ -65,9 +65,9 @@ export const SatMathSectionExplorer: React.FC<SatMathSectionExplorerProps> = ({ 
 
   const scrollToQuestionCard = () => {
     if (questionCardRef.current) {
-      const yOffset = -100;
-      const y = questionCardRef.current.getBoundingClientRect().top + window.pageYOffset + yOffset;
-      window.scrollTo({ top: Math.max(0, y), behavior: 'auto' });
+      const yOffset = -140; // generous offset to ensure fixed navbars don't cover the top of the question
+      const y = questionCardRef.current.getBoundingClientRect().top + (window.scrollY || window.pageYOffset) + yOffset;
+      window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
     }
   };
 
@@ -76,9 +76,12 @@ export const SatMathSectionExplorer: React.FC<SatMathSectionExplorerProps> = ({ 
       isFirstQuestionRender.current = false;
       return;
     }
+    // Scroll immediately
+    scrollToQuestionCard();
+    // And scroll again after a short delay to account for layout shifts and text height adjustments
     const timer = setTimeout(() => {
       scrollToQuestionCard();
-    }, 40);
+    }, 100);
     return () => clearTimeout(timer);
   }, [activeQuestionIndex]);
 

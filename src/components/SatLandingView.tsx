@@ -410,8 +410,8 @@ export const SatLandingView: React.FC<SatLandingViewProps> = ({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.12 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/30"
+            transition={{ duration: 0.1 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/60 backdrop-blur-xs"
           >
             {/* Backdrop */}
             <div
@@ -421,46 +421,46 @@ export const SatLandingView: React.FC<SatLandingViewProps> = ({
 
             {/* Modal Dialog */}
             <motion.div
-              initial={{ opacity: 0, scale: 0.96, y: 8 }}
+              initial={{ opacity: 0, scale: 0.97, y: 6 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.96, y: 8 }}
-              transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
-              className="bg-white border border-slate-200 rounded-3xl max-w-2xl w-full p-4 sm:p-7 shadow-2xl relative z-10 space-y-4 sm:space-y-5 overflow-hidden max-h-[95vh] flex flex-col"
+              exit={{ opacity: 0, scale: 0.97, y: 6 }}
+              transition={{ duration: 0.12, ease: "easeOut" }}
+              className="bg-white border border-slate-200 rounded-2xl sm:rounded-3xl max-w-2xl w-full p-4 sm:p-7 shadow-2xl relative z-10 space-y-3 sm:space-y-5 overflow-hidden max-h-[90vh] flex flex-col"
             >
               {/* Close Icon */}
               <button
                 onClick={() => setIsPopupOpen(false)}
-                className="absolute top-4 right-4 p-1.5 sm:p-2 rounded-full bg-slate-100 text-slate-500 hover:text-slate-900 hover:bg-slate-200 transition-all cursor-pointer z-10"
+                className="absolute top-3 right-3 sm:top-4 sm:right-4 p-1 rounded-full bg-slate-100 text-slate-500 hover:text-slate-900 hover:bg-slate-200 transition-all cursor-pointer z-10"
               >
-                <X className="w-4 h-4 sm:w-5 sm:h-5" />
+                <X className="w-4 h-4" />
               </button>
 
               {/* Modal Header */}
               <div className="space-y-1 pr-6 text-left shrink-0">
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-[10px] font-black uppercase tracking-wider">
+                <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-[9px] sm:text-[10px] font-black uppercase tracking-wider">
                   <Target className="w-3 h-3 text-indigo-600" />
                   Digital SAT Core Modules
                 </div>
-                <h2 className="text-xl sm:text-2xl font-black text-slate-950 tracking-tight">
+                <h2 className="text-base sm:text-2xl font-black text-slate-950 tracking-tight">
                   Select Learning Option
                 </h2>
-                <p className="text-[11px] sm:text-xs text-slate-500 leading-relaxed">
+                <p className="text-[10px] sm:text-xs text-slate-500 leading-relaxed hidden sm:block">
                   Choose one of the official Digital SAT modules below to launch your practice session.
                 </p>
               </div>
 
               {/* OPTIONS IN A GRID */}
-              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 pt-1 overflow-y-auto">
+              <div className="grid grid-cols-2 gap-2 sm:gap-3 pt-0.5 overflow-y-auto">
                 {/* OPTION 1: READING */}
                 <button
                   onClick={() => handleSelectOption('reading')}
-                  className="p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-white border border-slate-200/90 hover:border-indigo-600 hover:bg-indigo-50/40 hover:shadow-lg transition-all cursor-pointer text-left flex flex-col justify-between min-h-[110px] sm:min-h-[160px] group relative overflow-hidden"
+                  className="p-2.5 sm:p-4 rounded-xl sm:rounded-2xl bg-white border border-slate-200/90 hover:border-indigo-600 hover:bg-indigo-50/40 hover:shadow-lg transition-all cursor-pointer text-left flex flex-col justify-between min-h-[75px] sm:min-h-[160px] group relative overflow-hidden"
                 >
                   <div>
                     <div className="flex items-center justify-between mb-1 sm:mb-2.5">
-                      <span className="text-xl sm:text-2xl">📖</span>
-                      <span className="px-1.5 py-0.5 sm:px-2 sm:py-0.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-[8px] sm:text-[10px] font-black uppercase tracking-wider">
-                        6 Chapters
+                      <span className="text-lg sm:text-2xl">📖</span>
+                      <span className="px-1 py-0.2 sm:px-2 sm:py-0.5 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 text-[8px] sm:text-[10px] font-black uppercase tracking-wider">
+                        6 Chs
                       </span>
                     </div>
                     <h3 className="text-xs sm:text-base font-extrabold text-slate-950 group-hover:text-indigo-900 tracking-tight">
@@ -470,7 +470,7 @@ export const SatLandingView: React.FC<SatLandingViewProps> = ({
                       Main idea, claims, structure, inference, evidence & vocabulary in context.
                     </p>
                   </div>
-                  <div className="mt-1.5 sm:mt-3 flex items-center justify-between text-[10px] sm:text-xs font-bold text-indigo-600 group-hover:text-indigo-700">
+                  <div className="hidden sm:flex mt-1.5 sm:mt-3 items-center justify-between text-[10px] sm:text-xs font-bold text-indigo-600 group-hover:text-indigo-700">
                     <span>Start Reading</span>
                     <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 transition-transform group-hover:translate-x-1" />
                   </div>
@@ -479,13 +479,13 @@ export const SatLandingView: React.FC<SatLandingViewProps> = ({
                 {/* OPTION 2: WRITING */}
                 <button
                   onClick={() => handleSelectOption('writing')}
-                  className="p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-white border border-slate-200/90 hover:border-indigo-600 hover:bg-indigo-50/40 hover:shadow-lg transition-all cursor-pointer text-left flex flex-col justify-between min-h-[110px] sm:min-h-[160px] group relative overflow-hidden"
+                  className="p-2.5 sm:p-4 rounded-xl sm:rounded-2xl bg-white border border-slate-200/90 hover:border-indigo-600 hover:bg-indigo-50/40 hover:shadow-lg transition-all cursor-pointer text-left flex flex-col justify-between min-h-[75px] sm:min-h-[160px] group relative overflow-hidden"
                 >
                   <div>
                     <div className="flex items-center justify-between mb-1 sm:mb-2.5">
-                      <span className="text-xl sm:text-2xl">✍️</span>
-                      <span className="px-1.5 py-0.5 sm:px-2 sm:py-0.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-[8px] sm:text-[10px] font-black uppercase tracking-wider">
-                        7 Chapters
+                      <span className="text-lg sm:text-2xl">✍️</span>
+                      <span className="px-1 py-0.2 sm:px-2 sm:py-0.5 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 text-[8px] sm:text-[10px] font-black uppercase tracking-wider">
+                        7 Chs
                       </span>
                     </div>
                     <h3 className="text-xs sm:text-base font-extrabold text-slate-950 group-hover:text-indigo-900 tracking-tight">
@@ -495,7 +495,7 @@ export const SatLandingView: React.FC<SatLandingViewProps> = ({
                       Standard English conventions, punctuation, sentence clauses & transitions.
                     </p>
                   </div>
-                  <div className="mt-1.5 sm:mt-3 flex items-center justify-between text-[10px] sm:text-xs font-bold text-indigo-600 group-hover:text-indigo-700">
+                  <div className="hidden sm:flex mt-1.5 sm:mt-3 items-center justify-between text-[10px] sm:text-xs font-bold text-indigo-600 group-hover:text-indigo-700">
                     <span>Start Writing</span>
                     <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 transition-transform group-hover:translate-x-1" />
                   </div>
@@ -504,13 +504,13 @@ export const SatLandingView: React.FC<SatLandingViewProps> = ({
                 {/* OPTION 3: MATH */}
                 <button
                   onClick={() => handleSelectOption('math')}
-                  className="p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-white border border-slate-200/90 hover:border-indigo-600 hover:bg-indigo-50/40 hover:shadow-lg transition-all cursor-pointer text-left flex flex-col justify-between min-h-[110px] sm:min-h-[160px] group relative overflow-hidden"
+                  className="p-2.5 sm:p-4 rounded-xl sm:rounded-2xl bg-white border border-slate-200/90 hover:border-indigo-600 hover:bg-indigo-50/40 hover:shadow-lg transition-all cursor-pointer text-left flex flex-col justify-between min-h-[75px] sm:min-h-[160px] group relative overflow-hidden"
                 >
                   <div>
                     <div className="flex items-center justify-between mb-1 sm:mb-2.5">
-                      <span className="text-xl sm:text-2xl">📐</span>
-                      <span className="px-1.5 py-0.5 sm:px-2 sm:py-0.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-[8px] sm:text-[10px] font-black uppercase tracking-wider">
-                        11 Chapters
+                      <span className="text-lg sm:text-2xl">📐</span>
+                      <span className="px-1 py-0.2 sm:px-2 sm:py-0.5 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 text-[8px] sm:text-[10px] font-black uppercase tracking-wider">
+                        11 Chs
                       </span>
                     </div>
                     <h3 className="text-xs sm:text-base font-extrabold text-slate-950 group-hover:text-indigo-900 tracking-tight">
@@ -520,7 +520,7 @@ export const SatLandingView: React.FC<SatLandingViewProps> = ({
                       Algebra, Advanced Math, Problem Solving & Geometry with step-by-step solutions.
                     </p>
                   </div>
-                  <div className="mt-1.5 sm:mt-3 flex items-center justify-between text-[10px] sm:text-xs font-bold text-indigo-600 group-hover:text-indigo-700">
+                  <div className="hidden sm:flex mt-1.5 sm:mt-3 items-center justify-between text-[10px] sm:text-xs font-bold text-indigo-600 group-hover:text-indigo-700">
                     <span>Start Math</span>
                     <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 transition-transform group-hover:translate-x-1" />
                   </div>
@@ -529,13 +529,13 @@ export const SatLandingView: React.FC<SatLandingViewProps> = ({
                 {/* OPTION 4: DRILLS */}
                 <button
                   onClick={() => handleSelectOption('drills')}
-                  className="p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-white border border-slate-200/90 hover:border-indigo-600 hover:bg-indigo-50/40 hover:shadow-lg transition-all cursor-pointer text-left flex flex-col justify-between min-h-[110px] sm:min-h-[160px] group relative overflow-hidden"
+                  className="p-2.5 sm:p-4 rounded-xl sm:rounded-2xl bg-white border border-slate-200/90 hover:border-indigo-600 hover:bg-indigo-50/40 hover:shadow-lg transition-all cursor-pointer text-left flex flex-col justify-between min-h-[75px] sm:min-h-[160px] group relative overflow-hidden"
                 >
                   <div>
                     <div className="flex items-center justify-between mb-1 sm:mb-2.5">
-                      <span className="text-xl sm:text-2xl">⚡</span>
-                      <span className="px-1.5 py-0.5 sm:px-2 sm:py-0.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-[8px] sm:text-[10px] font-black uppercase">
-                        Full Practice
+                      <span className="text-lg sm:text-2xl">⚡</span>
+                      <span className="px-1 py-0.2 sm:px-2 sm:py-0.5 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 text-[8px] sm:text-[10px] font-black uppercase">
+                        Drills
                       </span>
                     </div>
                     <h3 className="text-xs sm:text-base font-extrabold text-slate-950 group-hover:text-indigo-900 tracking-tight">
@@ -545,7 +545,7 @@ export const SatLandingView: React.FC<SatLandingViewProps> = ({
                       Timed mixed speed drills, 400-1600 Score Predictor & Vocab Flashcards.
                     </p>
                   </div>
-                  <div className="mt-1.5 sm:mt-3 flex items-center justify-between text-[10px] sm:text-xs font-bold text-indigo-600 group-hover:text-indigo-700">
+                  <div className="hidden sm:flex mt-1.5 sm:mt-3 items-center justify-between text-[10px] sm:text-xs font-bold text-indigo-600 group-hover:text-indigo-700">
                     <span>Start Drills</span>
                     <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 transition-transform group-hover:translate-x-1" />
                   </div>

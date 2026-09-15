@@ -125,7 +125,7 @@ export const FloatingIconsGateway: React.FC<FloatingIconsGatewayProps> = ({
             <Flag className="w-4 h-4 sm:w-6 sm:h-6" />
           </div>
           <span className="text-xs sm:text-base font-black text-slate-950 tracking-tight transition-colors">
-            Pakistani Scholarships
+            Pakaitan Scholarships
           </span>
           <span className="text-[9px] sm:text-[11px] text-slate-500 transition-colors mt-0.5 font-semibold">
             HEC, Ehsaas, PEEF
@@ -158,7 +158,7 @@ export const FloatingIconsGateway: React.FC<FloatingIconsGatewayProps> = ({
           </div>
           <div>
             <span className="text-xs sm:text-base font-black text-slate-950 block tracking-tight transition-colors">
-              AI Profile Analysis & Counselor
+              AI Profile Analyzer
             </span>
             <span className="text-[10px] sm:text-xs text-slate-600 transition-colors font-medium">
               Personalized university matching, target score estimation, and admissions guidance.

@@ -61,14 +61,14 @@ export const DraftStage: React.FC<DraftStageProps> = ({
   };
 
   return (
-    <div id="draft-stage" className="space-y-6 animate-in fade-in-50">
+    <div id="draft-stage" className="space-y-4 sm:space-y-6 animate-in fade-in-50">
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight">
+          <h2 className="text-xl sm:text-2xl font-black text-slate-950 tracking-tight">
             Write Your Essay
           </h2>
-          <p className="text-slate-600 text-sm mt-0.5">
+          <p className="text-slate-600 text-xs sm:text-sm mt-0.5">
             Use your ideas as a starting point. Your voice should remain your own.
           </p>
         </div>
@@ -86,9 +86,9 @@ export const DraftStage: React.FC<DraftStageProps> = ({
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* MAIN EDITOR COLUMN */}
         <div className="lg:col-span-8 space-y-4">
-          <div className="bg-white border border-slate-200/80 rounded-[28px] p-5 sm:p-6 shadow-[0_4px_20px_rgba(0,0,0,0.03)] space-y-4">
+          <div className="bg-white border border-slate-200/80 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-[0_4px_20px_rgba(0,0,0,0.03)] space-y-4">
             {/* Word Count Header Bar */}
-            <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-100 text-xs">
+            <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-100 text-[11px] sm:text-xs">
               <div className="flex items-center gap-3">
                 <span className="font-bold text-slate-700">
                   Word Count:
@@ -106,9 +106,9 @@ export const DraftStage: React.FC<DraftStageProps> = ({
               </div>
 
               {isOverLimit && (
-                <div className="flex items-center gap-1.5 text-amber-600 font-bold text-[11px]">
+                <div className="flex items-center gap-1.5 text-amber-600 font-bold text-[10px] sm:text-[11px]">
                   <AlertCircle className="w-4 h-4" />
-                  <span>Exceeds word limit by {wordCount - wordLimit} words</span>
+                  <span>Exceeds limit by {wordCount - wordLimit}</span>
                 </div>
               )}
             </div>
@@ -120,11 +120,11 @@ export const DraftStage: React.FC<DraftStageProps> = ({
               value={draftText}
               onChange={(e) => setDraftText(e.target.value)}
               placeholder="Start writing here..."
-              className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 sm:p-5 text-sm sm:text-base leading-relaxed text-slate-950 placeholder-slate-400 focus:outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-600/20 font-sans transition-all resize-y"
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 sm:p-4 text-xs sm:text-base leading-relaxed text-slate-950 placeholder-slate-400 focus:outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-600/20 font-sans transition-all resize-y"
             />
 
             {/* Quick Actions Bar */}
-            <div className="flex items-center justify-between pt-1 text-xs">
+            <div className="flex items-center justify-between pt-1 text-[11px] sm:text-xs">
               <button
                 onClick={handleClear}
                 className="text-slate-400 hover:text-rose-600 transition-colors flex items-center gap-1 font-semibold cursor-pointer"
@@ -133,39 +133,40 @@ export const DraftStage: React.FC<DraftStageProps> = ({
                 <span>Clear Draft</span>
               </button>
 
-              <p className="text-slate-500 text-[11px] font-semibold flex items-center gap-1.5">
+              <p className="text-slate-500 font-semibold flex items-center gap-1.5">
                 <Save className="w-3.5 h-3.5 text-indigo-600" />
-                <span>Manual save required • Click 'Save Draft' to persist changes</span>
+                <span className="hidden sm:inline">Manual save required • Click 'Save Draft' to persist changes</span>
+                <span className="sm:hidden">Click 'Save Draft' to save</span>
               </p>
             </div>
           </div>
 
           {/* Bottom Control Bar */}
-          <div className="flex items-center justify-between pt-2">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
             <button
               onClick={onBack}
-              className="px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 text-xs font-bold transition-colors flex items-center gap-2 cursor-pointer"
+              className="h-10 px-4 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 text-xs font-bold transition-colors flex items-center justify-center gap-2 cursor-pointer w-full sm:w-auto"
             >
-              <ArrowLeft className="w-4 h-4 text-indigo-600" />
+              <ArrowLeft className="w-4 h-4 text-indigo-600 shrink-0" />
               <span>Back to Brainstorm</span>
             </button>
 
-            <div className="flex items-center gap-3">
+            <div className="grid grid-cols-2 gap-2 w-full sm:w-auto sm:flex sm:items-center sm:gap-3">
               <button
                 onClick={onSave}
-                className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-colors flex items-center gap-1.5 cursor-pointer"
+                className="h-10 px-2.5 sm:px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-[11px] sm:text-xs font-bold transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
               >
-                <Save className="w-4 h-4 text-slate-500" />
-                <span>Save Draft</span>
+                <Save className="w-4 h-4 text-slate-500 shrink-0" />
+                <span className="truncate">Save Draft</span>
               </button>
 
               <button
                 id="btn-continue-to-review"
                 onClick={onContinue}
-                className="px-6 py-2.5 rounded-xl bg-slate-900 hover:bg-black text-white font-bold text-xs shadow-md transition-all flex items-center gap-2 cursor-pointer active:scale-95"
+                className="h-10 px-2.5 sm:px-6 rounded-xl bg-slate-900 hover:bg-black text-white font-bold text-[11px] sm:text-xs shadow-md transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
               >
-                <span>Continue to Review</span>
-                <ArrowRight className="w-4 h-4" />
+                <span className="truncate">Continue to Review</span>
+                <ArrowRight className="w-4 h-4 shrink-0" />
               </button>
             </div>
           </div>

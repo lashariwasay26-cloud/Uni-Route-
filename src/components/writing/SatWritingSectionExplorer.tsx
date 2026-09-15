@@ -1044,9 +1044,9 @@ export const SatWritingSectionExplorer: React.FC<SatWritingSectionExplorerProps>
 
   const scrollToQuestionCard = () => {
     if (questionCardRef.current) {
-      const yOffset = -100;
-      const y = questionCardRef.current.getBoundingClientRect().top + window.pageYOffset + yOffset;
-      window.scrollTo({ top: Math.max(0, y), behavior: 'auto' });
+      const yOffset = -140; // generous offset to ensure fixed navbars don't cover the top of the question
+      const y = questionCardRef.current.getBoundingClientRect().top + (window.scrollY || window.pageYOffset) + yOffset;
+      window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
     }
   };
 
@@ -1055,9 +1055,12 @@ export const SatWritingSectionExplorer: React.FC<SatWritingSectionExplorerProps>
       isFirstQuestionRender.current = false;
       return;
     }
+    // Scroll immediately
+    scrollToQuestionCard();
+    // And scroll again after a short delay to account for layout shifts and text height adjustments
     const timer = setTimeout(() => {
       scrollToQuestionCard();
-    }, 40);
+    }, 100);
     return () => clearTimeout(timer);
   }, [activeQuestionIndex]);
 
@@ -1687,7 +1690,7 @@ export const SatWritingSectionExplorer: React.FC<SatWritingSectionExplorerProps>
                     {/* SINGLE ACTIVE QUESTION CARD */}
                     <div
                       ref={questionCardRef}
-                      className={`bg-white border-2 rounded-3xl p-5 sm:p-8 space-y-6 transition-all shadow-xs ${
+                      className={`bg-white border-2 rounded-xl sm:rounded-3xl p-4 sm:p-8 space-y-4 sm:space-y-6 transition-all shadow-xs ${
                         isSubmitted
                           ? isCorrect
                             ? 'border-emerald-400 bg-emerald-50/10'
@@ -1796,10 +1799,10 @@ export const SatWritingSectionExplorer: React.FC<SatWritingSectionExplorerProps>
                             <button
                               key={optIdx}
                               onClick={() => handleSelectAnswer(q.id, optIdx)}
-                              className={`text-left p-4 rounded-2xl border transition-all text-xs sm:text-sm flex items-center justify-between cursor-pointer ${btnStyle}`}
+                              className={`text-left p-2.5 sm:p-4 rounded-xl sm:rounded-2xl border transition-all text-xs sm:text-sm flex items-center justify-between cursor-pointer ${btnStyle}`}
                             >
-                              <div className="flex items-center gap-3">
-                                <span className={`w-7 h-7 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 ${
+                              <div className="flex items-center gap-2.5 sm:gap-3">
+                                <span className={`w-5.5 h-5.5 sm:w-7 sm:h-7 rounded-full sm:rounded-xl flex items-center justify-center font-bold text-[11px] sm:text-xs shrink-0 ${
                                   isSubmitted
                                     ? optIdx === q.correctAnswer || isThisSelected
                                       ? 'bg-white/20 text-white'
@@ -1811,10 +1814,10 @@ export const SatWritingSectionExplorer: React.FC<SatWritingSectionExplorerProps>
                                 <span className="leading-snug">{cleanInlineMarkdown(optionText)}</span>
                               </div>
                               {isSubmitted && optIdx === q.correctAnswer && (
-                                <CheckCircle2 className="w-5 h-5 text-white shrink-0" />
+                                <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-white shrink-0" />
                               )}
                               {isSubmitted && isThisSelected && optIdx !== q.correctAnswer && (
-                                <XCircle className="w-5 h-5 text-white shrink-0" />
+                                <XCircle className="w-4 h-4 sm:w-5 sm:h-5 text-white shrink-0" />
                               )}
                             </button>
                           );

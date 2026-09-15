@@ -1269,9 +1269,9 @@ export const SatReadingSectionExplorer: React.FC<SatReadingSectionExplorerProps>
 
   const scrollToQuestionCard = () => {
     if (questionCardRef.current) {
-      const yOffset = -100;
-      const y = questionCardRef.current.getBoundingClientRect().top + window.pageYOffset + yOffset;
-      window.scrollTo({ top: Math.max(0, y), behavior: 'auto' });
+      const yOffset = -140; // generous offset to ensure fixed navbars don't cover the top of the question
+      const y = questionCardRef.current.getBoundingClientRect().top + (window.scrollY || window.pageYOffset) + yOffset;
+      window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
     }
   };
 
@@ -1280,9 +1280,12 @@ export const SatReadingSectionExplorer: React.FC<SatReadingSectionExplorerProps>
       isFirstQuestionRender.current = false;
       return;
     }
+    // Scroll immediately
+    scrollToQuestionCard();
+    // And scroll again after a short delay to account for layout shifts and text height adjustments
     const timer = setTimeout(() => {
       scrollToQuestionCard();
-    }, 40);
+    }, 100);
     return () => clearTimeout(timer);
   }, [activeQuestionIndex]);
 
@@ -2015,7 +2018,7 @@ export const SatReadingSectionExplorer: React.FC<SatReadingSectionExplorerProps>
                     {/* SINGLE ACTIVE QUESTION CARD */}
                     <div
                       ref={questionCardRef}
-                      className={`bg-white border-2 rounded-3xl p-5 sm:p-8 space-y-6 transition-all shadow-xs ${
+                      className={`bg-white border-2 rounded-xl sm:rounded-3xl p-4 sm:p-8 space-y-4 sm:space-y-6 transition-all shadow-xs ${
                         isSubmitted
                           ? isCorrect
                             ? 'border-emerald-400 bg-emerald-50/10'

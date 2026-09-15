@@ -447,29 +447,29 @@ export const UniversityListView: React.FC<UniversityListViewProps> = ({
             >
       
       {/* Header & Back Action */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 pb-6 border-b border-slate-200/80">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 pb-4 sm:mb-8 sm:pb-6 border-b border-slate-200/80">
         <div>
           <div className="flex items-center gap-2 mb-3">
             <button
               onClick={onBackToTracks}
-              className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all cursor-pointer"
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg sm:px-3.5 sm:py-1.5 sm:rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all cursor-pointer"
             >
               {title.includes("Pakistani") ? '← Back to Homepage' : '← Back to Track Options'}
             </button>
           </div>
 
-          <h1 className="text-2xl sm:text-4xl font-extrabold text-slate-950 tracking-tight flex items-center gap-3">
+          <h1 className="text-xl sm:text-3xl lg:text-4xl font-extrabold text-slate-950 tracking-tight flex items-center gap-3">
             <span>{title}</span>
           </h1>
-          <p className="text-slate-600 text-xs sm:text-sm mt-1">
+          <p className="text-slate-600 text-[11px] sm:text-xs lg:text-sm mt-0.5 sm:mt-1">
             {description}
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5 shrink-0 self-start sm:self-center flex-wrap">
+        <div className="flex items-center gap-2 shrink-0 self-start sm:self-center flex-wrap">
           <button
             onClick={() => setShowSavedModal(true)}
-            className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl border text-xs font-bold transition-all cursor-pointer shadow-xs ${
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg sm:px-4 sm:py-2 sm:rounded-xl border text-[11px] sm:text-xs font-bold transition-all cursor-pointer shadow-xs ${
               bookmarkedIds.size > 0
                 ? 'bg-amber-50 text-amber-900 border-amber-300 hover:bg-amber-100 hover:border-amber-400'
                 : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
@@ -482,7 +482,7 @@ export const UniversityListView: React.FC<UniversityListViewProps> = ({
           {isAnyFilterActive && (
             <button
               onClick={resetAllFilters}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-rose-50 text-rose-700 border border-rose-200/80 hover:bg-rose-100 text-xs font-bold transition-all cursor-pointer shrink-0"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg sm:px-4 sm:py-2 sm:rounded-xl bg-rose-50 text-rose-700 border border-rose-200/80 hover:bg-rose-100 text-[11px] sm:text-xs font-bold transition-all cursor-pointer shrink-0"
             >
               <RotateCcw className="w-3.5 h-3.5" />
               <span>Reset All Filters</span>
@@ -492,17 +492,17 @@ export const UniversityListView: React.FC<UniversityListViewProps> = ({
       </div>
 
       {/* SEARCH AND FILTERS BAR */}
-      <div className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/90 shadow-[0_8px_30px_rgba(0,0,0,0.04)] mb-8 space-y-5">
+      <div className="bg-white rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 border border-slate-200/90 shadow-[0_8px_30px_rgba(0,0,0,0.04)] mb-4 sm:mb-8 space-y-3 sm:space-y-5">
         
         {/* Search Input Box */}
         <div className="relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-slate-400" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search by university name (e.g. Harvard, Oxford, Stanford), country, or program..."
-            className="w-full pl-11 pr-10 py-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-slate-900 text-sm font-medium placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+            placeholder="Search by university name, country, or program..."
+            className="w-full pl-9 sm:pl-12 pr-8 py-2 sm:py-3 rounded-lg sm:rounded-2xl bg-slate-50 border border-slate-200 text-slate-900 text-xs sm:text-sm font-medium placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
           />
           {searchQuery && (
             <button
@@ -515,22 +515,22 @@ export const UniversityListView: React.FC<UniversityListViewProps> = ({
         </div>
 
         {/* Filter Controls Row */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 pt-2 border-t border-slate-100">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2 sm:gap-3 pt-2 border-t border-slate-100">
           
           {/* Filter 1: Full Ride Toggle */}
           <button
             onClick={() => setFullRideOnly(!fullRideOnly)}
-            className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+            className={`flex items-center justify-between px-2.5 py-2 rounded-lg sm:px-3.5 sm:py-2.5 sm:rounded-xl border text-[11px] sm:text-xs font-bold transition-all cursor-pointer ${
               fullRideOnly
                 ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
                 : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
             }`}
           >
-            <span className="flex items-center gap-1.5 truncate">
-              <Award className="w-3.5 h-3.5" />
+            <span className="flex items-center gap-1 sm:gap-1.5 truncate">
+              <Award className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
               Full Ride Only
             </span>
-            {fullRideOnly && <Check className="w-3.5 h-3.5 ml-1" />}
+            {fullRideOnly && <Check className="w-3 h-3 sm:w-3.5 sm:h-3.5 ml-1" />}
           </button>
 
           {/* Filter 2: Financial Aid Type */}
@@ -538,7 +538,7 @@ export const UniversityListView: React.FC<UniversityListViewProps> = ({
             <select
               value={selectedAidType}
               onChange={(e) => setSelectedAidType(e.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
+              className="w-full px-2 py-2 rounded-lg sm:px-3 sm:py-2.5 sm:rounded-xl bg-slate-50 border border-slate-200 text-slate-800 text-[11px] sm:text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
             >
               <option value="all">Aid Type: All</option>
               <option value="need-blind">Need-Blind</option>
@@ -552,9 +552,9 @@ export const UniversityListView: React.FC<UniversityListViewProps> = ({
             <select
               value={selectedSat}
               onChange={(e) => setSelectedSat(e.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
+              className="w-full px-2 py-2 rounded-lg sm:px-3 sm:py-2.5 sm:rounded-xl bg-slate-50 border border-slate-200 text-slate-800 text-[11px] sm:text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
             >
-              <option value="all">SAT: All Requirements</option>
+              <option value="all">SAT: All</option>
               <option value="optional">Test Optional</option>
               <option value="1400">SAT 1400+</option>
               <option value="1500">SAT 1500+</option>
@@ -566,12 +566,12 @@ export const UniversityListView: React.FC<UniversityListViewProps> = ({
             <select
               value={selectedIelts}
               onChange={(e) => setSelectedIelts(e.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
+              className="w-full px-2 py-2 rounded-lg sm:px-3 sm:py-2.5 sm:rounded-xl bg-slate-50 border border-slate-200 text-slate-800 text-[11px] sm:text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
             >
-              <option value="all">IELTS: All Scores</option>
+              <option value="all">IELTS: All</option>
               <option value="6.5">IELTS 6.5 Max</option>
               <option value="7.0">IELTS 7.0 Max</option>
-              <option value="7.5">IELTS 7.5 Required</option>
+              <option value="7.5">IELTS 7.5 Req</option>
             </select>
           </div>
 
@@ -580,12 +580,12 @@ export const UniversityListView: React.FC<UniversityListViewProps> = ({
             <select
               value={selectedTuition}
               onChange={(e) => setSelectedTuition(e.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
+              className="w-full px-2 py-2 rounded-lg sm:px-3 sm:py-2.5 sm:rounded-xl bg-slate-50 border border-slate-200 text-slate-800 text-[11px] sm:text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
             >
-              <option value="all">Tuition: All Fees</option>
-              <option value="low">Low Fee / Free (&lt; $5k/yr)</option>
-              <option value="mid">Mid Tuition (&lt; $35k/yr)</option>
-              <option value="high">High Tuition ($35k+/yr)</option>
+              <option value="all">Tuition: All</option>
+              <option value="low">Low (&lt; $5k/yr)</option>
+              <option value="mid">Mid (&lt; $35k/yr)</option>
+              <option value="high">High ($35k+/yr)</option>
             </select>
           </div>
 
@@ -594,12 +594,12 @@ export const UniversityListView: React.FC<UniversityListViewProps> = ({
             <select
               value={selectedDegree}
               onChange={(e) => setSelectedDegree(e.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
+              className="w-full px-2 py-2 rounded-lg sm:px-3 sm:py-2.5 sm:rounded-xl bg-slate-50 border border-slate-200 text-slate-800 text-[11px] sm:text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
             >
-              <option value="all">Degree: All Levels</option>
+              <option value="all">Degree: All</option>
               <option value="undergraduate">Undergraduate</option>
-              <option value="graduate">Graduate / Masters</option>
-              <option value="phd">PhD / Doctorate</option>
+              <option value="graduate">Graduate/Masters</option>
+              <option value="phd">PhD/Doctorate</option>
             </select>
           </div>
 
@@ -623,7 +623,7 @@ export const UniversityListView: React.FC<UniversityListViewProps> = ({
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
             {visibleUniversities.map((uni) => {
               const isBookmarked = bookmarkedIds.has(uni.id);
               const logoInfo = getUniversityLogo(uni);
@@ -633,7 +633,7 @@ export const UniversityListView: React.FC<UniversityListViewProps> = ({
                   key={uni.id}
                   id={`uni-card-${uni.id}`}
                   onClick={() => handleSelectUniversity(uni)}
-                  className="bg-white rounded-[28px] p-6 sm:p-7 border border-slate-200/90 shadow-2xs hover:shadow-xl transition-all duration-200 hover:-translate-y-1 flex flex-col justify-between relative group cursor-pointer"
+                  className="bg-white rounded-2xl sm:rounded-[28px] p-4 sm:p-7 border border-slate-200/90 shadow-2xs hover:shadow-xl transition-all duration-200 hover:-translate-y-1 flex flex-col justify-between relative group cursor-pointer"
                 >
                   {/* Top Row: Logo, Name & Location */}
                   <div>
@@ -641,28 +641,28 @@ export const UniversityListView: React.FC<UniversityListViewProps> = ({
                       <div className="flex items-center gap-3.5">
                         {/* Logo Badge */}
                         <div
-                          className="w-14 h-14 rounded-2xl flex items-center justify-center font-black shadow-sm shrink-0 text-white select-none overflow-hidden"
+                          className="w-11 h-11 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl flex items-center justify-center font-black shadow-sm shrink-0 text-white select-none overflow-hidden"
                           style={logoInfo.logoStyle}
                         >
-                          <span className={`${logoInfo.logoText.length > 4 ? 'text-[11px] tracking-normal' : logoInfo.logoText.length === 4 ? 'text-xs tracking-tight' : 'text-sm sm:text-base tracking-wider'} font-black leading-none text-white drop-shadow-xs`}>
+                          <span className={`${logoInfo.logoText.length > 4 ? 'text-[10px] sm:text-[11px] tracking-normal' : logoInfo.logoText.length === 4 ? 'text-[11px] sm:text-xs tracking-tight' : 'text-xs sm:text-base tracking-wider'} font-black leading-none text-white drop-shadow-xs`}>
                             {logoInfo.logoText || 'UNI'}
                           </span>
                         </div>
 
                         <div>
                           <div className="flex items-center gap-2">
-                            <h2 className="text-lg sm:text-xl font-extrabold text-slate-950 tracking-tight leading-snug">
+                            <h2 className="text-base sm:text-xl font-extrabold text-slate-950 tracking-tight leading-snug">
                               {uni.universityName}
                             </h2>
                             <span className="text-base" title={uni.country}>
                               {uni.flag}
                             </span>
                           </div>
-                          <p className="text-xs font-medium text-slate-500 mt-0.5 flex items-center gap-1.5 flex-wrap">
+                          <p className="text-[11px] sm:text-xs font-medium text-slate-500 mt-0.5 flex items-center gap-1.5 flex-wrap">
                             <Globe className="w-3.5 h-3.5 text-slate-400" />
                             <span>{uni.location}</span>
                             {uni.foundingYear && (
-                              <span className="text-[11px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">
+                              <span className="text-[10px] sm:text-[11px] font-bold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded-md">
                                 Estd. {uni.foundingYear}
                               </span>
                             )}
@@ -673,55 +673,55 @@ export const UniversityListView: React.FC<UniversityListViewProps> = ({
                       {/* Bookmark Button */}
                       <button
                         onClick={(e) => toggleBookmark(uni, e)}
-                        className={`p-2 rounded-xl border transition-all cursor-pointer ${
+                        className={`p-1.5 sm:p-2 rounded-lg sm:rounded-xl border transition-all cursor-pointer ${
                           isBookmarked
                             ? 'bg-amber-50 border-amber-300 text-amber-600'
                             : 'bg-slate-50 border-slate-200 text-slate-400 hover:text-slate-700 hover:bg-slate-100'
                         }`}
                         title={isBookmarked ? 'Remove Bookmark' : 'Bookmark University'}
                       >
-                        <Bookmark className={`w-4 h-4 ${isBookmarked ? 'fill-amber-500' : ''}`} />
+                        <Bookmark className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                       </button>
                     </div>
 
                     {/* Primary Key Metrics Row */}
-                    <div className="grid grid-cols-2 gap-2 my-4 p-3 rounded-2xl bg-slate-50 border border-slate-100 text-xs">
+                    <div className="grid grid-cols-2 gap-2 my-3 p-2.5 rounded-xl bg-slate-50 border border-slate-100 text-[11px] sm:text-xs">
                       <div>
-                        <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">
+                        <span className="text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">
                           Acceptance Rate
                         </span>
-                        <span className="font-extrabold text-slate-900 text-sm">
+                        <span className="font-extrabold text-slate-900 text-xs sm:text-sm">
                           {uni.acceptanceRate}
                         </span>
                       </div>
 
                       <div>
-                        <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">
+                        <span className="text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">
                           Annual Tuition Fee
                         </span>
-                        <span className="font-extrabold text-slate-900 text-sm">
+                        <span className="font-extrabold text-slate-900 text-xs sm:text-sm truncate block" title={uni.tuitionFee}>
                           {uni.tuitionFee}
                         </span>
                       </div>
                     </div>
 
                     {/* High Visibility Badges Row */}
-                    <div className="flex flex-wrap items-center gap-1.5 mb-4">
+                    <div className="flex flex-wrap items-center gap-1 sm:gap-1.5 mb-3 sm:mb-4">
                       {/* Full Ride Badge */}
                       {uni.hasFullRide ? (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 font-extrabold text-[11px] border border-emerald-200">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                          Full Ride Available
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full bg-emerald-100 text-emerald-800 font-extrabold text-[10px] sm:text-[11px] border border-emerald-200">
+                          <CheckCircle2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-emerald-600 shrink-0" />
+                          Full Ride
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-50 text-amber-800 font-bold text-[11px] border border-amber-200">
-                          Partial Aid / Waiver
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full bg-amber-50 text-amber-800 font-bold text-[10px] sm:text-[11px] border border-amber-200">
+                          Partial Aid
                         </span>
                       )}
 
                       {/* Financial Aid Type */}
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 font-bold text-[11px] border border-indigo-100">
-                        <Sparkles className="w-3 h-3 text-indigo-500" />
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full bg-indigo-50 text-indigo-700 font-bold text-[10px] sm:text-[11px] border border-indigo-100">
+                        <Sparkles className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-indigo-500 shrink-0" />
                         {uni.financialAidType}
                       </span>
 
@@ -729,7 +729,7 @@ export const UniversityListView: React.FC<UniversityListViewProps> = ({
                       {(uni.degreesOffered || []).map((deg) => (
                         <span
                           key={deg}
-                          className="px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 font-semibold text-[11px]"
+                          className="px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full bg-slate-100 text-slate-700 font-semibold text-[10px] sm:text-[11px]"
                         >
                           {deg}
                         </span>
@@ -737,11 +737,11 @@ export const UniversityListView: React.FC<UniversityListViewProps> = ({
                     </div>
 
                     {/* Requirements Quick Summary */}
-                    <div className="text-xs text-slate-600 space-y-1 mb-4">
+                    <div className="text-[11px] sm:text-xs text-slate-600 space-y-0.5 sm:space-y-1 mb-3 sm:mb-4">
                       <div className="py-1 border-b border-slate-100">
-                        <div className="flex items-center justify-between">
-                          <span className="text-slate-400">SAT Requirement:</span>
-                          <span className="font-black text-black">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-slate-400 text-[10px] sm:text-[11px]">SAT Requirement:</span>
+                          <span className="font-black text-black text-[11px] sm:text-xs text-right">
                             {(() => {
                               const satSummary = getSatSummary(uni);
                               return satSummary.headline;
@@ -752,7 +752,7 @@ export const UniversityListView: React.FC<UniversityListViewProps> = ({
                           const satSummary = getSatSummary(uni);
                           if (satSummary.details && satSummary.details !== satSummary.headline) {
                             return (
-                              <p className="text-[11px] text-slate-500 mt-1 leading-snug font-normal line-clamp-2">
+                              <p className="text-[10px] sm:text-[11px] text-slate-500 mt-0.5 leading-snug font-normal line-clamp-2">
                                 {satSummary.details}
                               </p>
                             );
@@ -761,24 +761,24 @@ export const UniversityListView: React.FC<UniversityListViewProps> = ({
                         })()}
                       </div>
                       <div className="flex items-center justify-between py-1 border-b border-slate-100">
-                        <span className="text-slate-400">IELTS Requirement:</span>
-                        <span className="font-bold text-slate-800">{uni.minIelts}</span>
+                        <span className="text-slate-400 text-[10px] sm:text-[11px]">IELTS Requirement:</span>
+                        <span className="font-bold text-slate-800 text-[11px] sm:text-xs">{uni.minIelts}</span>
                       </div>
                       <div className="flex items-center justify-between py-1">
-                        <span className="text-slate-400">Min Academic GPA:</span>
-                        <span className="font-bold text-slate-800">{uni.minGpa}</span>
+                        <span className="text-slate-400 text-[10px] sm:text-[11px]">Min Academic GPA:</span>
+                        <span className="font-bold text-slate-800 text-[11px] sm:text-xs">{uni.minGpa}</span>
                       </div>
                     </div>
 
                     {/* Scholarship Description Snippet */}
-                    <p className="text-xs text-slate-600 leading-relaxed line-clamp-2 mb-5">
+                    <p className="text-[11px] sm:text-xs text-slate-600 leading-relaxed line-clamp-2 mb-3.5 sm:mb-5">
                       {uni.description}
                     </p>
                   </div>
 
                   {/* Card Action Footer */}
-                  <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                    <span className="text-[11px] font-bold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-lg">
+                  <div className="pt-3 sm:pt-4 border-t border-slate-100 flex flex-row items-center justify-between gap-2.5">
+                    <span className="text-[10px] sm:text-[11px] font-bold text-slate-500 bg-slate-100 px-2 sm:px-2.5 py-1 rounded-md sm:rounded-lg">
                       Deadline: {(uni.deadline || 'Varies').split('/')[0]}
                     </span>
 
@@ -787,9 +787,9 @@ export const UniversityListView: React.FC<UniversityListViewProps> = ({
                         e.stopPropagation();
                         handleSelectUniversity(uni);
                       }}
-                      className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-slate-950 text-white group-hover:bg-slate-800 text-xs font-bold transition-all cursor-pointer shadow-sm"
+                      className="inline-flex items-center justify-center gap-1 h-9 sm:h-10 px-3 sm:px-4 rounded-lg sm:rounded-xl bg-slate-950 text-white group-hover:bg-slate-800 text-[11px] sm:text-xs font-bold transition-all cursor-pointer shadow-sm"
                     >
-                      <span>View University Details</span>
+                      <span>Details</span>
                       <ArrowRight className="w-3.5 h-3.5 shrink-0" />
                     </button>
                   </div>
@@ -802,9 +802,9 @@ export const UniversityListView: React.FC<UniversityListViewProps> = ({
             <div className="text-center pt-8">
               <button
                 onClick={() => setVisibleCount((prev) => prev + 16)}
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-white border border-slate-200/90 hover:border-indigo-600 hover:bg-indigo-50/40 text-slate-800 hover:text-indigo-700 text-xs font-bold transition-all shadow-xs cursor-pointer"
+                className="inline-flex items-center gap-2 px-5 py-2.5 sm:px-6 sm:py-3 rounded-xl sm:rounded-2xl bg-white border border-slate-200/90 hover:border-indigo-600 hover:bg-indigo-50/40 text-slate-800 hover:text-indigo-700 text-xs font-bold transition-all shadow-xs cursor-pointer"
               >
-                <span>Show More Universities ({filteredUniversities.length - visibleCount} remaining)</span>
+                <span>Show More ({filteredUniversities.length - visibleCount} remaining)</span>
                 <ChevronDown className="w-4 h-4 text-indigo-600" />
               </button>
             </div>

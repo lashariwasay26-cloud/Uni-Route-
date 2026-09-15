@@ -853,8 +853,8 @@ where t represents the time in years since the start of the study, and N(t) repr
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.12 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/30"
+            transition={{ duration: 0.1 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/60 backdrop-blur-xs"
           >
             {/* Backdrop */}
             <div
@@ -864,40 +864,40 @@ where t represents the time in years since the start of the study, and N(t) repr
 
             {/* Dialog Content */}
             <motion.div
-              initial={{ opacity: 0, scale: 0.96, y: 8 }}
+              initial={{ opacity: 0, scale: 0.97, y: 6 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.96, y: 8 }}
-              transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
-              className="bg-white border border-slate-200 rounded-3xl max-w-2xl w-full p-4 sm:p-7 shadow-2xl relative z-10 space-y-4 sm:space-y-5 overflow-hidden max-h-[95vh] flex flex-col"
+              exit={{ opacity: 0, scale: 0.97, y: 6 }}
+              transition={{ duration: 0.12, ease: "easeOut" }}
+              className="bg-white border border-slate-200 rounded-2xl sm:rounded-3xl max-w-2xl w-full p-4 sm:p-7 shadow-2xl relative z-10 space-y-3 sm:space-y-5 overflow-hidden max-h-[90vh] flex flex-col"
             >
               {/* Close Icon */}
               <button
                 onClick={() => setIsOptionPopupOpen(false)}
-                className="absolute top-4 right-4 p-1.5 sm:p-2 rounded-full bg-slate-100 text-slate-500 hover:text-slate-900 hover:bg-slate-200 transition-all cursor-pointer z-10"
+                className="absolute top-3 right-3 sm:top-4 sm:right-4 p-1 rounded-full bg-slate-100 text-slate-500 hover:text-slate-900 hover:bg-slate-200 transition-all cursor-pointer z-10"
               >
-                <X className="w-4 h-4 sm:w-5 sm:h-5" />
+                <X className="w-4 h-4" />
               </button>
 
               {/* Modal Header */}
               <div className="space-y-1 pr-6 text-left shrink-0">
-                <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-[10px] font-black uppercase tracking-wider">
-                  <Target className="w-3.5 h-3.5 text-indigo-600" />
+                <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-[9px] sm:text-[10px] font-black uppercase tracking-wider">
+                  <Target className="w-3 h-3 text-indigo-600" />
                   Digital SAT Core Modules
                 </div>
-                <h2 className="text-xl sm:text-2xl font-black text-slate-950 tracking-tight">
+                <h2 className="text-base sm:text-2xl font-black text-slate-950 tracking-tight">
                   Select Learning Option
                 </h2>
-                <p className="text-[11px] sm:text-xs text-slate-500 leading-relaxed">
+                <p className="text-[10px] sm:text-xs text-slate-500 leading-relaxed hidden sm:block">
                   Choose one of the 5 official learning options below to switch your practice session.
                 </p>
               </div>
 
               {/* OPTIONS IN A GRID */}
-              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-2 sm:gap-3 pt-1 overflow-y-auto">
+              <div className="grid grid-cols-2 gap-2 sm:gap-3 pt-0.5 overflow-y-auto">
                 {/* OPTION 1: READING */}
                 <button
                   onClick={() => handleSelectCategoryFromModal('reading')}
-                  className={`p-3 sm:p-4 rounded-xl sm:rounded-2xl border transition-all cursor-pointer text-left flex flex-col justify-between min-h-[110px] sm:min-h-[160px] group relative overflow-hidden col-span-1 ${
+                  className={`p-2.5 sm:p-4 rounded-xl sm:rounded-2xl border transition-all cursor-pointer text-left flex flex-col justify-between min-h-[75px] sm:min-h-[160px] group relative overflow-hidden col-span-1 ${
                     activeCategory === 'reading'
                       ? 'bg-blue-50/30 border-blue-600 ring-2 ring-blue-600/20 shadow-md'
                       : 'bg-white border-slate-200/90 hover:border-blue-600 hover:bg-blue-50/20 hover:shadow-lg'
@@ -905,9 +905,9 @@ where t represents the time in years since the start of the study, and N(t) repr
                 >
                   <div>
                     <div className="flex items-center justify-between mb-1 sm:mb-2.5">
-                      <span className="text-xl sm:text-2xl">📖</span>
-                      <span className="px-1.5 py-0.5 sm:px-2.5 sm:py-0.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-[8px] sm:text-[10px] font-black uppercase tracking-wider">
-                        6 Chapters
+                      <span className="text-lg sm:text-2xl">📖</span>
+                      <span className="px-1 py-0.2 sm:px-2.5 sm:py-0.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-[8px] sm:text-[10px] font-black uppercase tracking-wider">
+                        6 Chs
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
@@ -915,14 +915,14 @@ where t represents the time in years since the start of the study, and N(t) repr
                         1. Reading
                       </h3>
                       {activeCategory === 'reading' && (
-                        <span className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-blue-600 ring-2 sm:ring-4 ring-blue-100 flex-shrink-0 animate-pulse" title="Selected" />
+                        <span className="w-1.5 h-1.5 sm:w-3 sm:h-3 rounded-full bg-blue-600 ring-1 sm:ring-4 ring-blue-100 flex-shrink-0 animate-pulse" title="Selected" />
                       )}
                     </div>
                     <p className="hidden sm:block text-xs mt-1 leading-relaxed text-slate-600">
                       Main idea, claims, structure, inference, evidence & vocabulary in context.
                     </p>
                   </div>
-                  <div className="mt-1.5 sm:mt-3 flex items-center justify-between text-[10px] sm:text-xs font-bold text-indigo-600 group-hover:text-indigo-700">
+                  <div className="hidden sm:flex mt-1.5 sm:mt-3 items-center justify-between text-[10px] sm:text-xs font-bold text-indigo-600 group-hover:text-indigo-700">
                     <span className="flex items-center gap-1.5">
                       {activeCategory === 'reading' && (
                         <span className="w-1.5 h-1.5 rounded-full bg-blue-600" />
@@ -936,7 +936,7 @@ where t represents the time in years since the start of the study, and N(t) repr
                 {/* OPTION 2: WRITING */}
                 <button
                   onClick={() => handleSelectCategoryFromModal('writing')}
-                  className={`p-3 sm:p-4 rounded-xl sm:rounded-2xl border transition-all cursor-pointer text-left flex flex-col justify-between min-h-[110px] sm:min-h-[160px] group relative overflow-hidden col-span-1 ${
+                  className={`p-2.5 sm:p-4 rounded-xl sm:rounded-2xl border transition-all cursor-pointer text-left flex flex-col justify-between min-h-[75px] sm:min-h-[160px] group relative overflow-hidden col-span-1 ${
                     activeCategory === 'writing'
                       ? 'bg-blue-50/30 border-blue-600 ring-2 ring-blue-600/20 shadow-md'
                       : 'bg-white border-slate-200/90 hover:border-blue-600 hover:bg-blue-50/20 hover:shadow-lg'
@@ -944,9 +944,9 @@ where t represents the time in years since the start of the study, and N(t) repr
                 >
                   <div>
                     <div className="flex items-center justify-between mb-1 sm:mb-2.5">
-                      <span className="text-xl sm:text-2xl">✍️</span>
-                      <span className="px-1.5 py-0.5 sm:px-2.5 sm:py-0.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-[8px] sm:text-[10px] font-black uppercase tracking-wider">
-                        7 Chapters
+                      <span className="text-lg sm:text-2xl">✍️</span>
+                      <span className="px-1 py-0.2 sm:px-2.5 sm:py-0.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-[8px] sm:text-[10px] font-black uppercase tracking-wider">
+                        7 Chs
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
@@ -954,14 +954,14 @@ where t represents the time in years since the start of the study, and N(t) repr
                         2. Writing
                       </h3>
                       {activeCategory === 'writing' && (
-                        <span className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-blue-600 ring-2 sm:ring-4 ring-blue-100 flex-shrink-0 animate-pulse" title="Selected" />
+                        <span className="w-1.5 h-1.5 sm:w-3 sm:h-3 rounded-full bg-blue-600 ring-1 sm:ring-4 ring-blue-100 flex-shrink-0 animate-pulse" title="Selected" />
                       )}
                     </div>
                     <p className="hidden sm:block text-xs mt-1 leading-relaxed text-slate-600">
                       Standard English conventions, punctuation, sentence clauses & transitions.
                     </p>
                   </div>
-                  <div className="mt-1.5 sm:mt-3 flex items-center justify-between text-[10px] sm:text-xs font-bold text-indigo-600 group-hover:text-indigo-700">
+                  <div className="hidden sm:flex mt-1.5 sm:mt-3 items-center justify-between text-[10px] sm:text-xs font-bold text-indigo-600 group-hover:text-indigo-700">
                     <span className="flex items-center gap-1.5">
                       {activeCategory === 'writing' && (
                         <span className="w-1.5 h-1.5 rounded-full bg-blue-600" />
@@ -975,7 +975,7 @@ where t represents the time in years since the start of the study, and N(t) repr
                 {/* OPTION 3: MATH */}
                 <button
                   onClick={() => handleSelectCategoryFromModal('math')}
-                  className={`p-3 sm:p-4 rounded-xl sm:rounded-2xl border transition-all cursor-pointer text-left flex flex-col justify-between min-h-[110px] sm:min-h-[160px] group relative overflow-hidden col-span-1 ${
+                  className={`p-2.5 sm:p-4 rounded-xl sm:rounded-2xl border transition-all cursor-pointer text-left flex flex-col justify-between min-h-[75px] sm:min-h-[160px] group relative overflow-hidden col-span-1 ${
                     activeCategory === 'math'
                       ? 'bg-blue-50/30 border-blue-600 ring-2 ring-blue-600/20 shadow-md'
                       : 'bg-white border-slate-200/90 hover:border-blue-600 hover:bg-blue-50/20 hover:shadow-lg'
@@ -983,9 +983,9 @@ where t represents the time in years since the start of the study, and N(t) repr
                 >
                   <div>
                     <div className="flex items-center justify-between mb-1 sm:mb-2.5">
-                      <span className="text-2xl">📐</span>
-                      <span className="px-1.5 py-0.5 sm:px-2.5 sm:py-0.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-[8px] sm:text-[10px] font-black uppercase tracking-wider">
-                        11 Chapters
+                      <span className="text-lg sm:text-2xl">📐</span>
+                      <span className="px-1 py-0.2 sm:px-2.5 sm:py-0.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-[8px] sm:text-[10px] font-black uppercase tracking-wider">
+                        11 Chs
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
@@ -993,14 +993,14 @@ where t represents the time in years since the start of the study, and N(t) repr
                         3. Math
                       </h3>
                       {activeCategory === 'math' && (
-                        <span className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-blue-600 ring-2 sm:ring-4 ring-blue-100 flex-shrink-0 animate-pulse" title="Selected" />
+                        <span className="w-1.5 h-1.5 sm:w-3 sm:h-3 rounded-full bg-blue-600 ring-1 sm:ring-4 ring-blue-100 flex-shrink-0 animate-pulse" title="Selected" />
                       )}
                     </div>
                     <p className="hidden sm:block text-xs mt-1 leading-relaxed text-slate-600">
                       Algebra, Advanced Math, Problem Solving & Geometry with step-by-step solutions.
                     </p>
                   </div>
-                  <div className="mt-1.5 sm:mt-3 flex items-center justify-between text-[10px] sm:text-xs font-bold text-indigo-600 group-hover:text-indigo-700">
+                  <div className="hidden sm:flex mt-1.5 sm:mt-3 items-center justify-between text-[10px] sm:text-xs font-bold text-indigo-600 group-hover:text-indigo-700">
                     <span className="flex items-center gap-1.5">
                       {activeCategory === 'math' && (
                         <span className="w-1.5 h-1.5 rounded-full bg-blue-600" />
@@ -1014,7 +1014,7 @@ where t represents the time in years since the start of the study, and N(t) repr
                 {/* OPTION 4: DRILLS */}
                 <button
                   onClick={() => handleSelectCategoryFromModal('drills')}
-                  className={`p-3 sm:p-4 rounded-xl sm:rounded-2xl border transition-all cursor-pointer text-left flex flex-col justify-between min-h-[110px] sm:min-h-[160px] group relative overflow-hidden col-span-1 ${
+                  className={`p-2.5 sm:p-4 rounded-xl sm:rounded-2xl border transition-all cursor-pointer text-left flex flex-col justify-between min-h-[75px] sm:min-h-[160px] group relative overflow-hidden col-span-1 ${
                     activeCategory === 'drills'
                       ? 'bg-blue-50/30 border-blue-600 ring-2 ring-blue-600/20 shadow-md'
                       : 'bg-white border-slate-200/90 hover:border-blue-600 hover:bg-blue-50/20 hover:shadow-lg'
@@ -1022,9 +1022,9 @@ where t represents the time in years since the start of the study, and N(t) repr
                 >
                   <div>
                     <div className="flex items-center justify-between mb-1 sm:mb-2.5">
-                      <span className="text-2xl">⚡</span>
-                      <span className="px-1.5 py-0.5 sm:px-2.5 sm:py-0.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-[8px] sm:text-[10px] font-black uppercase">
-                        Full Practice
+                      <span className="text-lg sm:text-2xl">⚡</span>
+                      <span className="px-1 py-0.2 sm:px-2.5 sm:py-0.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-[8px] sm:text-[10px] font-black uppercase">
+                        Drills
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
@@ -1032,14 +1032,14 @@ where t represents the time in years since the start of the study, and N(t) repr
                         4. Drills
                       </h3>
                       {activeCategory === 'drills' && (
-                        <span className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-blue-600 ring-2 sm:ring-4 ring-blue-100 flex-shrink-0 animate-pulse" title="Selected" />
+                        <span className="w-1.5 h-1.5 sm:w-3 sm:h-3 rounded-full bg-blue-600 ring-1 sm:ring-4 ring-blue-100 flex-shrink-0 animate-pulse" title="Selected" />
                       )}
                     </div>
                     <p className="hidden sm:block text-xs mt-1 leading-relaxed text-slate-600">
                       Timed mixed speed drills, 400-1600 Score Predictor & Vocab Flashcards.
                     </p>
                   </div>
-                  <div className="mt-1.5 sm:mt-3 flex items-center justify-between text-[10px] sm:text-xs font-bold text-indigo-600 group-hover:text-indigo-700">
+                  <div className="hidden sm:flex mt-1.5 sm:mt-3 items-center justify-between text-[10px] sm:text-xs font-bold text-indigo-600 group-hover:text-indigo-700">
                     <span className="flex items-center gap-1.5">
                       {activeCategory === 'drills' && (
                         <span className="w-1.5 h-1.5 rounded-full bg-blue-600" />
@@ -1053,7 +1053,7 @@ where t represents the time in years since the start of the study, and N(t) repr
                 {/* OPTION 5: CALCULATOR */}
                 <button
                   onClick={() => handleSelectCategoryFromModal('calculator')}
-                  className={`p-3 sm:p-4 rounded-xl sm:rounded-2xl border transition-all cursor-pointer text-left flex flex-col justify-between min-h-[100px] sm:min-h-[160px] group relative overflow-hidden col-span-2 sm:col-span-1 ${
+                  className={`p-2.5 sm:p-4 rounded-xl sm:rounded-2xl border transition-all cursor-pointer text-left flex flex-col justify-between min-h-[75px] sm:min-h-[160px] group relative overflow-hidden col-span-2 sm:col-span-1 ${
                     activeCategory === 'calculator'
                       ? 'bg-blue-50/30 border-blue-600 ring-2 ring-blue-600/20 shadow-md'
                       : 'bg-white border-slate-200/90 hover:border-blue-600 hover:bg-blue-50/20 hover:shadow-lg'
@@ -1061,8 +1061,8 @@ where t represents the time in years since the start of the study, and N(t) repr
                 >
                   <div>
                     <div className="flex items-center justify-between mb-1 sm:mb-2.5">
-                      <span className="text-2xl">🧮</span>
-                      <span className="px-1.5 py-0.5 sm:px-2.5 sm:py-0.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-[8px] sm:text-[10px] font-black uppercase">
+                      <span className="text-lg sm:text-2xl">🧮</span>
+                      <span className="px-1 py-0.2 sm:px-2.5 sm:py-0.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-[8px] sm:text-[10px] font-black uppercase">
                         SUITE
                       </span>
                     </div>
@@ -1071,14 +1071,14 @@ where t represents the time in years since the start of the study, and N(t) repr
                         5. Calculator
                       </h3>
                       {activeCategory === 'calculator' && (
-                        <span className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-blue-600 ring-2 sm:ring-4 ring-blue-100 flex-shrink-0 animate-pulse" title="Selected" />
+                        <span className="w-1.5 h-1.5 sm:w-3 sm:h-3 rounded-full bg-blue-600 ring-1 sm:ring-4 ring-blue-100 flex-shrink-0 animate-pulse" title="Selected" />
                       )}
                     </div>
                     <p className="hidden sm:block text-xs mt-1 leading-relaxed text-slate-600">
                       High-precision scientific calculator optimized for SAT math problems.
                     </p>
                   </div>
-                  <div className="mt-1.5 sm:mt-3 flex items-center justify-between text-[10px] sm:text-xs font-bold text-indigo-600 group-hover:text-indigo-700">
+                  <div className="hidden sm:flex mt-1.5 sm:mt-3 flex items-center justify-between text-[10px] sm:text-xs font-bold text-indigo-600 group-hover:text-indigo-700">
                     <span className="flex items-center gap-1.5">
                       {activeCategory === 'calculator' && (
                         <span className="w-1.5 h-1.5 rounded-full bg-blue-600" />

@@ -111,17 +111,6 @@ export const EssayBuilder: React.FC<EssayBuilderProps> = ({
   // Stage Navigation
   const handleStageChange = (nextStage: BuilderStage) => {
     setCurrentStage(nextStage);
-    const stageTitles: Record<BuilderStage, string> = {
-      prompt: 'Prompt Setup',
-      brainstorm: 'Brainstorm Ideas',
-      draft: 'Draft Editor',
-      review: 'AI Analysis & Review',
-    };
-    handleSaveDraft(nextStage, {
-      notifyToast: true,
-      toastTitle: 'Stage Progress Saved',
-      toastMessage: `Saved to local storage • Now in ${stageTitles[nextStage]}`,
-    });
   };
 
   // Track unsaved changes relative to activeDraft (Manual save mode)
@@ -297,12 +286,20 @@ export const EssayBuilder: React.FC<EssayBuilderProps> = ({
   return (
     <div id="essay-builder" className="space-y-6 pb-12">
       {/* BUILDER HEADER */}
-      <div className="bg-white border border-slate-200/80 rounded-[28px] p-5 sm:p-6 shadow-[0_4px_20px_rgba(0,0,0,0.03)] space-y-4">
+      <div className="bg-white border border-slate-200/80 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-[0_4px_20px_rgba(0,0,0,0.03)] space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <button
-              onClick={onBackToHub}
-              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-white border border-slate-200/90 shadow-xs text-xs font-bold text-slate-700 hover:text-indigo-600 hover:bg-slate-50 transition-all cursor-pointer"
+              onClick={() => {
+                if (saveStatus === 'Unsaved') {
+                  if (confirm('You have unsaved changes in your essay draft. Are you sure you want to exit to the hub and discard them?')) {
+                    onBackToHub();
+                  }
+                } else {
+                  onBackToHub();
+                }
+              }}
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white border border-slate-200/90 shadow-xs text-xs font-bold text-slate-700 hover:text-indigo-600 hover:bg-slate-50 transition-all cursor-pointer"
               title="Return to Essay Hub"
             >
               <ArrowLeft className="w-4 h-4 text-indigo-600" />
@@ -315,9 +312,9 @@ export const EssayBuilder: React.FC<EssayBuilderProps> = ({
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Essay Title..."
-                className="text-lg sm:text-xl font-extrabold text-slate-950 bg-transparent focus:outline-none focus:border-b-2 border-indigo-600"
+                className="text-base sm:text-xl font-extrabold text-slate-950 bg-transparent focus:outline-none focus:border-b-2 border-indigo-600"
               />
-              <span className="text-xs text-slate-500 font-medium block">
+              <span className="text-[10px] sm:text-xs text-slate-500 font-semibold block mt-0.5">
                 {essayType} • Max {wordLimit} words
               </span>
             </div>
@@ -328,24 +325,24 @@ export const EssayBuilder: React.FC<EssayBuilderProps> = ({
               {saveStatus === 'Saved' ? (
                 <>
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
-                  <span>Saved</span>
+                  <span className="hidden xs:inline">Saved</span>
                 </>
               ) : saveStatus === 'Saving...' ? (
                 <>
                   <RefreshCw className="w-3.5 h-3.5 animate-spin text-indigo-500" />
-                  <span>Saving...</span>
+                  <span className="hidden xs:inline">Saving...</span>
                 </>
               ) : (
                 <>
                   <AlertCircle className="w-3.5 h-3.5 text-amber-500" />
-                  <span className="text-amber-600 font-bold">Unsaved changes</span>
+                  <span className="text-amber-600 font-bold hidden xs:inline">Unsaved changes</span>
                 </>
               )}
             </span>
 
             <button
               onClick={() => handleSaveDraft()}
-              className={`px-4 py-2 rounded-xl font-bold text-xs transition-all flex items-center gap-1.5 cursor-pointer ${
+              className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl font-bold text-xs transition-all flex items-center gap-1.5 cursor-pointer ${
                 saveStatus === 'Unsaved'
                   ? 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm'
                   : 'bg-slate-100 hover:bg-slate-200 text-slate-800'
@@ -358,7 +355,7 @@ export const EssayBuilder: React.FC<EssayBuilderProps> = ({
         </div>
 
         {/* STEPPER PROGRESS BAR */}
-        <div className="grid grid-cols-4 gap-2 pt-3 border-t border-slate-100">
+        <div className="grid grid-cols-4 gap-1 sm:gap-2 pt-3 border-t border-slate-100">
           {steps.map((s) => {
             const isActive = currentStage === s.stage;
             const stageOrder: Record<BuilderStage, number> = { prompt: 1, brainstorm: 2, draft: 3, review: 4 };
@@ -368,7 +365,7 @@ export const EssayBuilder: React.FC<EssayBuilderProps> = ({
               <button
                 key={s.stage}
                 onClick={() => handleStageChange(s.stage)}
-                className={`py-2.5 px-2 rounded-xl text-xs font-extrabold transition-all text-center cursor-pointer ${
+                className={`h-9 sm:h-10 px-1 sm:px-2 rounded-lg sm:rounded-xl text-[9px] sm:text-xs font-extrabold transition-all text-center flex items-center justify-center leading-tight cursor-pointer ${
                   isActive
                     ? 'bg-slate-900 text-white shadow-xs'
                     : isCompleted
