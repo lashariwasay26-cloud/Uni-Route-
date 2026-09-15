@@ -23,7 +23,12 @@ import {
   Sparkles,
   FileText,
   Save,
-  Check
+  Check,
+  Type,
+  Columns,
+  List,
+  ZoomIn,
+  ZoomOut
 } from 'lucide-react';
 import {
   SatDrillQuestion,
@@ -171,6 +176,12 @@ export const SatDrillSession: React.FC<SatDrillSessionProps> = ({
 
   // Restored notification flag
   const [hasRestoredBanner, setHasRestoredBanner] = useState<boolean>(!!savedSession);
+
+  // Zoom / Text Density State ('compact' = zoomed out, 'standard' = normal, 'large' = comfortable)
+  const [zoomLevel, setZoomLevel] = useState<'compact' | 'standard' | 'large'>('compact');
+
+  // Mobile View Mode ('split' | 'passage' | 'question') for comfortable reading on phones
+  const [mobileTab, setMobileTab] = useState<'split' | 'passage' | 'question'>('split');
 
   // UI Tool Overlays
   const [isGridOpen, setIsGridOpen] = useState(false);
@@ -533,10 +544,10 @@ export const SatDrillSession: React.FC<SatDrillSessionProps> = ({
   }
 
   const sessionContent = (
-    <div className="fixed inset-0 z-[99999] bg-[#f8fafc] text-slate-900 flex flex-col font-sans select-none overflow-hidden h-screen h-[100dvh] w-screen">
+    <div className="fixed inset-0 z-[99999] bg-[#f8fafc] text-slate-900 flex flex-col font-sans select-none overflow-hidden h-full h-[100dvh] w-screen max-w-full">
       {/* Top Header Toolbar */}
-      <header className="h-14 sm:h-16 bg-white border-b border-slate-200/90 px-3 sm:px-6 flex items-center justify-between shrink-0 shadow-2xs gap-2">
-        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+      <header className="h-13 sm:h-15 md:h-16 bg-white border-b border-slate-200/90 px-2.5 sm:px-6 flex items-center justify-between shrink-0 shadow-2xs gap-1.5 sm:gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
           <button
             onClick={() => setIsExitConfirmModalOpen(true)}
             className="p-1.5 sm:p-2 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-100 border border-slate-200/70 transition-colors cursor-pointer"
@@ -546,14 +557,14 @@ export const SatDrillSession: React.FC<SatDrillSessionProps> = ({
           </button>
           
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-slate-950 text-white font-extrabold text-xs sm:text-sm flex items-center justify-center shadow-xs">
+            <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-slate-950 text-white font-extrabold text-[11px] sm:text-sm flex items-center justify-center shadow-xs">
               U
             </div>
             <div>
-              <h1 className="text-xs sm:text-sm font-black text-slate-950 tracking-tight truncate max-w-[130px] sm:max-w-none">
+              <h1 className="text-[11px] sm:text-sm font-black text-slate-950 tracking-tight truncate max-w-[110px] sm:max-w-none">
                 {currentSection} — {currentModule}
               </h1>
-              <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider hidden sm:block">
+              <p className="text-[9px] sm:text-[10px] text-slate-500 font-bold uppercase tracking-wider hidden sm:block">
                 Uni Route SAT Practice Drill #{drillId}
               </p>
             </div>
@@ -561,45 +572,52 @@ export const SatDrillSession: React.FC<SatDrillSessionProps> = ({
         </div>
 
         {/* Center: Timer Bar & Auto-save Status */}
-        <div className="flex items-center gap-2 shrink-0">
-          <div className="flex items-center gap-1.5 sm:gap-2 bg-slate-100/90 border border-slate-200/80 rounded-full px-2.5 sm:px-3.5 py-1 sm:py-1.5 shadow-2xs">
-            <Clock className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${timeRemaining < 300 ? 'text-rose-500 animate-pulse' : 'text-indigo-600'}`} />
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          <div className="flex items-center gap-1 sm:gap-2 bg-slate-100/90 border border-slate-200/80 rounded-full px-2 sm:px-3 py-0.5 sm:py-1.5 shadow-2xs">
+            <Clock className={`w-3 h-3 sm:w-4 sm:h-4 ${timeRemaining < 300 ? 'text-rose-500 animate-pulse' : 'text-indigo-600'}`} />
             {showTimer ? (
-              <span className={`text-xs sm:text-sm font-mono font-black ${timeRemaining < 300 ? 'text-rose-600' : 'text-slate-800'}`}>
+              <span className={`text-[11px] sm:text-sm font-mono font-black ${timeRemaining < 300 ? 'text-rose-600' : 'text-slate-800'}`}>
                 {formatTime(timeRemaining)}
               </span>
             ) : (
-              <span className="text-xs font-mono font-bold text-slate-400">Hidden</span>
+              <span className="text-[11px] sm:text-xs font-mono font-bold text-slate-400">Hidden</span>
             )}
             <button
               onClick={() => setShowTimer(!showTimer)}
               className="text-slate-400 hover:text-slate-700 ml-0.5 sm:ml-1 cursor-pointer transition-colors"
               title={showTimer ? 'Hide Timer' : 'Show Timer'}
             >
-              {showTimer ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+              {showTimer ? <EyeOff className="w-3 h-3 sm:w-3.5 sm:h-3.5" /> : <Eye className="w-3 h-3 sm:w-3.5 sm:h-3.5" />}
             </button>
           </div>
 
-          <div className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200/70 text-[11px] font-bold text-emerald-700">
-            <Check className="w-3 h-3 text-emerald-600" />
-            <span>Progress Saved</span>
-          </div>
+          {/* Zoom / Text Size Toggle (Compact / Standard / Large) */}
+          <button
+            onClick={() => {
+              setZoomLevel((prev) => (prev === 'compact' ? 'standard' : prev === 'standard' ? 'large' : 'compact'));
+            }}
+            className="px-2 sm:px-2.5 py-1 rounded-full bg-slate-100 hover:bg-slate-200/80 border border-slate-200 text-[10px] sm:text-xs font-bold text-slate-700 flex items-center gap-1 cursor-pointer transition-colors"
+            title={`Zoom Level: ${zoomLevel.toUpperCase()} (Tap to switch)`}
+          >
+            <Type className="w-3 h-3 text-slate-600" />
+            <span className="capitalize">{zoomLevel}</span>
+          </button>
         </div>
 
         {/* Right: Tools & Controls */}
-        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+        <div className="flex items-center gap-1 sm:gap-2 shrink-0">
           {currentSection === 'Math' && (
             <>
               <button
                 onClick={() => setIsCalculatorOpen(true)}
-                className="px-2.5 sm:px-3 py-1.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer"
+                className="px-2 sm:px-3 py-1 sm:py-1.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer"
               >
                 <Calculator className="w-3.5 h-3.5 text-indigo-600" />
                 <span className="hidden sm:inline">Calculator</span>
               </button>
               <button
                 onClick={() => setIsFormulaSheetOpen(true)}
-                className="px-2.5 sm:px-3 py-1.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer"
+                className="px-2 sm:px-3 py-1 sm:py-1.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer"
               >
                 <BookOpen className="w-3.5 h-3.5 text-emerald-600" />
                 <span className="hidden sm:inline">Reference</span>
@@ -609,19 +627,19 @@ export const SatDrillSession: React.FC<SatDrillSessionProps> = ({
 
           <button
             onClick={() => setIsGridOpen(true)}
-            className="px-2.5 sm:px-3.5 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 border border-indigo-200/80 text-indigo-700 text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer"
+            className="px-2 sm:px-3.5 py-1 sm:py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 border border-indigo-200/80 text-indigo-700 text-[11px] sm:text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer"
           >
-            <Grid className="w-3.5 h-3.5" />
+            <Grid className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
             <span className="hidden sm:inline">Question Palette </span>
             <span>({activeQuestionIndex + 1}/{moduleQuestions.length})</span>
           </button>
         </div>
       </header>
 
-      {/* Main Test Split Screen View */}
-      <div className="flex-1 overflow-hidden p-2.5 sm:p-4 max-w-7xl mx-auto w-full flex flex-col min-h-0">
+      {/* Main Test Content View */}
+      <main className="flex-1 overflow-y-auto md:overflow-hidden p-2 sm:p-3 md:p-4 max-w-7xl mx-auto w-full flex flex-col min-h-0">
         {isTransitioning ? (
-          <div className="flex-1 bg-white border border-slate-200/90 rounded-3xl flex flex-col items-center justify-center p-6 text-center shadow-xs">
+          <div className="flex-1 bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl flex flex-col items-center justify-center p-6 text-center shadow-xs">
             <Sparkles className="w-12 h-12 text-indigo-600 animate-spin mb-4" />
             <h2 className="text-xl font-bold text-slate-950 mb-2">Preparing Next Module...</h2>
             <p className="text-sm text-slate-600 max-w-sm">
@@ -631,131 +649,231 @@ export const SatDrillSession: React.FC<SatDrillSessionProps> = ({
         ) : !activeQuestion ? (
           <div className="p-8 text-center text-slate-500">Loading module questions...</div>
         ) : (
-          <div className="flex-1 flex flex-col md:flex-row gap-3 sm:gap-4 overflow-hidden min-h-0">
-            {/* Left Pane: Passage or Context Stimulus */}
+          <div className="flex-1 flex flex-col min-h-0">
+            {/* Mobile View Selector (when passage exists) */}
             {activeQuestion.passage && (
-              <div
-                ref={passageScrollRef}
-                className="md:w-1/2 bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-4 sm:p-7 overflow-y-auto max-h-[35vh] md:max-h-full shadow-2xs flex flex-col scroll-smooth min-h-0 shrink-0 md:shrink"
-              >
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-200/60 text-[11px] font-bold text-indigo-700 mb-4 w-fit">
-                  <FileText className="w-3.5 h-3.5 text-indigo-600" />
-                  <span>Passage Text</span>
-                </div>
-                <div className="text-sm sm:text-base text-slate-800 leading-relaxed font-serif whitespace-pre-line space-y-4">
-                  {activeQuestion.passage}
-                </div>
+              <div className="md:hidden flex items-center justify-between bg-slate-200/70 p-1 rounded-xl mb-2 shrink-0">
+                <button
+                  onClick={() => setMobileTab('passage')}
+                  className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1 ${
+                    mobileTab === 'passage'
+                      ? 'bg-white text-indigo-700 shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <FileText className="w-3 h-3" />
+                  <span>Passage</span>
+                </button>
+                <button
+                  onClick={() => setMobileTab('question')}
+                  className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1 ${
+                    mobileTab === 'question'
+                      ? 'bg-white text-indigo-700 shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <List className="w-3 h-3" />
+                  <span>Question & Choices</span>
+                </button>
+                <button
+                  onClick={() => setMobileTab('split')}
+                  className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1 ${
+                    mobileTab === 'split'
+                      ? 'bg-white text-indigo-700 shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <Columns className="w-3 h-3" />
+                  <span>Both</span>
+                </button>
               </div>
             )}
 
-            {/* Right Pane: Question & Choices */}
-            <div
-              ref={questionScrollRef}
-              className={`flex-1 bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-4 sm:p-7 overflow-y-auto shadow-2xs flex flex-col justify-between scroll-smooth min-h-0 ${!activeQuestion.passage ? 'max-w-3xl mx-auto w-full' : ''}`}
-            >
-              <motion.div
-                key={activeQuestion.id}
-                initial={{ opacity: 0.85 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.08 }}
-                className="flex flex-col justify-between flex-1"
-              >
-                <div>
-                  {/* Question Header & Flag Toggle */}
-                  <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
-                    <div className="flex items-center gap-2.5">
-                      <span className="w-7 h-7 rounded-xl bg-slate-950 text-white font-black text-xs flex items-center justify-center shadow-xs">
-                        {activeQuestionIndex + 1}
-                      </span>
-                      <span className="text-xs font-bold text-slate-500">
-                        {activeQuestion.domain} • {activeQuestion.skill}
-                      </span>
+            {/* Content Container (Split Grid on Desktop, Responsive on Mobile) */}
+            <div className="flex-1 flex flex-col md:flex-row gap-2.5 sm:gap-4 overflow-hidden min-h-0">
+              {/* Left Pane: Passage or Context Stimulus */}
+              {activeQuestion.passage && (mobileTab === 'passage' || mobileTab === 'split') && (
+                <div
+                  ref={passageScrollRef}
+                  className={`md:w-1/2 bg-white border border-slate-200/90 rounded-xl sm:rounded-2xl md:rounded-3xl p-3 sm:p-5 md:p-6 overflow-y-auto shadow-2xs flex flex-col scroll-smooth min-h-0 ${
+                    mobileTab === 'split' ? 'max-h-[30vh] md:max-h-full shrink-0 md:shrink' : 'flex-1'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-2 sm:mb-3">
+                    <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-indigo-50 border border-indigo-200/60 text-[10px] sm:text-[11px] font-bold text-indigo-700 w-fit">
+                      <FileText className="w-3 h-3 text-indigo-600" />
+                      <span>Passage Text</span>
                     </div>
 
-                    <button
-                      onClick={handleToggleFlag}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
-                        responses[activeQuestion.id]?.flaggedForReview
-                          ? 'bg-amber-50 text-amber-800 border border-amber-300 shadow-2xs'
-                          : 'bg-slate-100 hover:bg-slate-200 text-slate-600 border border-slate-200/60'
-                      }`}
-                    >
-                      <Bookmark className="w-3.5 h-3.5" />
-                      <span>{responses[activeQuestion.id]?.flaggedForReview ? 'Flagged' : 'Flag for Review'}</span>
-                    </button>
+                    {mobileTab === 'passage' && (
+                      <button
+                        onClick={() => setMobileTab('question')}
+                        className="md:hidden text-[11px] font-bold text-indigo-600 flex items-center gap-1 hover:underline cursor-pointer"
+                      >
+                        <span>View Question</span>
+                        <ArrowRight className="w-3 h-3" />
+                      </button>
+                    )}
                   </div>
-
-                  {/* Question Text */}
-                  <div className="text-sm sm:text-base font-bold text-slate-950 mb-6 leading-relaxed">
-                    {activeQuestion.questionText}
+                  <div
+                    className={`${
+                      zoomLevel === 'compact'
+                        ? 'text-xs sm:text-[13.5px] leading-relaxed'
+                        : zoomLevel === 'standard'
+                        ? 'text-[13.5px] sm:text-[15px] leading-relaxed'
+                        : 'text-sm sm:text-base leading-relaxed'
+                    } text-slate-800 font-serif whitespace-pre-line space-y-3`}
+                  >
+                    {activeQuestion.passage}
                   </div>
+                </div>
+              )}
 
-                  {/* Answer Inputs */}
-                  {activeQuestion.responseType === 'MCQ' && activeQuestion.choices ? (
-                    <div className="space-y-3">
-                      {activeQuestion.choices.map((choiceText, index) => {
-                        const letter = ['A', 'B', 'C', 'D'][index];
-                        const isSelected = responses[activeQuestion.id]?.studentAnswer === letter;
+              {/* Right Pane: Question & Choices */}
+              {(mobileTab === 'question' || mobileTab === 'split' || !activeQuestion.passage) && (
+                <div
+                  ref={questionScrollRef}
+                  className={`flex-1 bg-white border border-slate-200/90 rounded-xl sm:rounded-2xl md:rounded-3xl p-3 sm:p-5 md:p-6 overflow-y-auto shadow-2xs flex flex-col justify-between scroll-smooth min-h-0 ${
+                    !activeQuestion.passage ? 'max-w-3xl mx-auto w-full' : ''
+                  }`}
+                >
+                  <motion.div
+                    key={activeQuestion.id}
+                    initial={{ opacity: 0.85 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.08 }}
+                    className="flex flex-col justify-between flex-1"
+                  >
+                    <div>
+                      {/* Question Header & Flag Toggle */}
+                      <div className="flex items-center justify-between mb-2.5 sm:mb-3 pb-2 sm:pb-3 border-b border-slate-100">
+                        <div className="flex items-center gap-2">
+                          <span className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg sm:rounded-xl bg-slate-950 text-white font-black text-[11px] sm:text-xs flex items-center justify-center shadow-xs">
+                            {activeQuestionIndex + 1}
+                          </span>
+                          <span className="text-[11px] sm:text-xs font-bold text-slate-500 truncate max-w-[180px] sm:max-w-none">
+                            {activeQuestion.domain} • {activeQuestion.skill}
+                          </span>
+                        </div>
 
-                        return (
-                          <div
-                            key={letter}
-                            onClick={() => handleAnswerSelect(letter)}
-                            className={`p-4 rounded-2xl border text-sm sm:text-base font-medium transition-all cursor-pointer flex items-center gap-3.5 ${
-                              isSelected
-                                ? 'border-2 border-indigo-600 bg-indigo-50/70 text-indigo-950 font-bold shadow-xs ring-2 ring-indigo-500/20'
-                                : 'border-slate-200/90 bg-white hover:border-indigo-300 hover:bg-slate-50/80 text-slate-800 shadow-2xs'
+                        <div className="flex items-center gap-2">
+                          {activeQuestion.passage && mobileTab === 'question' && (
+                            <button
+                              onClick={() => setMobileTab('passage')}
+                              className="md:hidden px-2 py-1 rounded-lg bg-indigo-50 border border-indigo-200 text-indigo-700 text-[11px] font-bold flex items-center gap-1 cursor-pointer"
+                            >
+                              <FileText className="w-3 h-3" />
+                              <span>Passage</span>
+                            </button>
+                          )}
+
+                          <button
+                            onClick={handleToggleFlag}
+                            className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                              responses[activeQuestion.id]?.flaggedForReview
+                                ? 'bg-amber-50 text-amber-800 border border-amber-300 shadow-2xs'
+                                : 'bg-slate-100 hover:bg-slate-200 text-slate-600 border border-slate-200/60'
                             }`}
                           >
-                            <span className={`w-7 h-7 rounded-full font-bold text-xs flex items-center justify-center shrink-0 transition-all ${
-                              isSelected
-                                ? 'bg-indigo-600 border border-indigo-600 text-white shadow-xs'
-                                : 'bg-slate-100 border border-slate-300 text-slate-700'
-                            }`}>
-                              {letter}
-                            </span>
-                            <span className="flex-1 leading-snug">{choiceText.replace(/^[A-D]\)\s*/, '')}</span>
-                          </div>
-                        );
-                      })}
+                            <Bookmark className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                            <span>{responses[activeQuestion.id]?.flaggedForReview ? 'Flagged' : 'Flag'}</span>
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Question Text */}
+                      <div
+                        className={`${
+                          zoomLevel === 'compact'
+                            ? 'text-[12.5px] sm:text-[14.5px] mb-3 sm:mb-4'
+                            : zoomLevel === 'standard'
+                            ? 'text-[13.5px] sm:text-base mb-4 sm:mb-6'
+                            : 'text-sm sm:text-lg mb-5 sm:mb-7'
+                        } font-bold text-slate-950 leading-snug`}
+                      >
+                        {activeQuestion.questionText}
+                      </div>
+
+                      {/* Answer Inputs */}
+                      {activeQuestion.responseType === 'MCQ' && activeQuestion.choices ? (
+                        <div className={zoomLevel === 'compact' ? 'space-y-1.5 sm:space-y-2.5' : 'space-y-2.5 sm:space-y-3'}>
+                          {activeQuestion.choices.map((choiceText, index) => {
+                            const letter = ['A', 'B', 'C', 'D'][index];
+                            const isSelected = responses[activeQuestion.id]?.studentAnswer === letter;
+
+                            return (
+                              <div
+                                key={letter}
+                                onClick={() => handleAnswerSelect(letter)}
+                                className={`rounded-xl border transition-all cursor-pointer flex items-center ${
+                                  zoomLevel === 'compact'
+                                    ? 'p-2 sm:p-3 gap-2.5 text-xs sm:text-[13.5px]'
+                                    : zoomLevel === 'standard'
+                                    ? 'p-3 sm:p-4 gap-3 text-xs sm:text-sm'
+                                    : 'p-3.5 sm:p-4.5 gap-3.5 text-sm sm:text-base'
+                                } font-medium ${
+                                  isSelected
+                                    ? 'border-2 border-indigo-600 bg-indigo-50/80 text-indigo-950 font-bold shadow-xs ring-2 ring-indigo-500/20'
+                                    : 'border-slate-200/90 bg-white hover:border-indigo-300 hover:bg-slate-50/80 text-slate-800 shadow-2xs'
+                                }`}
+                              >
+                                <span
+                                  className={`rounded-full font-bold flex items-center justify-center shrink-0 transition-all ${
+                                    zoomLevel === 'compact'
+                                      ? 'w-5.5 h-5.5 sm:w-6.5 sm:h-6.5 text-[11px] sm:text-xs'
+                                      : 'w-6.5 h-6.5 sm:w-7 sm:h-7 text-xs'
+                                  } ${
+                                    isSelected
+                                      ? 'bg-indigo-600 border border-indigo-600 text-white shadow-xs'
+                                      : 'bg-slate-100 border border-slate-300 text-slate-700'
+                                  }`}
+                                >
+                                  {letter}
+                                </span>
+                                <span className="flex-1 leading-snug">{choiceText.replace(/^[A-D]\)\s*/, '')}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        /* Student Produced Response (SPR) Input */
+                        <div className="space-y-2 bg-slate-50 border border-slate-200/90 rounded-xl sm:rounded-2xl p-3 sm:p-4">
+                          <label className="block text-xs font-bold text-slate-700 mb-1">
+                            Student-Produced Response (Enter fraction, decimal, or integer):
+                          </label>
+                          <input
+                            type="text"
+                            value={responses[activeQuestion.id]?.studentAnswer || ''}
+                            onChange={(e) => handleAnswerSelect(e.target.value)}
+                            placeholder="e.g. 123.75 or 7"
+                            className="w-full bg-white border border-slate-300 rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base text-slate-900 font-mono font-bold focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none shadow-2xs"
+                          />
+                        </div>
+                      )}
                     </div>
-                  ) : (
-                    /* Student Produced Response (SPR) Input */
-                    <div className="space-y-3 bg-slate-50 border border-slate-200/90 rounded-2xl p-5">
-                      <label className="block text-xs font-bold text-slate-700 mb-1">
-                        Student-Produced Response (Enter fraction, decimal, or integer):
-                      </label>
-                      <input
-                        type="text"
-                        value={responses[activeQuestion.id]?.studentAnswer || ''}
-                        onChange={(e) => handleAnswerSelect(e.target.value)}
-                        placeholder="e.g. 123.75 or 7"
-                        className="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 text-base text-slate-900 font-mono font-bold focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none shadow-2xs"
-                      />
-                    </div>
-                  )}
+                  </motion.div>
                 </div>
-              </motion.div>
+              )}
             </div>
           </div>
         )}
-      </div>
+      </main>
 
-      {/* Bottom Footer Navigation */}
-      <footer className="h-16 bg-white border-t border-slate-200/90 px-4 sm:px-6 flex items-center justify-between shrink-0 shadow-2xs">
+      {/* Bottom Footer Navigation Bar (Guaranteed Sticky & Always Visible) */}
+      <footer className="h-14 sm:h-16 bg-white border-t border-slate-200/90 px-3 sm:px-6 flex items-center justify-between shrink-0 shadow-[0_-4px_16px_rgba(0,0,0,0.06)] z-40">
         <button
           onClick={() => setActiveQuestionIndex((prev) => Math.max(0, prev - 1))}
           disabled={activeQuestionIndex === 0}
-          className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 disabled:opacity-40 text-slate-700 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer border border-slate-200/60"
+          className="px-3 sm:px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 disabled:opacity-30 disabled:pointer-events-none text-slate-700 text-xs sm:text-sm font-bold flex items-center gap-1.5 transition-colors cursor-pointer border border-slate-200/70 shadow-2xs"
         >
           <ChevronLeft className="w-4 h-4" />
           <span>Back</span>
         </button>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           <button
             onClick={() => setIsExitConfirmModalOpen(true)}
-            className="px-4 py-2.5 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer"
+            className="px-3 sm:px-4 py-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer"
           >
             <Save className="w-3.5 h-3.5 text-indigo-600" />
             <span className="hidden sm:inline">Save & Exit</span>
@@ -764,7 +882,7 @@ export const SatDrillSession: React.FC<SatDrillSessionProps> = ({
           {activeQuestionIndex < moduleQuestions.length - 1 ? (
             <button
               onClick={() => setActiveQuestionIndex((prev) => Math.min(moduleQuestions.length - 1, prev + 1))}
-              className="px-6 py-2.5 rounded-xl bg-slate-950 hover:bg-indigo-600 text-white text-xs font-bold flex items-center gap-2 transition-all cursor-pointer shadow-sm"
+              className="px-5 sm:px-7 py-2 sm:py-2.5 rounded-xl bg-slate-950 hover:bg-indigo-600 text-white text-xs sm:text-sm font-bold flex items-center gap-2 transition-all cursor-pointer shadow-sm hover:shadow-indigo-500/20"
             >
               <span>Next</span>
               <ChevronRight className="w-4 h-4" />
@@ -772,7 +890,7 @@ export const SatDrillSession: React.FC<SatDrillSessionProps> = ({
           ) : (
             <button
               onClick={() => setIsSubmitModalOpen(true)}
-              className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-2 transition-all cursor-pointer shadow-sm"
+              className="px-5 sm:px-7 py-2 sm:py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-bold flex items-center gap-2 transition-all cursor-pointer shadow-sm"
             >
               <span>Submit Module</span>
               <CheckCircle2 className="w-4 h-4" />

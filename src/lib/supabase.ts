@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 import { UniversityTrackItem, GovernmentTrackItem } from '../types';
 import { getSatSummary } from '../utils/universityUtils';
 import { FullSatWritingChapter, WritingTheoryBlock, WritingExerciseBlock } from '../data/writing/satWritingTypes';
+import { DEFAULT_GOVERNMENT_SCHOLARSHIPS } from '../data/governmentScholarshipsData';
 
 // Read Supabase environment variables
 const getEnvVar = (key: string): string => {
@@ -281,9 +282,12 @@ export function getCachedUniversityScholarships(trackType?: 'international' | 'p
   return cachedUniversityScholarships;
 }
 
-export function getCachedGovernmentScholarships(): GovernmentTrackItem[] | null {
-  if (!cachedGovernmentScholarships) {
+export function getCachedGovernmentScholarships(): GovernmentTrackItem[] {
+  if (!cachedGovernmentScholarships || cachedGovernmentScholarships.length === 0) {
     cachedGovernmentScholarships = getLocalStorageCache<GovernmentTrackItem[]>(CACHE_KEY_GOVERNMENT);
+  }
+  if (!cachedGovernmentScholarships || cachedGovernmentScholarships.length === 0) {
+    cachedGovernmentScholarships = DEFAULT_GOVERNMENT_SCHOLARSHIPS;
   }
   return cachedGovernmentScholarships;
 }
@@ -2227,7 +2231,7 @@ export async function fetchGovernmentScholarshipsFromSupabase() {
 }
 
 async function fetchGovernmentScholarshipsFromSupabaseBackground(): Promise<GovernmentTrackItem[]> {
-  if (!supabase) return cachedGovernmentScholarships || [];
+  if (!supabase) return getCachedGovernmentScholarships();
   try {
     const { data, error } = await supabase
       .from('government_scholarships')
@@ -2235,8 +2239,8 @@ async function fetchGovernmentScholarshipsFromSupabaseBackground(): Promise<Gove
       .limit(100);
 
     if (error) {
-      console.error('Error querying government scholarships table:', error);
-      return cachedGovernmentScholarships || [];
+      console.warn('Note: Could not query government scholarships table from Supabase, using local verified dataset:', error.message || error);
+      return getCachedGovernmentScholarships();
     }
 
     const formattedList: GovernmentTrackItem[] = (data || []).map((row, idx) => mapRowToGovernmentTrack(row, idx));
@@ -2246,11 +2250,12 @@ async function fetchGovernmentScholarshipsFromSupabaseBackground(): Promise<Gove
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent('uniroute-gov-scholarships-updated', { detail: { scholarships: formattedList } }));
       }
+      return formattedList;
     }
-    return formattedList.length > 0 ? formattedList : (cachedGovernmentScholarships || []);
-  } catch (err) {
-    console.error('Exception fetching government scholarships:', err);
-    return cachedGovernmentScholarships || [];
+    return getCachedGovernmentScholarships();
+  } catch (err: any) {
+    console.warn('Network issue fetching government scholarships from Supabase, using local verified dataset:', err?.message || err);
+    return getCachedGovernmentScholarships();
   }
 }
 
