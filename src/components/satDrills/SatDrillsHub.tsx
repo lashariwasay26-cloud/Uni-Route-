@@ -22,8 +22,14 @@ import {
   getBestDrillScore,
   clearActiveDrillSession,
   clearSingleDrillProgress,
-  clearAllDrillProgress
+  clearAllDrillProgress,
+  setDrill1SupabaseOverride,
+  setDrill2SupabaseOverride,
+  setDrill3SupabaseOverride,
+  setDrill4SupabaseOverride,
+  setDrill5SupabaseOverride
 } from '../../data/satDrills';
+import { fetchSatDrill1FromSupabase, fetchSatDrill2FromSupabase, fetchSatDrill3FromSupabase, fetchSatDrill4FromSupabase, fetchSatDrill5FromSupabase } from '../../lib/supabase';
 import { SatDrillSession } from './SatDrillSession';
 import { SatDrillResults } from './SatDrillResults';
 import { ModuleSessionResult, DrillActiveSessionSave, FullDrillResult } from '../../data/satDrills/types';
@@ -44,6 +50,36 @@ export const SatDrillsHub: React.FC = () => {
 
   useEffect(() => {
     refreshProgress();
+    // Prefetch Drills from Supabase
+    fetchSatDrill1FromSupabase().then(({ data }) => {
+      if (data && data.length > 0) {
+        setDrill1SupabaseOverride(data);
+      }
+    }).catch(() => {});
+
+    fetchSatDrill2FromSupabase().then(({ data }) => {
+      if (data && data.length > 0) {
+        setDrill2SupabaseOverride(data);
+      }
+    }).catch(() => {});
+
+    fetchSatDrill3FromSupabase().then(({ data }) => {
+      if (data && data.length > 0) {
+        setDrill3SupabaseOverride(data);
+      }
+    }).catch(() => {});
+
+    fetchSatDrill4FromSupabase().then(({ data }) => {
+      if (data && data.length > 0) {
+        setDrill4SupabaseOverride(data);
+      }
+    }).catch(() => {});
+
+    fetchSatDrill5FromSupabase().then(({ data }) => {
+      if (data && data.length > 0) {
+        setDrill5SupabaseOverride(data);
+      }
+    }).catch(() => {});
   }, [activeDrillId]);
 
   // Test session state

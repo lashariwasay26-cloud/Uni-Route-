@@ -746,13 +746,13 @@ where t represents the time in years since the start of the study, and N(t) repr
 
       {/* ANIMATED WRAPPER FOR CATEGORIES */}
       <div className="relative overflow-x-hidden w-full">
-        <AnimatePresence mode="wait">
+        <AnimatePresence>
           <motion.div
             key={activeCategory}
-            initial={{ opacity: 0, x: 15 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -15 }}
-            transition={{ duration: 0.18, ease: 'easeOut' }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.12, ease: 'easeOut' }}
             className="w-full space-y-6"
           >
             {/* READING SECTION EXPLORER */}

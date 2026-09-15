@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import {
   ShieldCheck,
@@ -15,17 +15,38 @@ import {
   Sparkles,
   RefreshCw
 } from 'lucide-react';
-import { ALL_DRILL_QUESTIONS, getQuestionBankAuditReport } from '../../data/satDrills';
+import { getAllLoadedDrillQuestions, getQuestionBankAuditReport, prefetchAllDrills } from '../../data/satDrills';
 import { SatDrillQuestion } from '../../data/satDrills/types';
+import { fetchAllSatDrillsFromSupabase } from '../../lib/supabase';
+import { InteractivePageLoader } from '../InteractivePageLoader';
 
 export const SatTeacherDashboard: React.FC = () => {
-  const auditReport = getQuestionBankAuditReport();
+  const [questions, setQuestions] = useState<SatDrillQuestion[]>(() => getAllLoadedDrillQuestions());
+  const [isLoading, setIsLoading] = useState<boolean>(() => questions.length === 0);
+
+  const loadAll = async () => {
+    setIsLoading(true);
+    try {
+      await fetchAllSatDrillsFromSupabase();
+      setQuestions(getAllLoadedDrillQuestions());
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (questions.length < 735) {
+      loadAll();
+    }
+  }, []);
+
+  const auditReport = getQuestionBankAuditReport(questions);
   const [selectedDrill, setSelectedDrill] = useState<number | 'all'>('all');
   const [selectedSection, setSelectedSection] = useState<'all' | 'Reading & Writing' | 'Math'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedQuestion, setSelectedQuestion] = useState<SatDrillQuestion | null>(null);
 
-  const filteredQuestions = ALL_DRILL_QUESTIONS.filter((q) => {
+  const filteredQuestions = questions.filter((q) => {
     if (selectedDrill !== 'all' && q.drillId !== selectedDrill) return false;
     if (selectedSection !== 'all' && q.section !== selectedSection) return false;
     if (searchQuery) {
@@ -39,6 +60,17 @@ export const SatTeacherDashboard: React.FC = () => {
     }
     return true;
   });
+
+  if (isLoading && questions.length === 0) {
+    return (
+      <div className="max-w-6xl mx-auto py-12 px-4">
+        <InteractivePageLoader
+          title="Loading SAT Question Bank Audit"
+          subtitle="Fetching verified item records across all 5 drills from Supabase..."
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-6xl mx-auto space-y-6 py-6 px-4 font-sans text-slate-800">

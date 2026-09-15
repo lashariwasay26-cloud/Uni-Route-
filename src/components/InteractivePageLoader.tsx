@@ -35,7 +35,17 @@ const ACADEMIC_TRIVIA_TIPS = [
   }
 ];
 
-export const InteractivePageLoader: React.FC = () => {
+interface InteractivePageLoaderProps {
+  title?: string;
+  subtitle?: string;
+  className?: string;
+}
+
+export const InteractivePageLoader: React.FC<InteractivePageLoaderProps> = ({
+  title = "Loading Premium Assets",
+  subtitle,
+  className = ""
+}) => {
   const [tipIndex, setTipIndex] = useState(0);
   const [progress, setProgress] = useState(0);
 
@@ -62,7 +72,7 @@ export const InteractivePageLoader: React.FC = () => {
   const currentTip = ACADEMIC_TRIVIA_TIPS[tipIndex];
 
   return (
-    <div id="interactive-page-loader" className="w-full min-h-[450px] flex flex-col items-center justify-center p-6 sm:p-12 text-center animate-fade-in">
+    <div id="interactive-page-loader" className={`w-full min-h-[450px] flex flex-col items-center justify-center p-6 sm:p-12 text-center animate-fade-in ${className}`}>
       <div className="max-w-md w-full flex flex-col items-center">
         {/* Glowing Geometric Spinner Container */}
         <div className="relative w-20 h-20 mb-8 flex items-center justify-center">
@@ -90,10 +100,10 @@ export const InteractivePageLoader: React.FC = () => {
         {/* Dynamic Status Text */}
         <div className="space-y-1 mb-6">
           <h3 className="text-sm font-black tracking-wider text-slate-800 uppercase">
-            Loading Premium Assets
+            {title}
           </h3>
           <p className="text-xs font-bold text-slate-500">
-            Chambering interactive hubs... {Math.min(progress, 100)}%
+            {subtitle || `Chambering interactive hubs... ${Math.min(progress, 100)}%`}
           </p>
         </div>
 

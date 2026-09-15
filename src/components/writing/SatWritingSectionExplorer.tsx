@@ -1081,14 +1081,14 @@ export const SatWritingSectionExplorer: React.FC<SatWritingSectionExplorerProps>
 
   return (
     <div id="sat-writing-section-explorer" className="space-y-6 text-slate-900 min-h-[600px] pb-12 relative overflow-x-hidden w-full">
-      <AnimatePresence mode="wait">
+      <AnimatePresence>
         {!selectedChapterId ? (
           <motion.div
             key="list"
-            initial={{ opacity: 0, x: 12 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -12 }}
-            transition={{ duration: 0.1, ease: "easeOut" }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.12, ease: "easeOut" }}
             className="space-y-6"
           >
             {/* Simple Clean Header */}

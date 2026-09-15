@@ -1,105 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ArrowLeft, X, ChevronRight, Target, RotateCcw, Award, BarChart3 } from 'lucide-react';
 import { loadSatPracticeProgress, resetAllSatProgress } from '../lib/userStorage';
-import { 
-  SAT_READING_CHAPTER_1, 
-  SAT_READING_CHAPTER_2, 
-  SAT_READING_CHAPTER_3, 
-  SAT_READING_CHAPTER_4, 
-  SAT_READING_CHAPTER_5, 
-  SAT_READING_CHAPTER_6 
-} from '../data/reading/satReadingData';
-import { SAT_WRITING_CHAPTER_1_FULL } from '../data/writing/satWritingChapter1Full';
-import { SAT_WRITING_CHAPTER_2_FULL } from '../data/writing/satWritingChapter2Full';
-import { SAT_WRITING_CHAPTER_3_FULL } from '../data/writing/satWritingChapter3Full';
-import { SAT_WRITING_CHAPTER_4_FULL } from '../data/writing/satWritingChapter4Full';
-import { SAT_WRITING_CHAPTER_5_FULL } from '../data/writing/satWritingChapter5Full';
-import { SAT_WRITING_CHAPTER_6_FULL } from '../data/writing/satWritingChapter6Full';
-import { SAT_WRITING_CHAPTER_7_FULL } from '../data/writing/satWritingChapter7Full';
-import { FULL_SAT_MATH_BOOK } from '../data/satMathBook';
-
-const getReadingQuestions = () => {
-  const allReading: any[] = [];
-  const chapters = [
-    SAT_READING_CHAPTER_1,
-    SAT_READING_CHAPTER_2,
-    SAT_READING_CHAPTER_3,
-    SAT_READING_CHAPTER_4,
-    SAT_READING_CHAPTER_5,
-    SAT_READING_CHAPTER_6
-  ];
-  chapters.forEach((ch) => {
-    if (ch && ch.modules) {
-      ch.modules.forEach(mod => {
-        if (mod && mod.practiceQuestions) {
-          mod.practiceQuestions.forEach(q => {
-            if (q && q.id) {
-              allReading.push({
-                id: q.id,
-                correct: q.correctAnswerIndex ?? 0
-              });
-            }
-          });
-        }
-      });
-    }
-  });
-  return allReading;
-};
-
-const getWritingQuestions = () => {
-  const allWriting: any[] = [];
-  const chapters = [
-    SAT_WRITING_CHAPTER_1_FULL,
-    SAT_WRITING_CHAPTER_2_FULL,
-    SAT_WRITING_CHAPTER_3_FULL,
-    SAT_WRITING_CHAPTER_4_FULL,
-    SAT_WRITING_CHAPTER_5_FULL,
-    SAT_WRITING_CHAPTER_6_FULL,
-    SAT_WRITING_CHAPTER_7_FULL
-  ];
-  chapters.forEach(ch => {
-    if (ch && ch.exerciseBlocks) {
-      ch.exerciseBlocks.forEach(b => {
-        if (b && b.questions) {
-          b.questions.forEach(q => {
-            if (q && q.id) {
-              allWriting.push({
-                id: q.id,
-                correct: q.correctAnswer ?? 0
-              });
-            }
-          });
-        }
-      });
-    }
-  });
-  return allWriting;
-};
-
-const getMathQuestions = () => {
-  const allMath: any[] = [];
-  if (FULL_SAT_MATH_BOOK) {
-    FULL_SAT_MATH_BOOK.forEach(ch => {
-      if (ch && ch.exerciseGroups) {
-        ch.exerciseGroups.forEach(eg => {
-          if (eg && eg.questions) {
-            eg.questions.forEach(q => {
-              if (q && q.id) {
-                allMath.push({
-                  id: q.id,
-                  correct: q.correctIndex ?? 0
-                });
-              }
-            });
-          }
-        });
-      }
-    });
-  }
-  return allMath;
-};
+import { clearAllDrillProgress } from '../data/satDrills';
 
 interface SatLandingViewProps {
   onBackToHome: () => void;
@@ -113,75 +16,30 @@ export const SatLandingView: React.FC<SatLandingViewProps> = ({
   onSelectLearning,
 }) => {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
-  const [resetCounter, setResetCounter] = useState(0);
-
-  useEffect(() => {
-    // Sync with Supabase on mount
-    loadSatPracticeProgress().then(() => {
-      setResetCounter((c) => c + 1);
-    });
-
-    const handleAuthChange = () => {
-      loadSatPracticeProgress().then(() => {
-        setResetCounter((c) => c + 1);
-      });
-    };
-
-    window.addEventListener('uniroute-auth-change', handleAuthChange);
-    return () => {
-      window.removeEventListener('uniroute-auth-change', handleAuthChange);
-    };
-  }, []);
-
-  const handleSelectOption = (category: 'reading' | 'writing' | 'math' | 'drills' | 'stats') => {
-    setIsPopupOpen(false);
-    onSelectLearning(category);
-  };
-
-  const progressStats = React.useMemo(() => {
-    let readingQs: any[] = [];
-    try {
-      readingQs = getReadingQuestions();
-    } catch (e) { console.error(e); }
-
-    let writingQs: any[] = [];
-    try {
-      writingQs = getWritingQuestions();
-    } catch (e) { console.error(e); }
-
-    let mathQs: any[] = [];
-    try {
-      mathQs = getMathQuestions();
-    } catch (e) { console.error(e); }
-
-    let readingAnswers: Record<string, number> = {};
-    let writingAnswers: Record<string, number> = {};
-    let mathAnswers: Record<string, number> = {};
-
-    try {
-      const rSaved = localStorage.getItem('sat_reading_answers');
-      if (rSaved) readingAnswers = JSON.parse(rSaved);
-    } catch {}
-    try {
-      const wSaved = localStorage.getItem('sat_writing_answers');
-      if (wSaved) writingAnswers = JSON.parse(wSaved);
-    } catch {}
-    try {
-      const mSaved = localStorage.getItem('sat_math_answers');
-      if (mSaved) mathAnswers = JSON.parse(mSaved);
-    } catch {}
-
-    // Hardcode totals since data is now in Supabase
+  const [progressStats, setProgressStats] = useState(() => {
     const readingTotal = 345;
     const writingTotal = 670;
     const mathTotal = 705;
     const totalQsCount = readingTotal + writingTotal + mathTotal;
 
-    const readingAnsweredCount = Object.keys(readingAnswers).length;
-    const writingAnsweredCount = Object.keys(writingAnswers).length;
-    const mathAnsweredCount = Object.keys(mathAnswers).length;
-    const totalAnsweredCount = readingAnsweredCount + writingAnsweredCount + mathAnsweredCount;
+    let readingAnsweredCount = 0;
+    let writingAnsweredCount = 0;
+    let mathAnsweredCount = 0;
 
+    try {
+      const rSaved = localStorage.getItem('sat_reading_answers');
+      if (rSaved) readingAnsweredCount = Object.keys(JSON.parse(rSaved)).length;
+    } catch {}
+    try {
+      const wSaved = localStorage.getItem('sat_writing_answers');
+      if (wSaved) writingAnsweredCount = Object.keys(JSON.parse(wSaved)).length;
+    } catch {}
+    try {
+      const mSaved = localStorage.getItem('sat_math_answers');
+      if (mSaved) mathAnsweredCount = Object.keys(JSON.parse(mSaved)).length;
+    } catch {}
+
+    const totalAnsweredCount = readingAnsweredCount + writingAnsweredCount + mathAnsweredCount;
     const overallPct = totalQsCount > 0 ? Math.round((totalAnsweredCount / totalQsCount) * 100) : 0;
 
     return {
@@ -211,11 +69,103 @@ export const SatLandingView: React.FC<SatLandingViewProps> = ({
         accuracy: 0,
       }
     };
-  }, [resetCounter]);
+  });
+
+  const refreshStats = useCallback(() => {
+    const readingTotal = 345;
+    const writingTotal = 670;
+    const mathTotal = 705;
+    const totalQsCount = readingTotal + writingTotal + mathTotal;
+
+    let readingAnsweredCount = 0;
+    let writingAnsweredCount = 0;
+    let mathAnsweredCount = 0;
+
+    try {
+      const rSaved = localStorage.getItem('sat_reading_answers');
+      if (rSaved) readingAnsweredCount = Object.keys(JSON.parse(rSaved)).length;
+    } catch {}
+    try {
+      const wSaved = localStorage.getItem('sat_writing_answers');
+      if (wSaved) writingAnsweredCount = Object.keys(JSON.parse(wSaved)).length;
+    } catch {}
+    try {
+      const mSaved = localStorage.getItem('sat_math_answers');
+      if (mSaved) mathAnsweredCount = Object.keys(JSON.parse(mSaved)).length;
+    } catch {}
+
+    const totalAnsweredCount = readingAnsweredCount + writingAnsweredCount + mathAnsweredCount;
+    const overallPct = totalQsCount > 0 ? Math.round((totalAnsweredCount / totalQsCount) * 100) : 0;
+
+    setProgressStats({
+      reading: {
+        total: readingTotal,
+        answered: readingAnsweredCount,
+        correct: 0,
+        pct: readingTotal > 0 ? Math.round((readingAnsweredCount / readingTotal) * 100) : 0,
+      },
+      writing: {
+        total: writingTotal,
+        answered: writingAnsweredCount,
+        correct: 0,
+        pct: writingTotal > 0 ? Math.round((writingAnsweredCount / writingTotal) * 100) : 0,
+      },
+      math: {
+        total: mathTotal,
+        answered: mathAnsweredCount,
+        correct: 0,
+        pct: mathTotal > 0 ? Math.round((mathAnsweredCount / mathTotal) * 100) : 0,
+      },
+      overall: {
+        total: totalQsCount,
+        answered: totalAnsweredCount,
+        correct: 0,
+        pct: overallPct,
+        accuracy: 0,
+      }
+    });
+  }, []);
+
+  useEffect(() => {
+    // Sync with Supabase on mount
+    loadSatPracticeProgress().then(() => {
+      refreshStats();
+    });
+
+    const handleAuthChange = () => {
+      loadSatPracticeProgress().then(() => {
+        refreshStats();
+      });
+    };
+
+    window.addEventListener('uniroute-auth-change', handleAuthChange);
+    return () => {
+      window.removeEventListener('uniroute-auth-change', handleAuthChange);
+    };
+  }, [refreshStats]);
+
+  const handleSelectOption = (category: 'reading' | 'writing' | 'math' | 'drills' | 'stats') => {
+    setIsPopupOpen(false);
+    onSelectLearning(category);
+  };
 
   const handleResetProgress = async () => {
+    // Reset local state instantly without tearing down or remounting DOM
+    const readingTotal = 345;
+    const writingTotal = 670;
+    const mathTotal = 705;
+    const totalQsCount = readingTotal + writingTotal + mathTotal;
+
+    setProgressStats({
+      reading: { total: readingTotal, answered: 0, correct: 0, pct: 0 },
+      writing: { total: writingTotal, answered: 0, correct: 0, pct: 0 },
+      math: { total: mathTotal, answered: 0, correct: 0, pct: 0 },
+      overall: { total: totalQsCount, answered: 0, correct: 0, pct: 0, accuracy: 0 }
+    });
+
+    // Clear underlying storage (localStorage + Supabase background sync)
     await resetAllSatProgress();
-    setResetCounter(prev => prev + 1);
+    clearAllDrillProgress();
   };
 
   return (

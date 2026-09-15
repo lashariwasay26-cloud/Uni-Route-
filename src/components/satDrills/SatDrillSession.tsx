@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { SatCalculatorView } from '../math/SatCalculatorView';
 import { shuffleExerciseGroupQuestions } from '../../utils/questionShuffler';
+import { InteractivePageLoader } from '../InteractivePageLoader';
 import {
   Clock,
   Eye,
@@ -34,6 +35,8 @@ import {
 } from '../../data/satDrills/types';
 import {
   getDrillModuleQuestions,
+  getLoadedDrillQuestions,
+  loadDrillQuestions,
   calculateRoutingScore,
   calculateEstimatedSectionScore,
   getActiveDrillSession,
@@ -60,6 +63,52 @@ export const SatDrillSession: React.FC<SatDrillSessionProps> = ({
   onComplete,
   onExit
 }) => {
+  // 1. Dynamic Drill Questions State (loaded from Supabase with max 5s timeout)
+  const [drillQuestions, setDrillQuestions] = useState<SatDrillQuestion[]>(() => {
+    return getLoadedDrillQuestions(drillId) || [];
+  });
+  const [isLoadingQuestions, setIsLoadingQuestions] = useState<boolean>(() => {
+    const existing = getLoadedDrillQuestions(drillId);
+    return !existing || existing.length !== 147;
+  });
+  const [fetchError, setFetchError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    const existing = getLoadedDrillQuestions(drillId);
+    if (existing && existing.length === 147) {
+      setDrillQuestions(existing);
+      setIsLoadingQuestions(false);
+      setFetchError(null);
+      return;
+    }
+
+    setIsLoadingQuestions(true);
+    setFetchError(null);
+
+    loadDrillQuestions(drillId)
+      .then(({ questions, error }) => {
+        if (!isMounted) return;
+        if (error || !questions || questions.length === 0) {
+          setFetchError(error?.message || 'Could not load questions from Supabase within 5s');
+          setIsLoadingQuestions(false);
+        } else {
+          setDrillQuestions(questions);
+          setIsLoadingQuestions(false);
+          setFetchError(null);
+        }
+      })
+      .catch((err) => {
+        if (!isMounted) return;
+        setFetchError(err?.message || 'Failed to fetch drill questions');
+        setIsLoadingQuestions(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [drillId]);
+
   // Check for existing saved session on initial load
   const savedSession = useMemo(() => getActiveDrillSession(drillId), [drillId]);
 
@@ -85,11 +134,11 @@ export const SatDrillSession: React.FC<SatDrillSessionProps> = ({
     savedSession?.mathM1Result || null
   );
 
-  // Active question bank for current module
+  // Active question bank for current module (memoized and stable)
   const moduleQuestions = useMemo(() => {
-    const rawQs = getDrillModuleQuestions(drillId, currentSection, currentModule, currentRoute);
-    return shuffleExerciseGroupQuestions(rawQs);
-  }, [drillId, currentSection, currentModule, currentRoute]);
+    if (!drillQuestions || drillQuestions.length === 0) return [];
+    return getDrillModuleQuestions(drillQuestions, currentSection, currentModule, currentRoute);
+  }, [drillQuestions, currentSection, currentModule, currentRoute]);
 
   // Current Question Navigation Index
   const [activeQuestionIndex, setActiveQuestionIndex] = useState(
@@ -122,12 +171,65 @@ export const SatDrillSession: React.FC<SatDrillSessionProps> = ({
   // Simple Embedded Calculator State
   const [calcDisplay, setCalcDisplay] = useState('0');
 
+  // DOM Refs for instant seamless scrolling on question change
+  const passageScrollRef = useRef<HTMLDivElement>(null);
+  const questionScrollRef = useRef<HTMLDivElement>(null);
+
   // Active Question
   const activeQuestion: SatDrillQuestion | undefined = moduleQuestions[activeQuestionIndex];
 
+  // Seamless question change: instantaneously reset scroll to top
+  useEffect(() => {
+    if (passageScrollRef.current) {
+      passageScrollRef.current.scrollTop = 0;
+    }
+    if (questionScrollRef.current) {
+      questionScrollRef.current.scrollTop = 0;
+    }
+  }, [activeQuestionIndex]);
+
+  // Fast keyboard navigation between questions (ArrowRight / ArrowLeft / A-D / 1-4 / F)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA')) {
+        return;
+      }
+      if (isSubmitModalOpen || isExitConfirmModalOpen || isTransitioning || isGridOpen) return;
+
+      if (e.key === 'ArrowRight' || e.key === 'Enter') {
+        if (activeQuestionIndex < moduleQuestions.length - 1) {
+          e.preventDefault();
+          setActiveQuestionIndex((prev) => prev + 1);
+        }
+      } else if (e.key === 'ArrowLeft') {
+        if (activeQuestionIndex > 0) {
+          e.preventDefault();
+          setActiveQuestionIndex((prev) => prev - 1);
+        }
+      } else if (e.key === 'f' || e.key === 'F') {
+        e.preventDefault();
+        handleToggleFlag();
+      } else if (activeQuestion?.choices && activeQuestion.choices.length > 0) {
+        const keyUpper = e.key.toUpperCase();
+        if (['A', 'B', 'C', 'D'].includes(keyUpper)) {
+          e.preventDefault();
+          handleAnswerSelect(keyUpper);
+        } else if (['1', '2', '3', '4'].includes(e.key)) {
+          e.preventDefault();
+          const mapNumToLetter: Record<string, string> = { '1': 'A', '2': 'B', '3': 'C', '4': 'D' };
+          handleAnswerSelect(mapNumToLetter[e.key]);
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [activeQuestionIndex, moduleQuestions.length, activeQuestion, isSubmitModalOpen, isExitConfirmModalOpen, isTransitioning, isGridOpen]);
+
   // Auto-save session continuously
   useEffect(() => {
-    if (isTransitioning) return;
+    if (isTransitioning || isLoadingQuestions) return;
     const timeout = setTimeout(() => {
       saveActiveDrillSession({
         drillId,
@@ -156,7 +258,8 @@ export const SatDrillSession: React.FC<SatDrillSessionProps> = ({
     rwM1Result,
     rwM2Result,
     mathM1Result,
-    isTransitioning
+    isTransitioning,
+    isLoadingQuestions
   ]);
 
   // Sync Timer when module changes (skip on first mount if restored)
@@ -355,6 +458,66 @@ export const SatDrillSession: React.FC<SatDrillSessionProps> = ({
     }
   };
 
+  // If still loading questions from Supabase within the 5s window, show the interactive app loader (NO blank page!)
+  if (isLoadingQuestions) {
+    return (
+      <div className="fixed inset-0 z-50 bg-[#f8fafc] flex items-center justify-center p-4 select-none">
+        <div className="w-full max-w-lg bg-white border border-slate-200/90 rounded-3xl p-6 sm:p-8 shadow-xl">
+          <InteractivePageLoader
+            title={`Loading SAT Drill #${drillId}`}
+            subtitle="Fetching verified questions from Supabase..."
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // If Supabase fetch timed out or errored
+  if (fetchError || moduleQuestions.length === 0) {
+    return (
+      <div className="fixed inset-0 z-50 bg-[#f8fafc] flex items-center justify-center p-4 select-none">
+        <div className="w-full max-w-md bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 text-center shadow-xl space-y-4">
+          <div className="w-14 h-14 rounded-2xl bg-amber-50 text-amber-600 border border-amber-200 flex items-center justify-center mx-auto">
+            <AlertCircle className="w-7 h-7" />
+          </div>
+          <div>
+            <h2 className="text-lg font-black text-slate-900">Drill Data Unavailable</h2>
+            <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+              {fetchError || 'Could not retrieve drill questions within the 5-second window.'}
+            </p>
+          </div>
+          <div className="flex gap-3 pt-2">
+            <button
+              onClick={() => {
+                setIsLoadingQuestions(true);
+                setFetchError(null);
+                loadDrillQuestions(drillId).then(({ questions, error }) => {
+                  if (error || !questions || questions.length === 0) {
+                    setFetchError(error?.message || 'Could not load questions within 5 seconds.');
+                    setIsLoadingQuestions(false);
+                  } else {
+                    setDrillQuestions(questions);
+                    setIsLoadingQuestions(false);
+                  }
+                });
+              }}
+              className="flex-1 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center justify-center gap-2 cursor-pointer shadow-xs transition-colors"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span>Retry Fetch</span>
+            </button>
+            <button
+              onClick={onExit}
+              className="flex-1 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs cursor-pointer border border-slate-200 transition-colors"
+            >
+              Back to Hub
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="fixed inset-0 z-50 bg-[#f8fafc] text-slate-900 flex flex-col font-sans select-none overflow-hidden">
       {/* Top Header Toolbar */}
@@ -456,7 +619,10 @@ export const SatDrillSession: React.FC<SatDrillSessionProps> = ({
           <div className="flex-1 flex flex-col md:flex-row gap-4 overflow-hidden">
             {/* Left Pane: Passage or Context Stimulus */}
             {activeQuestion.passage && (
-              <div className="md:w-1/2 bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-5 sm:p-7 overflow-y-auto max-h-[40vh] md:max-h-full shadow-2xs flex flex-col">
+              <div
+                ref={passageScrollRef}
+                className="md:w-1/2 bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-5 sm:p-7 overflow-y-auto max-h-[40vh] md:max-h-full shadow-2xs flex flex-col scroll-smooth"
+              >
                 <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-200/60 text-[11px] font-bold text-indigo-700 mb-4 w-fit">
                   <FileText className="w-3.5 h-3.5 text-indigo-600" />
                   <span>Passage Text</span>
@@ -468,82 +634,93 @@ export const SatDrillSession: React.FC<SatDrillSessionProps> = ({
             )}
 
             {/* Right Pane: Question & Choices */}
-            <div className={`flex-1 bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-5 sm:p-7 overflow-y-auto shadow-2xs flex flex-col justify-between ${!activeQuestion.passage ? 'max-w-3xl mx-auto w-full' : ''}`}>
-              <div>
-                {/* Question Header & Flag Toggle */}
-                <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
-                  <div className="flex items-center gap-2.5">
-                    <span className="w-7 h-7 rounded-xl bg-slate-950 text-white font-black text-xs flex items-center justify-center shadow-xs">
-                      {activeQuestionIndex + 1}
-                    </span>
-                    <span className="text-xs font-bold text-slate-500">
-                      {activeQuestion.domain} • {activeQuestion.skill}
-                    </span>
+            <div
+              ref={questionScrollRef}
+              className={`flex-1 bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-5 sm:p-7 overflow-y-auto shadow-2xs flex flex-col justify-between scroll-smooth ${!activeQuestion.passage ? 'max-w-3xl mx-auto w-full' : ''}`}
+            >
+              <motion.div
+                key={activeQuestion.id}
+                initial={{ opacity: 0.85 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.08 }}
+                className="flex flex-col justify-between flex-1"
+              >
+                <div>
+                  {/* Question Header & Flag Toggle */}
+                  <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
+                    <div className="flex items-center gap-2.5">
+                      <span className="w-7 h-7 rounded-xl bg-slate-950 text-white font-black text-xs flex items-center justify-center shadow-xs">
+                        {activeQuestionIndex + 1}
+                      </span>
+                      <span className="text-xs font-bold text-slate-500">
+                        {activeQuestion.domain} • {activeQuestion.skill}
+                      </span>
+                    </div>
+
+                    <button
+                      onClick={handleToggleFlag}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                        responses[activeQuestion.id]?.flaggedForReview
+                          ? 'bg-amber-50 text-amber-800 border border-amber-300 shadow-2xs'
+                          : 'bg-slate-100 hover:bg-slate-200 text-slate-600 border border-slate-200/60'
+                      }`}
+                    >
+                      <Bookmark className="w-3.5 h-3.5" />
+                      <span>{responses[activeQuestion.id]?.flaggedForReview ? 'Flagged' : 'Flag for Review'}</span>
+                    </button>
                   </div>
 
-                  <button
-                    onClick={handleToggleFlag}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
-                      responses[activeQuestion.id]?.flaggedForReview
-                        ? 'bg-amber-50 text-amber-800 border border-amber-300 shadow-2xs'
-                        : 'bg-slate-100 hover:bg-slate-200 text-slate-600 border border-slate-200/60'
-                    }`}
-                  >
-                    <Bookmark className="w-3.5 h-3.5" />
-                    <span>{responses[activeQuestion.id]?.flaggedForReview ? 'Flagged' : 'Flag for Review'}</span>
-                  </button>
+                  {/* Question Text */}
+                  <div className="text-sm sm:text-base font-bold text-slate-950 mb-6 leading-relaxed">
+                    {activeQuestion.questionText}
+                  </div>
+
+                  {/* Answer Inputs */}
+                  {activeQuestion.responseType === 'MCQ' && activeQuestion.choices ? (
+                    <div className="space-y-3">
+                      {activeQuestion.choices.map((choiceText, index) => {
+                        const letter = ['A', 'B', 'C', 'D'][index];
+                        const isSelected = responses[activeQuestion.id]?.studentAnswer === letter;
+
+                        return (
+                          <div
+                            key={letter}
+                            onClick={() => handleAnswerSelect(letter)}
+                            className={`p-4 rounded-2xl border text-sm sm:text-base font-medium transition-all cursor-pointer flex items-center gap-3.5 ${
+                              isSelected
+                                ? 'border-2 border-indigo-600 bg-indigo-50/70 text-indigo-950 font-bold shadow-xs ring-2 ring-indigo-500/20'
+                                : 'border-slate-200/90 bg-white hover:border-indigo-300 hover:bg-slate-50/80 text-slate-800 shadow-2xs'
+                            }`}
+                          >
+                            <span className={`w-7 h-7 rounded-full font-bold text-xs flex items-center justify-center shrink-0 transition-all ${
+                              isSelected
+                                ? 'bg-indigo-600 border border-indigo-600 text-white shadow-xs'
+                                : 'bg-slate-100 border border-slate-300 text-slate-700'
+                            }`}>
+                              {letter}
+                            </span>
+                            <span className="flex-1 leading-snug">{choiceText.replace(/^[A-D]\)\s*/, '')}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    /* Student Produced Response (SPR) Input */
+                    <div className="space-y-3 bg-slate-50 border border-slate-200/90 rounded-2xl p-5">
+                      <label className="block text-xs font-bold text-slate-700 mb-1">
+                        Student-Produced Response (Enter fraction, decimal, or integer):
+                      </label>
+                      <input
+                        type="text"
+                        value={responses[activeQuestion.id]?.studentAnswer || ''}
+                        onChange={(e) => handleAnswerSelect(e.target.value)}
+                        placeholder="e.g. 123.75 or 7"
+                        className="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 text-base text-slate-900 font-mono font-bold focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none shadow-2xs"
+                      />
+                    </div>
+                  )}
                 </div>
-
-                {/* Question Text */}
-                <div className="text-sm sm:text-base font-bold text-slate-950 mb-6 leading-relaxed">
-                  {activeQuestion.questionText}
-                </div>
-
-                {/* Answer Inputs */}
-                {activeQuestion.responseType === 'MCQ' && activeQuestion.choices ? (
-                  <div className="space-y-3">
-                    {activeQuestion.choices.map((choiceText, index) => {
-                      const letter = ['A', 'B', 'C', 'D'][index];
-                      const isSelected = responses[activeQuestion.id]?.studentAnswer === letter;
-
-                      return (
-                        <div
-                          key={letter}
-                          onClick={() => handleAnswerSelect(letter)}
-                          className={`p-4 rounded-2xl border text-sm sm:text-base font-medium transition-all cursor-pointer flex items-center gap-3.5 ${
-                            isSelected
-                              ? 'border-2 border-indigo-600 bg-indigo-50/70 text-indigo-950 font-bold shadow-xs ring-2 ring-indigo-500/20'
-                              : 'border-slate-200/90 bg-white hover:border-indigo-300 hover:bg-slate-50/80 text-slate-800 shadow-2xs'
-                          }`}
-                        >
-                          <span className={`w-7 h-7 rounded-full font-bold text-xs flex items-center justify-center shrink-0 transition-all ${
-                            isSelected
-                              ? 'bg-indigo-600 border border-indigo-600 text-white shadow-xs'
-                              : 'bg-slate-100 border border-slate-300 text-slate-700'
-                          }`}>
-                            {letter}
-                          </span>
-                          <span className="flex-1 leading-snug">{choiceText.replace(/^[A-D]\)\s*/, '')}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  /* Student Produced Response (SPR) Input */
-                  <div className="space-y-3 bg-slate-50 border border-slate-200/90 rounded-2xl p-5">
-                    <label className="block text-xs font-bold text-slate-700 mb-1">
-                      Student-Produced Response (Enter fraction, decimal, or integer):
-                    </label>
-                    <input
-                      type="text"
-                      value={responses[activeQuestion.id]?.studentAnswer || ''}
-                      onChange={(e) => handleAnswerSelect(e.target.value)}
-                      placeholder="e.g. 123.75 or 7"
-                      className="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 text-base text-slate-900 font-mono font-bold focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none shadow-2xs"
-                    />
-                  </div>
-                )}
-              </div>
+              </motion.div>
             </div>
           </div>
         )}

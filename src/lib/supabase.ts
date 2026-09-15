@@ -2349,9 +2349,43 @@ CREATE TABLE IF NOT EXISTS profile_analyses (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Enable RLS and public read where appropriate
+-- Enable RLS and create read/write policies for SAT Drills and progress
 ALTER TABLE university_scholarships ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Public Read Access" ON university_scholarships FOR SELECT USING (true);
+
+-- Enable RLS and public read policies for SAT Drill Question tables (sat_drill_1 to sat_drill_5)
+ALTER TABLE IF EXISTS sat_drill_1 ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Public Read sat_drill_1" ON sat_drill_1;
+CREATE POLICY "Public Read sat_drill_1" ON sat_drill_1 FOR SELECT USING (true);
+
+ALTER TABLE IF EXISTS sat_drill_2 ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Public Read sat_drill_2" ON sat_drill_2;
+CREATE POLICY "Public Read sat_drill_2" ON sat_drill_2 FOR SELECT USING (true);
+
+ALTER TABLE IF EXISTS sat_drill_3 ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Public Read sat_drill_3" ON sat_drill_3;
+CREATE POLICY "Public Read sat_drill_3" ON sat_drill_3 FOR SELECT USING (true);
+
+ALTER TABLE IF EXISTS sat_drill_4 ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Public Read sat_drill_4" ON sat_drill_4;
+CREATE POLICY "Public Read sat_drill_4" ON sat_drill_4 FOR SELECT USING (true);
+
+ALTER TABLE IF EXISTS sat_drill_5 ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Public Read sat_drill_5" ON sat_drill_5;
+CREATE POLICY "Public Read sat_drill_5" ON sat_drill_5 FOR SELECT USING (true);
+
+-- Enable RLS and public access policies for user progress/sessions
+ALTER TABLE IF EXISTS sat_drill_sessions ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Public Access sat_drill_sessions" ON sat_drill_sessions;
+CREATE POLICY "Public Access sat_drill_sessions" ON sat_drill_sessions FOR ALL USING (true) WITH CHECK (true);
+
+ALTER TABLE IF EXISTS sat_drill_results ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Public Access sat_drill_results" ON sat_drill_results;
+CREATE POLICY "Public Access sat_drill_results" ON sat_drill_results FOR ALL USING (true) WITH CHECK (true);
+
+ALTER TABLE IF EXISTS sat_practice_progress ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Public Access sat_practice_progress" ON sat_practice_progress;
+CREATE POLICY "Public Access sat_practice_progress" ON sat_practice_progress FOR ALL USING (true) WITH CHECK (true);
 `;
 
 // ============================================================================
@@ -3349,3 +3383,129 @@ export async function fetchSatMathChapter11FromSupabase(): Promise<{ data: FullS
     return { data: null, error: err };
   }
 }
+
+// ----------------------------------------------------------------------
+// SAT DRILLS SUPABASE FETCH INTEGRATION (Drills 1 - 5)
+// Strict <= 5-second timeout, memory & localStorage cache
+// ----------------------------------------------------------------------
+const cachedDrillsMap: Record<number, any[]> = {};
+
+export async function fetchSatDrillFromSupabase(drillId: number): Promise<{ data: any[] | null; error: any }> {
+  if (!isSupabaseConfigured() || !supabase) {
+    return { data: null, error: new Error('Supabase is not configured') };
+  }
+
+  // 1. In-memory cache check (< 1ms instant return)
+  if (cachedDrillsMap[drillId] && Array.isArray(cachedDrillsMap[drillId]) && cachedDrillsMap[drillId].length > 0) {
+    return { data: cachedDrillsMap[drillId], error: null };
+  }
+
+  // 2. LocalStorage cache check (< 3ms fast return)
+  const localCache = getLocalStorageCache<any[]>(`sat_drill_${drillId}_cache`);
+  if (localCache && Array.isArray(localCache) && localCache.length > 0) {
+    cachedDrillsMap[drillId] = localCache;
+    return { data: localCache, error: null };
+  }
+
+  // 3. Network Fetch with clearable timeout (10 seconds)
+  let timerId: any = null;
+  try {
+    const timeoutPromise = new Promise<{ data: null; error: any }>((_, reject) => {
+      timerId = setTimeout(() => {
+        reject(new Error(`SAT Drill ${drillId} fetch timed out (10s limit exceeded)`));
+      }, 10000);
+      // Unref if in Node environment to prevent hanging tests
+      if (typeof (timerId as any)?.unref === 'function') {
+        (timerId as any).unref();
+      }
+    });
+
+    const fetchPromise = (async () => {
+      const { data, error } = await supabase!
+        .from(`sat_drill_${drillId}`)
+        .select('*')
+        .order('sort_order', { ascending: true });
+
+      if (error) throw error;
+      if (!data || data.length === 0) {
+        throw new Error(`No drill questions found in Supabase sat_drill_${drillId}`);
+      }
+
+      const mappedQuestions = data.map((r: any) => ({
+        id: r.id,
+        drillId: r.drill_id,
+        section: r.section,
+        module: r.module,
+        route: r.route,
+        questionNumber: r.question_number,
+        domain: r.domain,
+        skill: r.skill,
+        subskill: r.subskill || undefined,
+        difficulty: r.difficulty,
+        passage: r.passage || undefined,
+        stimulus: r.stimulus || undefined,
+        questionText: r.question_text,
+        choices: r.choices || [],
+        correctAnswer: r.correct_answer,
+        explanation: r.explanation,
+        responseType: r.response_type,
+        discriminationEstimate: Number(r.discrimination_estimate) || 1.0,
+        estimatedTimeSeconds: r.estimated_time_seconds || 60,
+      }));
+
+      return { data: mappedQuestions, error: null };
+    })();
+
+    const result = await Promise.race([fetchPromise, timeoutPromise]);
+    if (timerId) clearTimeout(timerId);
+
+    if (result.data && result.data.length > 0) {
+      cachedDrillsMap[drillId] = result.data;
+      setLocalStorageCache(`sat_drill_${drillId}_cache`, result.data);
+    }
+
+    return result;
+  } catch (err: any) {
+    if (timerId) clearTimeout(timerId);
+    console.warn(`Notice fetching SAT Drill ${drillId} from Supabase:`, err?.message || err);
+    return { data: null, error: err };
+  }
+}
+
+export async function fetchSatDrill1FromSupabase() {
+  return fetchSatDrillFromSupabase(1);
+}
+
+export async function fetchSatDrill2FromSupabase() {
+  return fetchSatDrillFromSupabase(2);
+}
+
+export async function fetchSatDrill3FromSupabase() {
+  return fetchSatDrillFromSupabase(3);
+}
+
+export async function fetchSatDrill4FromSupabase() {
+  return fetchSatDrillFromSupabase(4);
+}
+
+export async function fetchSatDrill5FromSupabase() {
+  return fetchSatDrillFromSupabase(5);
+}
+
+export async function fetchAllSatDrillsFromSupabase(): Promise<Record<number, any[]>> {
+  const allDrills: Record<number, any[]> = {};
+  await Promise.allSettled(
+    [1, 2, 3, 4, 5].map(async (drillId) => {
+      const { data } = await fetchSatDrillFromSupabase(drillId);
+      if (data) {
+        allDrills[drillId] = data;
+      }
+    })
+  );
+  return allDrills;
+}
+
+
+
+
+

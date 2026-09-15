@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Award,
@@ -19,7 +19,8 @@ import {
   ModuleSessionResult,
   SatDrillQuestion
 } from '../../data/satDrills/types';
-import { ALL_DRILL_QUESTIONS } from '../../data/satDrills';
+import { getLoadedDrillQuestions, loadDrillQuestions } from '../../data/satDrills';
+import { InteractivePageLoader } from '../InteractivePageLoader';
 
 interface SatDrillResultsProps {
   drillId: number;
@@ -31,6 +32,7 @@ interface SatDrillResultsProps {
   estimatedMathScore: number;
   onRetake: () => void;
   onBackToHub: () => void;
+  drillQuestions?: SatDrillQuestion[];
 }
 
 export const SatDrillResults: React.FC<SatDrillResultsProps> = ({
@@ -42,8 +44,29 @@ export const SatDrillResults: React.FC<SatDrillResultsProps> = ({
   estimatedRwScore,
   estimatedMathScore,
   onRetake,
-  onBackToHub
+  onBackToHub,
+  drillQuestions: initialDrillQuestions
 }) => {
+  const [drillQuestions, setDrillQuestions] = useState<SatDrillQuestion[]>(() => {
+    return initialDrillQuestions || getLoadedDrillQuestions(drillId) || [];
+  });
+  const [isLoading, setIsLoading] = useState<boolean>(() => {
+    return !drillQuestions || drillQuestions.length === 0;
+  });
+
+  useEffect(() => {
+    if (drillQuestions && drillQuestions.length > 0) {
+      setIsLoading(false);
+      return;
+    }
+    loadDrillQuestions(drillId).then(({ questions }) => {
+      if (questions && questions.length > 0) {
+        setDrillQuestions(questions);
+      }
+      setIsLoading(false);
+    });
+  }, [drillId, drillQuestions]);
+
   const [activeTab, setActiveTab] = useState<'summary' | 'review'>('summary');
   const [reviewFilter, setReviewFilter] = useState<'all' | 'incorrect' | 'correct'>('all');
   const [expandedQuestionId, setExpandedQuestionId] = useState<string | null>(null);
@@ -51,7 +74,7 @@ export const SatDrillResults: React.FC<SatDrillResultsProps> = ({
   const totalEstimatedScore = estimatedRwScore + estimatedMathScore;
 
   // Aggregate questions across all 4 modules for this drill
-  const allAttemptedQuestions = ALL_DRILL_QUESTIONS.filter(
+  const allAttemptedQuestions = (drillQuestions || []).filter(
     (q) =>
       q.drillId === drillId &&
       ((q.section === 'Reading & Writing' && q.module === 'Module 1') ||
@@ -59,6 +82,17 @@ export const SatDrillResults: React.FC<SatDrillResultsProps> = ({
        (q.section === 'Math' && q.module === 'Module 1') ||
        (q.section === 'Math' && q.module === 'Module 2' && q.route === mathM2.route))
   );
+
+  if (isLoading) {
+    return (
+      <div className="max-w-4xl mx-auto py-12 px-4">
+        <InteractivePageLoader
+          title="Calculating Detailed Analytics"
+          subtitle="Loading question rubric and explanations from Supabase..."
+        />
+      </div>
+    );
+  }
 
   // Map responses
   const getResponseForQuestion = (q: SatDrillQuestion) => {
