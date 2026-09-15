@@ -546,92 +546,94 @@ export const SatDrillSession: React.FC<SatDrillSessionProps> = ({
   const sessionContent = (
     <div className="fixed inset-0 z-[99999] bg-[#f8fafc] text-slate-900 flex flex-col font-sans select-none overflow-hidden h-full h-[100dvh] w-screen max-w-full">
       {/* Top Header Toolbar */}
-      <header className="h-13 sm:h-15 md:h-16 bg-white border-b border-slate-200/90 px-2.5 sm:px-6 flex items-center justify-between shrink-0 shadow-2xs gap-1.5 sm:gap-2">
-        <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
+      <header className="h-12 sm:h-14 md:h-16 bg-white border-b border-slate-200/90 px-2 sm:px-4 md:px-6 flex items-center justify-between shrink-0 shadow-2xs gap-1.5 sm:gap-2 w-full max-w-full overflow-hidden">
+        {/* Left: Exit & Module Info */}
+        <div className="flex items-center gap-1 sm:gap-2.5 shrink-0 min-w-0">
           <button
             onClick={() => setIsExitConfirmModalOpen(true)}
-            className="p-1.5 sm:p-2 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-100 border border-slate-200/70 transition-colors cursor-pointer"
+            className="p-1 sm:p-1.5 rounded-lg sm:rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-100 border border-slate-200/70 transition-colors cursor-pointer shrink-0"
             title="Save & Exit Test"
           >
-            <X className="w-4 h-4" />
+            <X className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           </button>
           
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-slate-950 text-white font-extrabold text-[11px] sm:text-sm flex items-center justify-center shadow-xs">
+          <div className="flex items-center gap-1.5 min-w-0">
+            <div className="w-5 h-5 sm:w-7 sm:h-7 rounded-md sm:rounded-lg bg-slate-950 text-white font-extrabold text-[10px] sm:text-xs flex items-center justify-center shadow-xs shrink-0">
               U
             </div>
-            <div>
-              <h1 className="text-[11px] sm:text-sm font-black text-slate-950 tracking-tight truncate max-w-[110px] sm:max-w-none">
-                {currentSection} — {currentModule}
-              </h1>
-              <p className="text-[9px] sm:text-[10px] text-slate-500 font-bold uppercase tracking-wider hidden sm:block">
-                Uni Route SAT Practice Drill #{drillId}
-              </p>
+            <div className="min-w-0">
+              <div className="text-[11px] sm:text-xs md:text-sm font-black text-slate-950 tracking-tight truncate max-w-[85px] xs:max-w-[110px] sm:max-w-none">
+                <span className="sm:hidden">{currentSection === 'Reading & Writing' ? 'RW' : 'Math'} {currentModule.replace('Module ', 'M')}</span>
+                <span className="hidden sm:inline">{currentSection} — {currentModule}</span>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Center: Timer Bar & Auto-save Status */}
-        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-          <div className="flex items-center gap-1 sm:gap-2 bg-slate-100/90 border border-slate-200/80 rounded-full px-2 sm:px-3 py-0.5 sm:py-1.5 shadow-2xs">
-            <Clock className={`w-3 h-3 sm:w-4 sm:h-4 ${timeRemaining < 300 ? 'text-rose-500 animate-pulse' : 'text-indigo-600'}`} />
+        {/* Center: Timer Bar */}
+        <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+          <div className="flex items-center gap-1 sm:gap-1.5 bg-slate-100 border border-slate-200/90 rounded-full px-2 sm:px-3 py-0.5 sm:py-1 shadow-2xs">
+            <Clock className={`w-3 h-3 sm:w-3.5 sm:h-3.5 ${timeRemaining < 300 ? 'text-rose-500 animate-pulse' : 'text-indigo-600'}`} />
             {showTimer ? (
-              <span className={`text-[11px] sm:text-sm font-mono font-black ${timeRemaining < 300 ? 'text-rose-600' : 'text-slate-800'}`}>
+              <span className={`text-[11px] sm:text-xs md:text-sm font-mono font-black ${timeRemaining < 300 ? 'text-rose-600' : 'text-slate-800'}`}>
                 {formatTime(timeRemaining)}
               </span>
             ) : (
-              <span className="text-[11px] sm:text-xs font-mono font-bold text-slate-400">Hidden</span>
+              <span className="text-[10px] sm:text-xs font-mono font-bold text-slate-400">Hidden</span>
             )}
             <button
               onClick={() => setShowTimer(!showTimer)}
-              className="text-slate-400 hover:text-slate-700 ml-0.5 sm:ml-1 cursor-pointer transition-colors"
+              className="text-slate-400 hover:text-slate-700 ml-0.5 cursor-pointer transition-colors"
               title={showTimer ? 'Hide Timer' : 'Show Timer'}
             >
-              {showTimer ? <EyeOff className="w-3 h-3 sm:w-3.5 sm:h-3.5" /> : <Eye className="w-3 h-3 sm:w-3.5 sm:h-3.5" />}
+              {showTimer ? <EyeOff className="w-2.5 h-2.5 sm:w-3 sm:h-3" /> : <Eye className="w-2.5 h-2.5 sm:w-3 sm:h-3" />}
             </button>
           </div>
+        </div>
 
-          {/* Zoom / Text Size Toggle (Compact / Standard / Large) */}
+        {/* Right: Zoom Toggle, Tools & Question Palette */}
+        <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
+          {/* Zoom / Text Size Toggle */}
           <button
             onClick={() => {
               setZoomLevel((prev) => (prev === 'compact' ? 'standard' : prev === 'standard' ? 'large' : 'compact'));
             }}
-            className="px-2 sm:px-2.5 py-1 rounded-full bg-slate-100 hover:bg-slate-200/80 border border-slate-200 text-[10px] sm:text-xs font-bold text-slate-700 flex items-center gap-1 cursor-pointer transition-colors"
-            title={`Zoom Level: ${zoomLevel.toUpperCase()} (Tap to switch)`}
+            className="p-1 sm:px-2 sm:py-1 rounded-lg bg-slate-100 hover:bg-slate-200/80 border border-slate-200 text-[10px] sm:text-xs font-bold text-slate-700 flex items-center gap-1 cursor-pointer transition-colors shrink-0"
+            title={`Text Size: ${zoomLevel.toUpperCase()} (Click to toggle)`}
           >
-            <Type className="w-3 h-3 text-slate-600" />
-            <span className="capitalize">{zoomLevel}</span>
+            <Type className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-slate-600" />
+            <span className="hidden md:inline capitalize">{zoomLevel}</span>
           </button>
-        </div>
 
-        {/* Right: Tools & Controls */}
-        <div className="flex items-center gap-1 sm:gap-2 shrink-0">
           {currentSection === 'Math' && (
             <>
               <button
                 onClick={() => setIsCalculatorOpen(true)}
-                className="px-2 sm:px-3 py-1 sm:py-1.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer"
+                className="p-1 sm:px-2 sm:py-1 rounded-lg bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-[11px] font-bold flex items-center gap-1 shadow-2xs transition-all cursor-pointer shrink-0"
+                title="Calculator"
               >
-                <Calculator className="w-3.5 h-3.5 text-indigo-600" />
-                <span className="hidden sm:inline">Calculator</span>
+                <Calculator className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-indigo-600" />
+                <span className="hidden lg:inline">Calc</span>
               </button>
               <button
                 onClick={() => setIsFormulaSheetOpen(true)}
-                className="px-2 sm:px-3 py-1 sm:py-1.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer"
+                className="p-1 sm:px-2 sm:py-1 rounded-lg bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-[11px] font-bold flex items-center gap-1 shadow-2xs transition-all cursor-pointer shrink-0"
+                title="Reference Formulas"
               >
-                <BookOpen className="w-3.5 h-3.5 text-emerald-600" />
-                <span className="hidden sm:inline">Reference</span>
+                <BookOpen className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-emerald-600" />
+                <span className="hidden lg:inline">Ref</span>
               </button>
             </>
           )}
 
+          {/* Question Palette Button */}
           <button
             onClick={() => setIsGridOpen(true)}
-            className="px-2 sm:px-3.5 py-1 sm:py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 border border-indigo-200/80 text-indigo-700 text-[11px] sm:text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer"
+            className="px-1.5 py-1 sm:px-2.5 sm:py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-700 text-[11px] sm:text-xs font-bold flex items-center gap-1 shadow-2xs transition-all cursor-pointer shrink-0"
+            title="Open Question Palette"
           >
-            <Grid className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-            <span className="hidden sm:inline">Question Palette </span>
-            <span>({activeQuestionIndex + 1}/{moduleQuestions.length})</span>
+            <Grid className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />
+            <span className="font-mono tracking-tight font-black">{activeQuestionIndex + 1}/{moduleQuestions.length}</span>
           </button>
         </div>
       </header>
